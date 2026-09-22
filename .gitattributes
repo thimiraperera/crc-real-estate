@@ -1,0 +1,7 @@
+# Store text files with LF line endings
+* text=auto eol=lf
+
+# Leave repository-only files out of the update package
+/.gitattributes export-ignore
+/.gitignore     export-ignore
+/README.md      export-ignore
