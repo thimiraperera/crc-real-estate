@@ -44,6 +44,7 @@ final class Plugin {
 		( new Taxonomy() )->hooks();
 		( new Views() )->hooks();
 		( new Popup() )->hooks();
+		( new Inquiries() )->hooks();
 		( new Sections\Title() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Sections\Description() )->hooks();
@@ -51,6 +52,7 @@ final class Plugin {
 		( new Sections\Overview() )->hooks();
 		( new Sections\Features() )->hooks();
 		( new Sections\Location() )->hooks();
+		( new Sections\Inquiry() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();
@@ -58,6 +60,7 @@ final class Plugin {
 		( new Admin\Features_Box() )->hooks();
 		( new Admin\Location_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
+		( new Admin\Inquiries_Screen() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Info_Page() )->hooks();
 		( new Admin\Settings_Page() )->hooks();

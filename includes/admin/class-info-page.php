@@ -31,7 +31,8 @@ final class Info_Page {
 	 * Registers hooks.
 	 */
 	public function hooks() {
-		add_action( 'admin_menu', array( $this, 'menu' ) );
+		// After Listings → Inquiries, which WordPress adds at the usual time.
+		add_action( 'admin_menu', array( $this, 'menu' ), 20 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
 	}
 

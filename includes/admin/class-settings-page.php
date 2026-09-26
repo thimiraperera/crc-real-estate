@@ -8,6 +8,7 @@
 namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Post_Type;
+use CRC\RealEstate\Sections\Inquiry;
 use CRC\RealEstate\Settings;
 use CRC\RealEstate\Updater;
 
@@ -15,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Settings: the default phone and WhatsApp numbers and button
- * texts, the map, and plugin updates.
+ * texts, the map, the inquiry form, and plugin updates.
  */
 final class Settings_Page {
 
@@ -26,7 +27,8 @@ final class Settings_Page {
 	 * Registers hooks.
 	 */
 	public function hooks() {
-		add_action( 'admin_menu', array( $this, 'menu' ) );
+		// After Listings → Inquiries, which WordPress adds at the usual time.
+		add_action( 'admin_menu', array( $this, 'menu' ), 20 );
 		add_action( 'admin_init', array( $this, 'register' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
 		add_filter( 'plugin_action_links_' . CRC_RE_BASENAME, array( $this, 'action_links' ) );
@@ -147,6 +149,7 @@ final class Settings_Page {
 		}
 
 		$this->register_map();
+		$this->register_inquiry();
 	}
 
 	/**
@@ -252,6 +255,137 @@ final class Settings_Page {
 					esc_attr( $name ),
 					esc_attr( Settings::map( 'credit' ) ),
 					esc_html__( 'Only with another map style: the credit line its provider asks for, for example "© MapTiler © OpenStreetMap contributors".', 'crc-real-estate' )
+				);
+				break;
+		}
+	}
+
+	/**
+	 * Registers the Inquiry form settings and their fields.
+	 */
+	private function register_inquiry() {
+		register_setting(
+			self::GROUP,
+			Settings::INQUIRY_OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_inquiry' ),
+				'default'           => Settings::inquiry_defaults(),
+			)
+		);
+
+		add_settings_section( 'crc_re_inquiry', __( 'Inquiry form', 'crc-real-estate' ), array( $this, 'inquiry_guide' ), self::SLUG );
+
+		$fields = array(
+			'email'      => __( 'Send inquiries to', 'crc-real-estate' ),
+			'captcha'    => __( 'Spam protection', 'crc-real-estate' ),
+			'site_key'   => __( 'hCaptcha site key', 'crc-real-estate' ),
+			'secret_key' => __( 'hCaptcha secret key', 'crc-real-estate' ),
+		);
+
+		foreach ( $fields as $key => $label ) {
+			add_settings_field(
+				'crc_re_inquiry_' . $key,
+				$label,
+				array( $this, 'inquiry_field' ),
+				self::SLUG,
+				'crc_re_inquiry',
+				array(
+					'label_for' => 'crc-inquiry-' . str_replace( '_', '-', $key ),
+					'key'       => $key,
+				)
+			);
+		}
+	}
+
+	/**
+	 * The short guide at the top of the Inquiry form settings.
+	 */
+	public function inquiry_guide() {
+		$link = function ( $url, $text ) {
+			return sprintf( '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( $url ), esc_html( $text ) );
+		};
+
+		echo '<p>' . esc_html__( 'Inquiries sent with the inquiry form are emailed to you and also kept under Listings → Inquiries, so none are lost if an email doesn\'t arrive.', 'crc-real-estate' ) . '</p>';
+
+		printf(
+			/* translators: 1: hCaptcha link, 2: hCaptcha Sites link, 3: hCaptcha Settings link. */
+			'<p>' . esc_html__( 'To stop spam robots, add hCaptcha\'s free "I am human" box: sign up at %1$s, add your website under %2$s to get its site key, and copy your secret key from %3$s. Then paste both keys below and tick Use hCaptcha.', 'crc-real-estate' ) . '</p>',
+			$link( 'https://www.hcaptcha.com/', 'hCaptcha' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+			$link( 'https://dashboard.hcaptcha.com/sites', __( 'Sites', 'crc-real-estate' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+			$link( 'https://dashboard.hcaptcha.com/settings', __( 'Settings', 'crc-real-estate' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+		);
+	}
+
+	/**
+	 * Prints an Inquiry form setting.
+	 *
+	 * @param array $args Field details.
+	 */
+	public function inquiry_field( $args ) {
+		$name = Settings::INQUIRY_OPTION;
+
+		switch ( $args['key'] ) {
+			case 'email':
+				$admin = (string) get_option( 'admin_email' );
+
+				printf(
+					'<input type="text" id="crc-inquiry-email" name="%1$s[email]" value="%2$s" class="regular-text" placeholder="%3$s" autocomplete="off" spellcheck="false"><p class="description">%4$s</p>',
+					esc_attr( $name ),
+					esc_attr( Settings::inquiry( 'email' ) ),
+					esc_attr( $admin ),
+					/* translators: %s: the site's admin email address. */
+					esc_html( sprintf( __( 'Every inquiry is emailed here. To send it to more than one person, put commas between the addresses. Leave it empty to use the site\'s admin email (%s). Replying to an inquiry email answers the person who sent it.', 'crc-real-estate' ), $admin ) )
+				);
+				break;
+
+			case 'captcha':
+				$notes = '';
+
+				if ( Settings::inquiry( 'captcha' ) && ! Settings::captcha_on() ) {
+					$notes .= '<p class="crc-warning">' . esc_html__( 'Use hCaptcha is ticked, but the box only shows on the form once both keys below are saved.', 'crc-real-estate' ) . '</p>';
+				}
+
+				$issue = get_option( Inquiry::CAPTCHA_ISSUE );
+
+				if ( Settings::captcha_on() && is_array( $issue ) && ! empty( $issue['time'] ) ) {
+					/* translators: %s: date. */
+					$notes .= '<p class="crc-warning">' . esc_html( sprintf( __( 'On %s hCaptcha said the keys aren\'t right, so inquiries came through without the check. Please copy both keys again from your hCaptcha dashboard and save. This note goes away after the next inquiry that passes the check.', 'crc-real-estate' ), wp_date( (string) get_option( 'date_format' ), (int) $issue['time'] ) ) ) . '</p>';
+				}
+
+				printf(
+					'<label><input type="checkbox" id="crc-inquiry-captcha" name="%1$s[captcha]" value="1"%2$s> %3$s</label><p class="description">%4$s</p>%5$s',
+					esc_attr( $name ),
+					checked( (bool) Settings::inquiry( 'captcha' ), true, false ),
+					esc_html__( 'Use hCaptcha', 'crc-real-estate' ),
+					esc_html__( 'Adds an "I am human" box above the Send button. People tick it before sending, which stops spam robots from sending inquiries. It needs both keys below.', 'crc-real-estate' ),
+					$notes // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+				);
+				break;
+
+			case 'site_key':
+				printf(
+					'<input type="text" id="crc-inquiry-site-key" name="%1$s[site_key]" value="%2$s" class="regular-text code" autocomplete="off" spellcheck="false"><p class="description">%3$s</p>',
+					esc_attr( $name ),
+					esc_attr( Settings::inquiry( 'site_key' ) ),
+					esc_html__( 'Find it under Sites in your hCaptcha dashboard. It looks like 10000000-ffff-ffff-ffff-000000000001. It shows on the form, so it doesn\'t need to be kept secret.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'secret_key':
+				$saved = (string) Settings::inquiry( 'secret_key' );
+				$help  = __( 'Find it under Settings in your hCaptcha dashboard. It stays private on this site and is only used to ask hCaptcha whether the box was ticked.', 'crc-real-estate' );
+
+				if ( '' !== $saved ) {
+					/* translators: %s: last 4 characters of the saved key. */
+					$help .= ' ' . sprintf( __( 'For safety the saved key isn\'t shown here; it ends in %s. Leave the box empty to keep it.', 'crc-real-estate' ), substr( $saved, -4 ) );
+				}
+
+				printf(
+					'<input type="text" id="crc-inquiry-secret-key" name="%1$s[secret_key]" value="" class="regular-text code" placeholder="%2$s" autocomplete="off" spellcheck="false"><p class="description">%3$s</p>',
+					esc_attr( $name ),
+					esc_attr( '' !== $saved ? __( 'Saved. Paste a new key only to change it.', 'crc-real-estate' ) : '' ),
+					esc_html( $help )
 				);
 				break;
 		}

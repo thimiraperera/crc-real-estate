@@ -17,6 +17,7 @@ Real estate listing tools for WordPress.
 * Property overview with the main details and a See More popup of details by category
 * Property features to tick, grouped by category, with a See More popup
 * Location map with the area around the property, while the exact place stays in the admin
+* Inquiry form that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -26,6 +27,15 @@ Real estate listing tools for WordPress.
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.14.0 =
+* Inquiry form: [crc_listing_inquiry] shows the "Send an inquiry" form with First Name, Last Name, Phone Number, Email and Your Message. First name, phone number and email must be filled in. First and last name sit side by side on desktops, laptops and tablets, and one under the other on phones. The Send Inquiry button uses the site's custom-btn-3 style, full width, with an arrow that moves a little on hover.
+* Phone numbers have a country code list with every country, with Sri Lanka chosen at first. Numbers are checked for the chosen country (077 123 4567, 77 123 4567 and +94 77 123 4567 all work), and a number typed with + chooses its own country.
+* Emails are checked as they are typed, the site checks that the email's domain really exists, and typing mistakes in popular services are spotted ("Did you mean name@gmail.com?").
+* Clear messages under each field say what to fix. The inquiry is sent without leaving the page, with a thank-you message by name.
+* Spam protection: a hidden trap field, at most 5 inquiries from one visitor in 10 minutes, and hCaptcha's "I am human" box when it is turned on.
+* Listings → Inquiries keeps every inquiry with buttons to reply by email, call or message on WhatsApp, so none are lost if an email doesn't arrive.
+* Listings → Settings → Inquiry form: where inquiries are emailed, and hCaptcha with its site key and secret key, with a short guide. The secret key is never shown once saved.
 
 = 0.13.2 =
 * The Location map on listing pages was blank. It asked the area circle for its size before the map had a place to show, which stopped it. It now sets the view from the area's centre and size first, then draws the map and the circle.

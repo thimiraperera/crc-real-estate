@@ -1,0 +1,387 @@
+/* Inquiry form: names, phone number with its country code, email, message and the send button. */
+.crc-inquiry {
+	--crc-inquiry-error: #d93025;
+	--crc-inquiry-field: color-mix(in srgb, var(--e-global-color-3581a59) 96.0784%, var(--e-global-color-1ead78b));
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin: 0;
+}
+
+.crc-inquiry [hidden] {
+	display: none !important;
+}
+
+/* A field only robots fill in, kept out of sight. */
+.crc-inquiry .crc-inquiry-trap {
+	position: absolute;
+	top: auto;
+	left: -10000px;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+}
+
+/* First and last name side by side, or one under the other (see the end of the file). */
+.crc-inquiry .crc-inquiry-names {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 8px 24px;
+}
+
+.crc-inquiry .crc-inquiry-field {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+	margin: 0;
+}
+
+/* A little more room above the message, as in the design. */
+.crc-inquiry .crc-inquiry-field[data-crc-field="message"] {
+	margin-top: 8px;
+}
+
+.crc-inquiry .crc-inquiry-label {
+	display: block;
+	margin: 0;
+	padding: 0;
+	color: var(--e-global-color-6e3d619);
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 24px;
+}
+
+/* Fields. Written like Elementor's own field styles, so these win over them. */
+.crc-inquiry .crc-inquiry-input:not([type="button"]):not([type="submit"]) {
+	display: block;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	height: 50px;
+	min-height: 0;
+	margin: 0;
+	padding: 0 24px;
+	border: 0;
+	border-radius: 8px;
+	outline: none;
+	background: var(--crc-inquiry-field);
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font-family: inherit;
+	font-size: 16px;
+	font-weight: 400;
+	line-height: 24px;
+	letter-spacing: inherit;
+	text-transform: none;
+	transition: box-shadow 0.2s ease;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.crc-inquiry .crc-inquiry-message:not([type="button"]):not([type="submit"]) {
+	height: auto;
+	min-height: 128px;
+	padding: 13px 24px;
+	resize: vertical;
+}
+
+.crc-inquiry .crc-inquiry-input::placeholder {
+	color: color-mix(in srgb, var(--e-global-color-6e3d619) 80%, var(--e-global-color-3581a59));
+	opacity: 1;
+}
+
+/* Fields: while typing */
+.crc-inquiry .crc-inquiry-input:not([type="button"]):not([type="submit"]):focus {
+	border: 0;
+	outline: none;
+	background: var(--crc-inquiry-field);
+	box-shadow: inset 0 0 0 1px var(--e-global-color-6e3d619);
+	color: var(--e-global-color-6e3d619);
+}
+
+/* Fields: not right yet */
+.crc-inquiry .crc-inquiry-field.is-invalid .crc-inquiry-input:not([type="button"]):not([type="submit"]) {
+	box-shadow: inset 0 0 0 1px var(--crc-inquiry-error);
+}
+
+/* Phone number: one grey box with the country code, a line, and the number. */
+.crc-inquiry .crc-inquiry-phone {
+	display: flex;
+	align-items: stretch;
+	min-width: 0;
+	border-radius: 8px;
+	background: var(--crc-inquiry-field);
+	transition: box-shadow 0.2s ease;
+}
+
+.crc-inquiry .crc-inquiry-phone:focus-within {
+	box-shadow: inset 0 0 0 1px var(--e-global-color-6e3d619);
+}
+
+.crc-inquiry .crc-inquiry-field.is-invalid .crc-inquiry-phone {
+	box-shadow: inset 0 0 0 1px var(--crc-inquiry-error);
+}
+
+.crc-inquiry .crc-inquiry-country {
+	position: relative;
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: 8px;
+	padding: 0 16px 0 24px;
+	color: var(--e-global-color-6e3d619);
+	font-size: 16px;
+	line-height: 24px;
+}
+
+.crc-inquiry .crc-inquiry-country::after {
+	content: "";
+	position: absolute;
+	top: 13px;
+	right: 0;
+	bottom: 13px;
+	width: 1px;
+	background: color-mix(in srgb, var(--e-global-color-text) 30%, var(--e-global-color-bb33687));
+}
+
+.crc-inquiry .crc-inquiry-country-code {
+	white-space: nowrap;
+}
+
+.crc-inquiry .crc-inquiry-country:focus-within .crc-inquiry-country-code {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+.crc-inquiry .crc-inquiry-country-icon {
+	flex: none;
+	width: 12px;
+	height: 12px;
+	fill: currentColor;
+}
+
+/* The list of every country opens from the code; the list box itself stays invisible over it. */
+.crc-inquiry .crc-inquiry-country .crc-inquiry-country-select {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 8px 0 0 8px;
+	outline: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font-size: 16px;
+	opacity: 0;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+/* The number sits inside the phone box, which has the background and the ring. */
+.crc-inquiry .crc-inquiry-phone .crc-inquiry-number:not([type="button"]):not([type="submit"]),
+.crc-inquiry .crc-inquiry-phone .crc-inquiry-number:not([type="button"]):not([type="submit"]):focus,
+.crc-inquiry .crc-inquiry-field.is-invalid .crc-inquiry-phone .crc-inquiry-number:not([type="button"]):not([type="submit"]) {
+	flex: 1 1 auto;
+	width: auto;
+	min-width: 0;
+	padding: 0 24px 0 16px;
+	background: transparent;
+	box-shadow: none;
+}
+
+/* Messages under a field */
+.crc-inquiry .crc-inquiry-error,
+.crc-inquiry .crc-inquiry-hint {
+	margin: 0;
+	padding: 0;
+	font-size: 14px;
+	line-height: 20px;
+}
+
+.crc-inquiry .crc-inquiry-error {
+	color: var(--crc-inquiry-error);
+}
+
+.crc-inquiry .crc-inquiry-hint {
+	color: var(--e-global-color-text);
+}
+
+/* "Did you mean …?" address: normal */
+.crc-inquiry .crc-inquiry-hint-button {
+	display: inline;
+	width: auto;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font: inherit;
+	font-weight: 600;
+	letter-spacing: normal;
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	text-shadow: none;
+	text-transform: none;
+	opacity: 1;
+	transform: none;
+	cursor: pointer;
+}
+
+/* "Did you mean …?" address: hover, focus and pressed. The theme's button hover styles don't apply. */
+.crc-inquiry .crc-inquiry-hint-button:hover,
+.crc-inquiry .crc-inquiry-hint-button:focus,
+.crc-inquiry .crc-inquiry-hint-button:active {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	outline: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-primary);
+	font-weight: 600;
+	letter-spacing: normal;
+	text-decoration: underline;
+	text-shadow: none;
+	text-transform: none;
+	opacity: 1;
+	transform: none;
+}
+
+.crc-inquiry .crc-inquiry-hint-button:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 2px;
+}
+
+/* hCaptcha's "I am human" box, with room kept for it while it loads */
+.crc-inquiry .crc-inquiry-captcha-field {
+	margin-top: 16px;
+}
+
+.crc-inquiry .crc-inquiry-captcha {
+	min-height: 78px;
+}
+
+/* Send button: the site's custom-btn-3 style, full width, with the arrow. */
+.crc-inquiry .crc-inquiry-submit {
+	width: 100%;
+	margin-top: 24px;
+}
+
+.crc-inquiry .crc-inquiry-submit .elementor-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 100%;
+}
+
+/* A button element has browser styles a link doesn't; this clears them without touching the site's button style. */
+.crc-inquiry-button {
+	margin: 0;
+	border: 0;
+	font-family: inherit;
+	font-weight: inherit;
+	letter-spacing: inherit;
+	text-transform: inherit;
+	cursor: pointer;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.crc-inquiry .crc-inquiry-submit .elementor-button-content-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+}
+
+.crc-inquiry .crc-inquiry-submit .elementor-button-icon {
+	display: flex;
+}
+
+/* The arrow moves a little to the right on hover. */
+.crc-inquiry .crc-inquiry-submit .crc-inquiry-button-icon {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+	transition: transform 0.3s ease;
+}
+
+.crc-inquiry .crc-inquiry-submit .elementor-button:hover .crc-inquiry-button-icon,
+.crc-inquiry .crc-inquiry-submit .elementor-button:focus-visible .crc-inquiry-button-icon {
+	transform: translateX(4px);
+}
+
+/* While sending */
+.crc-inquiry.is-sending .crc-inquiry-submit .elementor-button {
+	opacity: 0.7;
+	cursor: progress;
+}
+
+/* Sent, or not sent */
+.crc-inquiry .crc-inquiry-status {
+	margin: 8px 0 0;
+	padding: 12px 16px;
+	border-radius: 8px;
+	font-size: 16px;
+	line-height: 24px;
+}
+
+.crc-inquiry .crc-inquiry-status.is-success {
+	background: color-mix(in srgb, var(--e-global-color-primary) 8%, var(--e-global-color-3581a59));
+	color: var(--e-global-color-primary);
+}
+
+.crc-inquiry .crc-inquiry-status.is-error {
+	background: color-mix(in srgb, var(--crc-inquiry-error) 8%, var(--e-global-color-3581a59));
+	color: var(--crc-inquiry-error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-inquiry .crc-inquiry-input:not([type="button"]):not([type="submit"]),
+	.crc-inquiry .crc-inquiry-phone,
+	.crc-inquiry .crc-inquiry-submit .crc-inquiry-button-icon {
+		transition: none;
+	}
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	.crc-inquiry .crc-inquiry-names {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	.crc-inquiry .crc-inquiry-names {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	.crc-inquiry .crc-inquiry-names {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	.crc-inquiry .crc-inquiry-names {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}

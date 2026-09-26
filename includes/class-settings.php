@@ -11,12 +11,14 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * The default contact numbers and button texts from Listings → Settings, and
- * each listing's own ones when it has them; and the map settings.
+ * each listing's own ones when it has them; the map settings; and the
+ * inquiry form settings.
  */
 final class Settings {
 
 	const OPTION            = 'crc_re_contact';
 	const MAP_OPTION        = 'crc_re_map';
+	const INQUIRY_OPTION    = 'crc_re_inquiry';
 	const DEFAULT_NUMBER    = '+94777643264';
 	const PHONE_META        = '_crc_phone';
 	const WHATSAPP_META     = '_crc_whatsapp';
@@ -168,6 +170,111 @@ final class Settings {
 			'lng'    => $number( 'lng', -180, 180, 6 ),
 			'tiles'  => $valid ? $tiles : '',
 			'credit' => isset( $input['credit'] ) && is_scalar( $input['credit'] ) ? sanitize_text_field( (string) $input['credit'] ) : '',
+		);
+	}
+
+	/**
+	 * Inquiry form settings used until they are saved: where inquiries are
+	 * emailed (empty for the site's admin email) and hCaptcha.
+	 *
+	 * @return array
+	 */
+	public static function inquiry_defaults() {
+		return array(
+			'email'      => '',
+			'captcha'    => false,
+			'site_key'   => '',
+			'secret_key' => '',
+		);
+	}
+
+	/**
+	 * A saved inquiry form setting.
+	 *
+	 * @param string $key "email", "captcha", "site_key" or "secret_key".
+	 * @return bool|string|null
+	 */
+	public static function inquiry( $key ) {
+		$saved = get_option( self::INQUIRY_OPTION, array() );
+		$saved = array_merge( self::inquiry_defaults(), is_array( $saved ) ? $saved : array() );
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Where inquiries are emailed: the addresses from Settings, or the
+	 * site's admin email.
+	 *
+	 * @return string[]
+	 */
+	public static function inquiry_recipients() {
+		$emails = self::email_list( self::inquiry( 'email' ) );
+
+		return $emails ? $emails : self::email_list( get_option( 'admin_email' ) );
+	}
+
+	/**
+	 * Whether the form asks for hCaptcha: it's turned on and both keys are saved.
+	 *
+	 * @return bool
+	 */
+	public static function captcha_on() {
+		return self::inquiry( 'captcha' ) && '' !== self::inquiry( 'site_key' ) && '' !== self::inquiry( 'secret_key' );
+	}
+
+	/**
+	 * Reads email addresses separated by commas, semicolons or spaces. Only
+	 * real addresses are kept, each once, at most 10.
+	 *
+	 * @param mixed $value Typed addresses.
+	 * @return string[]
+	 */
+	public static function email_list( $value ) {
+		$emails = array();
+
+		foreach ( preg_split( '/[\s,;]+/', is_scalar( $value ) ? (string) $value : '' ) as $email ) {
+			$email = sanitize_email( $email );
+
+			if ( '' !== $email && is_email( $email ) && ! in_array( strtolower( $email ), array_map( 'strtolower', $emails ), true ) ) {
+				$emails[] = $email;
+			}
+		}
+
+		return array_slice( $emails, 0, 10 );
+	}
+
+	/**
+	 * Keeps an hCaptcha key: letters, digits, dashes and underscores.
+	 *
+	 * @param mixed $value Typed key.
+	 * @return string
+	 */
+	public static function sanitize_captcha_key( $value ) {
+		return is_scalar( $value ) ? (string) preg_replace( '/[^A-Za-z0-9_\-]/', '', (string) $value ) : '';
+	}
+
+	/**
+	 * Cleans the inquiry form settings. The secret key isn't shown on the
+	 * settings page, so an empty box keeps the saved one.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_inquiry( $input ) {
+		$input  = is_array( $input ) ? $input : array();
+		$saved  = get_option( self::INQUIRY_OPTION, array() );
+		$saved  = is_array( $saved ) ? $saved : array();
+		$secret = self::sanitize_captcha_key( isset( $input['secret_key'] ) ? $input['secret_key'] : '' );
+
+		if ( '' === $secret && isset( $saved['secret_key'] ) ) {
+			$secret = self::sanitize_captcha_key( $saved['secret_key'] );
+		}
+
+		return array(
+			'email'      => implode( ', ', self::email_list( isset( $input['email'] ) ? $input['email'] : '' ) ),
+			'captcha'    => ! empty( $input['captcha'] ),
+			'site_key'   => self::sanitize_captcha_key( isset( $input['site_key'] ) ? $input['site_key'] : '' ),
+			'secret_key' => $secret,
 		);
 	}
 

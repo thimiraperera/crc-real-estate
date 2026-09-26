@@ -513,6 +513,34 @@
 	gap: 8px 12px;
 }
 
+/* Something to put right */
+.crc-warning {
+	color: #b32d2e;
+}
+
+/* Listings → Inquiries: one inquiry */
+.crc-inquiry-details th {
+	width: 140px;
+}
+
+.crc-inquiry-details td {
+	overflow-wrap: anywhere;
+}
+
+.crc-inquiry-reply {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.crc-inquiry-reply .button {
+	text-align: center;
+}
+
+.crc-inquiry-trash {
+	margin: 16px 0 0;
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	.crc-fields,
