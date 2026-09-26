@@ -216,13 +216,16 @@
 	margin: 0;
 }
 
-/* A detail that comes from another box */
-.crc-field-label {
-	font-weight: 600;
+/* Locked field: a detail that comes from another box, e.g. the Price box */
+.crc-locked input[readonly] {
+	background: #f0f0f1;
+	color: #50575e;
+	cursor: not-allowed;
 }
 
-.crc-field-static {
-	color: #50575e;
+.crc-locked-icon {
+	flex: none;
+	color: #8c8f94;
 }
 
 .crc-overview-box-groups {

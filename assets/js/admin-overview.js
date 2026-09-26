@@ -112,24 +112,18 @@ jQuery( function ( $ ) {
 		} ).val( $( source ).val() );
 	} );
 
-	// Details that come from the Price box follow it as it is typed.
-	function amount( value ) {
-		var number = parseInt( String( value ).replace( /[,\s]/g, '' ).split( '.' )[ 0 ], 10 );
-
-		return number > 0 ? ( text.currency || 'Rs.' ) + ' ' + number.toLocaleString( 'en-US' ) : '';
-	}
-
-	function follow( field, linked, format ) {
+	// Locked fields that come from the Price box follow it as it is typed.
+	function follow( field, linked ) {
 		$( field ).on( 'input', function () {
-			var shown = amount( $( this ).val() );
+			var number = parseInt( String( $( this ).val() ).replace( /[,\s]/g, '' ).split( '.' )[ 0 ], 10 );
 
-			$box.find( '[data-crc-linked="' + linked + '"]' ).text( shown ? format.replace( '%s', shown ) : ( text.notSet || 'Not set' ) );
+			$box.find( '[data-crc-linked="' + linked + '"]' ).val( number > 0 ? number.toLocaleString( 'en-US' ) : '' );
 		} );
 	}
 
-	follow( '#crc-per-perch-field', 'price_per_perch', '%s' );
-	follow( '#crc-price-field', 'price', '%s' );
-	follow( '#crc-price-field', 'rent', text.perMonth || '%s per month' );
+	follow( '#crc-per-perch-field', 'price_per_perch' );
+	follow( '#crc-price-field', 'price' );
+	follow( '#crc-price-field', 'rent' );
 
 	$box.on( 'click', '.crc-overview-box-group-remove', function ( event ) {
 		var $group = $( this ).closest( '.crc-overview-box-group' );

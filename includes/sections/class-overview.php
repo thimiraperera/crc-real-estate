@@ -133,10 +133,12 @@ final class Overview {
 	 * - unit:     for numbers, how the number is written, from _n_noop().
 	 * - units:    for numbers, units to choose from: key => _n_noop().
 	 * - decimals: for numbers, whether decimals are allowed.
-	 * - format:   for money, how the amount is written, e.g. "%s per month".
+	 * - format:   for money and linked amounts, how the amount is written, e.g. "%s per month".
 	 * - options:  for selects, key => label.
-	 * - value:    for linked items, a callback that gets the listing ID and returns the text.
-	 * - note:     for linked items, help text on the listing screen.
+	 * - amount:   for linked items, a callback that gets the listing ID and returns an
+	 *             amount in digits, written as money with 'format'.
+	 * - value:    for linked items without an amount, a callback that returns the text.
+	 * - note:     for linked items, help text under their locked field on the listing screen.
 	 *
 	 * @return array[]
 	 */
@@ -171,14 +173,16 @@ final class Overview {
 			),
 		);
 
+		/* translators: %s: amount, e.g. "Rs. 25,000". */
+		$per_month = __( '%s per month', 'crc-real-estate' );
+
 		$maintenance_fee = array(
 			'label'  => __( 'Maintenance fee', 'crc-real-estate' ),
 			'type'   => 'money',
-			/* translators: %s: amount, e.g. "Rs. 25,000". */
-			'format' => __( '%s per month', 'crc-real-estate' ),
+			'format' => $per_month,
 		);
 
-		$from_price_box = __( 'Comes from the Price box, so you only type it once.', 'crc-real-estate' );
+		$from_price_box = __( 'Locked. It comes from the Price box, so you only type it once.', 'crc-real-estate' );
 
 		/**
 		 * Filters the ready-made groups of details, e.g. to add a group or change the choices on another site.
@@ -199,10 +203,10 @@ final class Overview {
 							'unit'  => $area['perches'],
 						),
 						'price_per_perch'  => array(
-							'label' => __( 'Price per perch', 'crc-real-estate' ),
-							'type'  => 'linked',
-							'value' => array( __CLASS__, 'price_per_perch' ),
-							'note'  => __( 'Comes from Price per perch in the Price box, so you only type it once. It shows on land listings.', 'crc-real-estate' ),
+							'label'  => __( 'Price per perch', 'crc-real-estate' ),
+							'type'   => 'linked',
+							'amount' => array( Price_Card::class, 'price_per_perch' ),
+							'note'   => __( 'Locked. It comes from Price per perch in the Price box, so you only type it once.', 'crc-real-estate' ),
 						),
 						'price_basis'      => array(
 							'label'   => __( 'Price basis', 'crc-real-estate' ),
@@ -286,16 +290,16 @@ final class Overview {
 					'categories' => array( 'properties-for-sale' ),
 					'items'      => array(
 						'price'                => array(
-							'label' => __( 'Price', 'crc-real-estate' ),
-							'type'  => 'linked',
-							'value' => array( __CLASS__, 'price_text' ),
-							'note'  => $from_price_box,
+							'label'  => __( 'Price', 'crc-real-estate' ),
+							'type'   => 'linked',
+							'amount' => array( Price_Card::class, 'price' ),
+							'note'   => $from_price_box,
 						),
 						'price_per_perch_sale' => array(
-							'label' => __( 'Price per perch', 'crc-real-estate' ),
-							'type'  => 'linked',
-							'value' => array( __CLASS__, 'price_per_perch_worked_out' ),
-							'note'  => __( 'Worked out from the price and the land extent when the listing is saved, so there is nothing to type.', 'crc-real-estate' ),
+							'label'  => __( 'Price per perch', 'crc-real-estate' ),
+							'type'   => 'linked',
+							'amount' => array( __CLASS__, 'worked_out_price_per_perch' ),
+							'note'   => __( 'Locked. It is worked out from the price and the land extent when the listing is saved, so there is nothing to type.', 'crc-real-estate' ),
 						),
 						'price_type'           => $price_type,
 						'maintenance_fee'      => $maintenance_fee,
@@ -315,10 +319,11 @@ final class Overview {
 					'categories' => array( 'properties-for-rent' ),
 					'items'      => array(
 						'rent'            => array(
-							'label' => __( 'Rent', 'crc-real-estate' ),
-							'type'  => 'linked',
-							'value' => array( __CLASS__, 'rent_text' ),
-							'note'  => $from_price_box,
+							'label'  => __( 'Rent', 'crc-real-estate' ),
+							'type'   => 'linked',
+							'amount' => array( Price_Card::class, 'price' ),
+							'format' => $per_month,
+							'note'   => $from_price_box,
 						),
 						'advance_payment' => array(
 							'label'    => __( 'Advance payment', 'crc-real-estate' ),
@@ -460,6 +465,7 @@ final class Overview {
 						'decimals' => true,
 						'format'   => '%s',
 						'options'  => array(),
+						'amount'   => null,
 						'value'    => null,
 						'note'     => '',
 					)
@@ -549,6 +555,12 @@ final class Overview {
 	 */
 	public static function detail_text( $post_id, array $item ) {
 		if ( 'linked' === $item['type'] ) {
+			if ( is_callable( $item['amount'] ) ) {
+				$amount = self::linked_amount( $post_id, $item );
+
+				return '' !== $amount ? sprintf( $item['format'], Price_Card::money( $amount ) ) : '';
+			}
+
 			return is_callable( $item['value'] ) ? trim( (string) call_user_func( $item['value'], $post_id ) ) : '';
 		}
 
@@ -689,55 +701,28 @@ final class Overview {
 	}
 
 	/**
-	 * Price per perch from the Price box, e.g. "Rs. 3,125", on land listings.
+	 * A linked detail's amount, in digits.
 	 *
-	 * @param int $post_id Listing ID.
-	 * @return string
+	 * @param int   $post_id Listing ID.
+	 * @param array $item    Linked detail from common_groups().
+	 * @return string An empty string when there is none.
 	 */
-	public static function price_per_perch( $post_id ) {
-		$category = Taxonomy::listing_category( $post_id );
-		$amount   = Price_Card::price_per_perch( $post_id );
-
-		return ( $category && $category['per_perch'] && '' !== $amount ) ? Price_Card::money( $amount ) : '';
+	public static function linked_amount( $post_id, array $item ) {
+		return is_callable( $item['amount'] ) ? Price_Card::sanitize_amount( call_user_func( $item['amount'], $post_id ) ) : '';
 	}
 
 	/**
-	 * The price from the Price box, e.g. "Rs. 70,000,000".
+	 * Price per perch worked out from the price and the land extent, in
+	 * digits: Rs. 70,000,000 for 12 perches is 5833333.
 	 *
 	 * @param int $post_id Listing ID.
-	 * @return string
+	 * @return string An empty string without a price or a land extent.
 	 */
-	public static function price_text( $post_id ) {
-		$price = Price_Card::price( $post_id );
-
-		return '' !== $price ? Price_Card::money( $price ) : '';
-	}
-
-	/**
-	 * The monthly rent from the Price box, e.g. "Rs. 70,000 per month".
-	 *
-	 * @param int $post_id Listing ID.
-	 * @return string
-	 */
-	public static function rent_text( $post_id ) {
-		$price = Price_Card::price( $post_id );
-
-		/* translators: %s: amount, e.g. "Rs. 70,000". */
-		return '' !== $price ? sprintf( __( '%s per month', 'crc-real-estate' ), Price_Card::money( $price ) ) : '';
-	}
-
-	/**
-	 * Price per perch worked out from the price and the land extent, e.g.
-	 * Rs. 70,000,000 for 12 perches is "Rs. 5,833,333".
-	 *
-	 * @param int $post_id Listing ID.
-	 * @return string
-	 */
-	public static function price_per_perch_worked_out( $post_id ) {
+	public static function worked_out_price_per_perch( $post_id ) {
 		$price   = Price_Card::price( $post_id );
 		$perches = self::land_perches( $post_id );
 
-		return ( '' !== $price && $perches > 0 ) ? Price_Card::money( (string) round( (float) $price / $perches ) ) : '';
+		return ( '' !== $price && $perches > 0 ) ? number_format( round( (float) $price / $perches ), 0, '.', '' ) : '';
 	}
 
 	/**

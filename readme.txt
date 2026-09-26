@@ -25,6 +25,9 @@ Real estate listing tools for WordPress.
 
 == Changelog ==
 
+= 0.10.1 =
+* Details that come from the Price box (Price per perch, Price and Rent) and the worked-out price per perch show as locked fields in their groups: the value like the other fields, with Rs., a lock icon and a note. They can't be typed in, and they follow the Price box as it is typed.
+
 = 0.10.0 =
 * On the listing screen, the ready-made groups (Size and price, Access and road and the others) use the same grey card as the listing's own groups.
 * Each ready-made group has Add detail, for details of the listing's own. They show in the popup after that group's other details, and can be dragged into order or removed. Groups for another category keep their added details.

@@ -65,10 +65,6 @@ final class Overview_Box {
 			'crcReOverview',
 			array(
 				'confirmRemove' => __( 'Remove this group and all its details?', 'crc-real-estate' ),
-				'currency'      => Price_Card::currency(),
-				'notSet'        => __( 'Not set', 'crc-real-estate' ),
-				/* translators: %s: amount, e.g. "Rs. 70,000". */
-				'perMonth'      => __( '%s per month', 'crc-real-estate' ),
 			)
 		);
 	}
@@ -189,8 +185,8 @@ final class Overview_Box {
 	}
 
 	/**
-	 * Prints a ready-made detail's field. A linked detail shows its value,
-	 * which is changed where it comes from.
+	 * Prints a ready-made detail's field. A linked detail gets a locked
+	 * field with its value, which is changed where it comes from.
 	 *
 	 * @param \WP_Post $post     Listing being edited.
 	 * @param string   $group    Group name, which keeps field ids unique.
@@ -202,23 +198,65 @@ final class Overview_Box {
 		$id = 'crc-detail-' . str_replace( '_', '-', $group . '-' . $name );
 		?>
 		<div class="crc-field-group">
-			<?php if ( 'linked' === $item['type'] ) : ?>
-				<?php $text = Overview::detail_text( $post->ID, $item ); ?>
-				<p class="crc-field">
-					<span class="crc-field-label"><?php echo esc_html( $item['label'] ); ?></span>
-					<span class="crc-field-static" data-crc-linked="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( '' !== $text ? $text : __( 'Not set', 'crc-real-estate' ) ); ?></span>
-				</p>
-				<?php if ( '' !== $item['note'] ) : ?>
-					<p class="description"><?php echo esc_html( $item['note'] ); ?></p>
-				<?php endif; ?>
-			<?php else : ?>
-				<p class="crc-field">
-					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $item['label'] ); ?></label>
-					<?php $this->control( $post, $id, $name, $item, $disabled ); ?>
-				</p>
+			<p class="crc-field">
+				<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $item['label'] ); ?></label>
+				<?php
+				if ( 'linked' === $item['type'] ) {
+					$this->locked( $post, $id, $name, $item );
+				} else {
+					$this->control( $post, $id, $name, $item, $disabled );
+				}
+				?>
+			</p>
+			<?php if ( 'linked' === $item['type'] && '' !== $item['note'] ) : ?>
+				<p class="description" id="<?php echo esc_attr( $id . '-note' ); ?>"><?php echo esc_html( $item['note'] ); ?></p>
 			<?php endif; ?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Prints the locked field of a linked detail, e.g. Price per perch from
+	 * the Price box. It shows the value like the other fields, but can't be
+	 * typed in and isn't saved from here.
+	 *
+	 * @param \WP_Post $post Listing being edited.
+	 * @param string   $id   Field id.
+	 * @param string   $name Detail name.
+	 * @param array    $item Linked detail from Overview::common_groups().
+	 */
+	private function locked( $post, $id, $name, array $item ) {
+		$money = is_callable( $item['amount'] );
+		$value = Overview::detail_text( $post->ID, $item );
+
+		if ( $money ) {
+			$amount = Overview::linked_amount( $post->ID, $item );
+			$value  = '' !== $amount ? number_format_i18n( (float) $amount ) : '';
+		}
+
+		echo '<span class="crc-measure crc-locked">';
+
+		if ( $money ) {
+			printf( '<span class="crc-money-currency">%s</span>', esc_html( Price_Card::currency() ) );
+		}
+
+		printf(
+			'<input type="text" id="%1$s" value="%2$s" placeholder="%3$s" data-crc-linked="%4$s" readonly%5$s>',
+			esc_attr( $id ),
+			esc_attr( $value ),
+			esc_attr__( 'Not set', 'crc-real-estate' ),
+			esc_attr( $name ),
+			'' !== $item['note'] ? ' aria-describedby="' . esc_attr( $id . '-note' ) . '"' : ''
+		);
+
+		$after = $money ? trim( sprintf( $item['format'], '' ) ) : '';
+
+		if ( '' !== $after ) {
+			printf( '<span class="crc-measure-unit">%s</span>', esc_html( $after ) );
+		}
+
+		printf( '<span class="dashicons dashicons-lock crc-locked-icon" title="%s" aria-hidden="true"></span>', esc_attr__( 'Locked', 'crc-real-estate' ) );
+		echo '</span>';
 	}
 
 	/**
