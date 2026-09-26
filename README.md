@@ -11,7 +11,11 @@ Real estate listing tools for WordPress.
 - **Property features** to tick, grouped by category, with a See More popup
 - **Location** map with the area around the property, while the exact place stays in the admin
 - **Inquiry form** that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
-- **FAQs** that open smoothly, set for each category and each listing, with FAQ structured data for search engines
+- **FAQs** that open smoothly, one at a time, set for each category and each listing, with FAQ structured data for search engines
+- **Import & Export** of listings from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing
+- **Download listing** as a zip file with a page of all its details, its photos in full size and the inquiries about it
+- **Owner details** kept privately with each listing, never shown on the website
+- **Photo privacy**: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

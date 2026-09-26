@@ -32,6 +32,7 @@ final class Installer {
 	 * Runs when the plugin is deactivated.
 	 */
 	public static function deactivate() {
+		Importer::stop_all();
 		unregister_post_type( Post_Type::NAME );
 		flush_rewrite_rules();
 	}

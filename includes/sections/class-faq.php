@@ -38,6 +38,13 @@ final class Faq {
 	private static $schema = array();
 
 	/**
+	 * FAQ lists on the page so far, so each list's questions open one at a time.
+	 *
+	 * @var int
+	 */
+	private static $count = 0;
+
+	/**
 	 * Registers hooks.
 	 */
 	public function hooks() {
@@ -57,7 +64,7 @@ final class Faq {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'FAQs', 'crc-real-estate' ),
-				'description' => __( 'Frequently asked questions. Each question opens smoothly to show its answer, and the first one is open at the start. A listing shows the questions of its category, set under Listings → Listing Categories (edit a category), then its own from the FAQs box on the listing screen. When a listing has no questions, nothing shows and the container with the class crc-listing-faq is hidden. The questions are also given to search engines as FAQ structured data.', 'crc-real-estate' ),
+				'description' => __( 'Frequently asked questions. Each question opens smoothly to show its answer. The first one is open at the start, and only one is open at a time: opening another closes the one that was open. A listing shows the questions of its category, set under Listings → Listing Categories (edit a category), then its own from the FAQs box on the listing screen. When a listing has no questions, nothing shows and the container with the class crc-listing-faq is hidden. The questions are also given to search engines as FAQ structured data.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'       => array(
 						'default'     => '',
@@ -69,7 +76,7 @@ final class Faq {
 					),
 					'open'     => array(
 						'default'     => 'first',
-						'description' => __( 'Which questions are open at the start: first, all or none.', 'crc-real-estate' ),
+						'description' => __( 'Whether the first question is open at the start: first, or none to start with all of them closed.', 'crc-real-estate' ),
 					),
 					'schema'   => array(
 						'default'     => 'yes',
@@ -283,15 +290,17 @@ final class Faq {
 		wp_enqueue_style( 'crc-re-faq' );
 		wp_enqueue_script( 'crc-re-faq' );
 
-		$open = strtolower( trim( (string) $atts['open'] ) );
-		$html = '<div class="crc-faq" data-crc-faq>';
+		// Only the first question may start open; one is open at a time.
+		$first = ! in_array( strtolower( trim( (string) $atts['open'] ) ), array( 'none', 'no', '0' ), true );
+		$group = 'crc-faq-' . ( ++self::$count );
+		$html  = '<div class="crc-faq" data-crc-faq>';
 
 		foreach ( $items as $i => $item ) {
-			$is_open = in_array( $open, array( 'all', 'yes' ), true ) || ( 0 === $i && ! in_array( $open, array( 'none', 'no', '0' ), true ) );
-
+			// The shared name lets browsers keep one question open even without the script.
 			$html .= sprintf(
-				'<details class="crc-faq-item"%1$s><summary class="crc-faq-question"><span class="crc-faq-question-text">%2$s</span>%3$s%4$s</summary><div class="crc-faq-answer"><div class="crc-faq-answer-inner">%5$s</div></div></details>',
-				$is_open ? ' open' : '',
+				'<details class="crc-faq-item" name="%1$s"%2$s><summary class="crc-faq-question"><span class="crc-faq-question-text">%3$s</span>%4$s%5$s</summary><div class="crc-faq-answer"><div class="crc-faq-answer-inner">%6$s</div></div></details>',
+				esc_attr( $group ),
+				$first && 0 === $i ? ' open' : '',
 				esc_html( $item['question'] ),
 				Icons::svg( 'chevron-down', 'crc-faq-icon crc-faq-icon-closed' ),
 				Icons::svg( 'chevron-up', 'crc-faq-icon crc-faq-icon-open' ),

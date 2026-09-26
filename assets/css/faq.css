@@ -20,7 +20,7 @@
 	justify-content: space-between;
 	gap: 16px;
 	margin: 0;
-	padding: 12px 24px;
+	padding: 16px 24px;
 	color: var(--e-global-color-6e3d619);
 	font-weight: 500;
 	line-height: 24px;
@@ -79,13 +79,13 @@
 	display: block;
 }
 
-/* Answer: 24px under the question (the question's 12px padding and 12px here). */
+/* Answer: 24px under the question (the question's 16px padding and 8px here). */
 .crc-faq .crc-faq-answer {
 	overflow: hidden;
 }
 
 .crc-faq .crc-faq-answer-inner {
-	padding: 12px 24px 24px;
+	padding: 8px 24px 24px;
 	color: var(--e-global-color-text);
 }
 

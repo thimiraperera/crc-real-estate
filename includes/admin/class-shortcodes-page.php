@@ -1,6 +1,6 @@
 <?php
 /**
- * Info page.
+ * Shortcodes page.
  *
  * @package CRC_Real_Estate
  */
@@ -13,12 +13,12 @@ use CRC\RealEstate\Shortcodes;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Listings → Info: every shortcode the plugin offers, with its options and
- * ready-to-copy examples.
+ * Listings → Shortcodes: every shortcode the plugin offers, with its options
+ * and ready-to-copy examples.
  */
-final class Info_Page {
+final class Shortcodes_Page {
 
-	const SLUG = 'crc-real-estate-info';
+	const SLUG = 'crc-real-estate-shortcodes';
 
 	/**
 	 * Admin page hook suffix.
@@ -42,8 +42,8 @@ final class Info_Page {
 	public function menu() {
 		$this->hook = (string) add_submenu_page(
 			'edit.php?post_type=' . Post_Type::NAME,
-			__( 'CRC Real Estate Info', 'crc-real-estate' ),
-			__( 'Info', 'crc-real-estate' ),
+			__( 'Shortcodes', 'crc-real-estate' ),
+			__( 'Shortcodes', 'crc-real-estate' ),
 			'edit_posts',
 			self::SLUG,
 			array( $this, 'render' )
@@ -72,18 +72,7 @@ final class Info_Page {
 		$copied = __( 'Copied', 'crc-real-estate' );
 		?>
 		<div class="wrap crc-info">
-			<h1><?php esc_html_e( 'CRC Real Estate', 'crc-real-estate' ); ?></h1>
-			<p class="crc-info-meta">
-				<?php
-				/* translators: %s: plugin version. */
-				echo esc_html( sprintf( __( 'Version %s', 'crc-real-estate' ), CRC_RE_VERSION ) );
-				?>
-				<?php if ( current_user_can( 'update_plugins' ) ) : ?>
-					· <a href="<?php echo esc_url( \CRC\RealEstate\Updater::check_url() ); ?>"><?php esc_html_e( 'Check for updates', 'crc-real-estate' ); ?></a>
-				<?php endif; ?>
-			</p>
-
-			<h2><?php esc_html_e( 'Shortcodes', 'crc-real-estate' ); ?></h2>
+			<h1><?php esc_html_e( 'Shortcodes', 'crc-real-estate' ); ?></h1>
 			<p class="crc-info-intro">
 				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. On a listing page, it shows that listing automatically. Anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings.', 'crc-real-estate' ); ?>
 			</p>

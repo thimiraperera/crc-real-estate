@@ -45,6 +45,9 @@ final class Plugin {
 		( new Views() )->hooks();
 		( new Popup() )->hooks();
 		( new Inquiries() )->hooks();
+		( new Owner() )->hooks();
+		( new Photo_Privacy() )->hooks();
+		( new Importer() )->hooks();
 		( new Sections\Title() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Sections\Description() )->hooks();
@@ -61,10 +64,13 @@ final class Plugin {
 		( new Admin\Features_Box() )->hooks();
 		( new Admin\Location_Box() )->hooks();
 		( new Admin\Faq_Box() )->hooks();
+		( new Admin\Owner_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Inquiries_Screen() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
-		( new Admin\Info_Page() )->hooks();
+		( new Admin\Listing_Export() )->hooks();
+		( new Admin\Import_Page() )->hooks();
+		( new Admin\Shortcodes_Page() )->hooks();
 		( new Admin\Settings_Page() )->hooks();
 
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );

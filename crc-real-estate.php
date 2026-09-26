@@ -3,7 +3,7 @@
  * Plugin Name:       CRC Real Estate
  * Plugin URI:        https://github.com/thimiraperera/crc-real-estate
  * Description:       Real estate listing tools for WordPress.
- * Version:           0.15.1
+ * Version:           0.16.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Tested up to:      7.1
@@ -27,8 +27,8 @@ define( 'CRC_RE_URL', plugin_dir_url( __FILE__ ) );
 define( 'CRC_RE_BASENAME', plugin_basename( __FILE__ ) );
 
 /*
- * Loads classes from includes/. CRC\RealEstate\Admin\Info_Page is read from
- * includes/admin/class-info-page.php.
+ * Loads classes from includes/. CRC\RealEstate\Admin\Import_Page is read from
+ * includes/admin/class-import-page.php.
  */
 spl_autoload_register(
 	function ( $class ) {

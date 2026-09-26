@@ -18,7 +18,11 @@ Real estate listing tools for WordPress.
 * Property features to tick, grouped by category, with a See More popup
 * Location map with the area around the property, while the exact place stays in the admin
 * Inquiry form that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
-* FAQs that open smoothly, set for each category and each listing, with FAQ structured data for search engines
+* FAQs that open smoothly, one at a time, set for each category and each listing, with FAQ structured data for search engines
+* Import & Export: add or change many listings at once from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing
+* Download listing: a zip file with a page of all the listing's details, its photos in full size and the inquiries about it
+* Owner details kept privately with each listing, never shown on the website
+* Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -30,6 +34,20 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.16.0 =
+* FAQs: only one question is open at a time. The first one is open when the page loads, and opening another question closes the one that was open. Questions are padded 16px at the top and bottom (16px 24px).
+* Listings → Import & Export: add or change many listings at once from a spreadsheet saved as CSV. Photos are downloaded from their links into the Media Library; Google Drive and Dropbox share links work. The import works a little at a time so the server never runs out of time, lists what happened to each row, and carries on where it stopped if the connection drops. New listings are added as drafts unless their status says publish, and a listing is only published once it has a main photo and a category.
+* A sample file with three example listings shows every column, and the page explains what to put in each one.
+* Export every listing as a CSV file in the same format, to keep a copy, or to change them in Excel or Google Sheets and import them back.
+* Only one import runs at a time for each person, even with the page open in two windows, and a listing is never added twice when the connection drops. Rows with problems are always listed, with what to do about them, and an import left for a day is removed with the owner details in it.
+* Changing listings from a file: only the filled-in cells change. For example, faq_2_answer changes only the answer of question 2, and a cell that can't be used is left out with a warning instead of erasing what is saved. Importing the same file again doesn't repeat features or details.
+* Download listing, in the Publish box and under each listing in All Listings: a zip file with a page showing all the listing's details, its photos in full size, its spreadsheet row and all of its data. Editors and administrators also get the inquiries about it.
+* Owner (private): a new box on the listing screen for the owner's first and last name, phone, email, address and special notes. They are only seen in the admin and in downloads, never on the website.
+* Photos: phones write the exact place a photo was taken into the photo file. It is now removed when photos are uploaded or imported (JPEG, PNG, WebP, AVIF and HEIC), and once, a little at a time while the admin is used, from every photo already in the Media Library with all the sizes WordPress made of it. So nobody can find the exact place from a listing photo. Everything else in the photo stays as it was, including which way up it is.
+* Import & Export: a new import can't replace one that isn't finished (continue it or stop it first). Stop works from any window, keeps the photos already downloaded, and says what it did. When the page is opened after an import ended, it shows what that import did.
+* FAQs: a question the browser opens by itself, for example to show a word found with Ctrl+F, also closes the one that was open.
+* The Info page is now called Shortcodes, and no longer shows the version or Check for updates (updates stay in Listings → Settings).
 
 = 0.15.1 =
 * Inquiry form: fields never show an outline while typing, whatever the theme or browser draws; only the site's Elementor field style shows.

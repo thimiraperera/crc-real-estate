@@ -10,7 +10,7 @@ namespace CRC\RealEstate;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Keeps every shortcode with its documentation, so the Info page always lists
+ * Keeps every shortcode with its documentation, so the Shortcodes page always lists
  * what the plugin offers, and gives shortcodes shared helpers.
  */
 final class Shortcodes {
@@ -28,7 +28,7 @@ final class Shortcodes {
 	 * @param string   $tag      Shortcode tag.
 	 * @param callable $callback Render callback.
 	 * @param array    $info     {
-	 *     Documentation shown on the Info page.
+	 *     Documentation shown on the Shortcodes page.
 	 *
 	 *     @type string  $title       Section name.
 	 *     @type string  $description What the shortcode shows.

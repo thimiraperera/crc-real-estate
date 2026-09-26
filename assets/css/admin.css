@@ -139,6 +139,18 @@
 	margin: 0;
 }
 
+/* A field across both columns, such as the owner's address and notes */
+.crc-field-wide {
+	grid-column: 1 / -1;
+}
+
+.crc-field textarea {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+
 .crc-money {
 	display: flex;
 	align-items: center;
@@ -397,11 +409,7 @@
 	margin: 12px 0 4px;
 }
 
-/* Info page */
-.crc-info-meta {
-	color: #646970;
-}
-
+/* Shortcodes page */
 .crc-info-intro {
 	max-width: 760px;
 }
@@ -588,6 +596,136 @@
 	margin: 0 0 12px;
 }
 
+/* Import & Export page */
+
+/* WordPress's button styles would otherwise show buttons the page hides. */
+.crc-import [hidden] {
+	display: none !important;
+}
+
+.crc-import .crc-info-title {
+	font-size: 1.3em;
+}
+
+.crc-import-steps,
+.crc-import-rules {
+	max-width: 760px;
+}
+
+.crc-import-rules {
+	padding-left: 20px;
+	list-style: disc;
+}
+
+.crc-import-file label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.crc-import-file input[type="file"] {
+	max-width: 100%;
+}
+
+.crc-import-pending {
+	margin: 16px 0;
+}
+
+.crc-import-run {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+.crc-import-bar {
+	display: block;
+	width: 100%;
+	max-width: 560px;
+	height: 16px;
+}
+
+.crc-import-status {
+	margin: 8px 0 0;
+	font-weight: 600;
+}
+
+.crc-import-counts {
+	margin: 4px 0 0;
+}
+
+.crc-import-done {
+	color: #0b6200;
+	font-weight: 600;
+}
+
+.crc-import-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.crc-import-log {
+	max-height: 480px;
+	margin: 16px 0 0;
+	padding: 0;
+	overflow-y: auto;
+	list-style: none;
+}
+
+.crc-import-row {
+	margin: 0 0 8px;
+	padding: 8px 12px;
+	border-left: 4px solid #0b6200;
+	background: #f6f7f7;
+}
+
+.crc-import-row.is-failed {
+	border-left-color: #b32d2e;
+}
+
+.crc-import-row p {
+	margin: 0;
+	overflow-wrap: anywhere;
+}
+
+.crc-import-row ul {
+	margin: 4px 0 0;
+	padding-left: 20px;
+	list-style: disc;
+	color: #50575e;
+	overflow-wrap: anywhere;
+}
+
+.crc-import-columns {
+	max-width: 960px;
+	margin-top: 12px;
+}
+
+.crc-import-columns th {
+	text-align: left;
+}
+
+.crc-import-columns .crc-import-section th {
+	padding-top: 16px;
+	background: #f0f0f1;
+	font-weight: 600;
+}
+
+.crc-import-columns td:first-child {
+	width: 220px;
+	overflow-wrap: anywhere;
+}
+
+/* Publish box: Download listing */
+.crc-export-listing .dashicons {
+	margin-right: 2px;
+	color: #8c8f94;
+}
+
+.crc-export-listing .description {
+	margin: 4px 0 0;
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	.crc-fields,
@@ -613,5 +751,9 @@
 @media (max-width: 767px) {
 	.crc-faq-row-link {
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.crc-import-columns td:first-child {
+		width: 40%;
 	}
 }

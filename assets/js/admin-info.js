@@ -1,5 +1,5 @@
 /**
- * Info page: copy buttons for shortcodes.
+ * Shortcodes page: copy buttons for shortcodes.
  */
 ( function () {
 	'use strict';

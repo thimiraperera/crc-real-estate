@@ -1,6 +1,8 @@
 /**
- * FAQs: questions open and close smoothly. Without the script they still
- * open and close, just without the motion.
+ * FAQs: questions open and close smoothly, one at a time: opening one closes
+ * the one that was open. Without the script they still open and close, one
+ * at a time in browsers that know the details element's name, just without
+ * the motion.
  */
 ( function () {
 	'use strict';
@@ -64,8 +66,7 @@
 	}
 
 	function setUp( list ) {
-		var items = list.querySelectorAll( '.crc-faq-item' );
-		var i;
+		var items = Array.prototype.slice.call( list.querySelectorAll( '.crc-faq-item' ) );
 
 		if ( list.crcFaq ) {
 			return;
@@ -73,12 +74,14 @@
 
 		list.crcFaq = true;
 
-		for ( i = 0; i < items.length; i++ ) {
-			watch( items[ i ] );
-		}
+		items.forEach( function ( item ) {
+			// The script keeps one open at a time itself, so the one closing can slide shut.
+			item.removeAttribute( 'name' );
+			watch( item, items );
+		} );
 	}
 
-	function watch( item ) {
+	function watch( item, items ) {
 		var question = item.querySelector( '.crc-faq-question' );
 
 		if ( ! question ) {
@@ -86,8 +89,33 @@
 		}
 
 		question.addEventListener( 'click', function ( event ) {
+			var opening = ! item.open || item.classList.contains( 'is-closing' );
+
 			event.preventDefault();
-			toggle( item, ! item.open || item.classList.contains( 'is-closing' ) );
+
+			// Opening a question closes the one that was open.
+			if ( opening ) {
+				items.forEach( function ( other ) {
+					if ( other !== item && other.open && ! other.classList.contains( 'is-closing' ) ) {
+						toggle( other, false );
+					}
+				} );
+			}
+
+			toggle( item, opening );
+		} );
+
+		// The browser can open a question by itself, e.g. to show a word found with Ctrl+F: the others close.
+		item.addEventListener( 'toggle', function () {
+			if ( ! item.open || item.classList.contains( 'is-closing' ) ) {
+				return;
+			}
+
+			items.forEach( function ( other ) {
+				if ( other !== item && other.open && ! other.classList.contains( 'is-closing' ) ) {
+					toggle( other, false );
+				}
+			} );
 		} );
 	}
 
