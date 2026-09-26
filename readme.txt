@@ -22,5 +22,10 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.2.0 =
+* Listings post type.
+* Gallery section: the featured image (required) as the large photo, with gallery images beside it, a view count and a full-screen photo viewer. Shortcode: [crc_listing_gallery].
+* Listings → Info page with every shortcode and its options.
+
 = 0.1.0 =
 * First version with automatic updates from GitHub.

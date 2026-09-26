@@ -12,6 +12,10 @@ Real estate listing tools for WordPress, built for [CRC Properties](https://www.
 1. Upload the `crc-real-estate` folder to `wp-content/plugins/`, or upload a zip of it from **Plugins → Add New → Upload Plugin**.
 2. Activate **CRC Real Estate**.
 
+## Usage
+
+Add listings under **Listings** in the WordPress admin. Every shortcode, with its options and examples, is listed under **Listings → Info**.
+
 ## Updates
 
 Every site running the plugin gets new versions from the `main` branch of this repository, through the normal WordPress **Dashboard → Updates** screen.

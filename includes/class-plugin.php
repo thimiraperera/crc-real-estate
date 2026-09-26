@@ -35,12 +35,19 @@ final class Plugin {
 	}
 
 	/**
-	 * Registers the plugin's hooks.
+	 * Registers the plugin's features.
 	 */
 	private function __construct() {
 		( new Updater( CRC_RE_FILE ) )->register();
+		( new Post_Type() )->hooks();
+		( new Views() )->hooks();
+		( new Sections\Gallery() )->hooks();
+		( new Admin\Gallery_Box() )->hooks();
+		( new Admin\Featured_Image() )->hooks();
+		( new Admin\Info_Page() )->hooks();
 
-		add_action( 'init', array( $this, 'load_textdomain' ) );
+		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
+		add_action( 'init', array( Installer::class, 'maybe_upgrade' ), 20 );
 	}
 
 	/**
