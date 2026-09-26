@@ -1,22 +1,9 @@
-/* Card: white box with rounded corners and a soft shadow. Add the class crc-card to any container. */
+/* Card: add the class crc-card to any container. */
 .crc-card {
 	padding: 32px 32px 40px 32px;
 	border-radius: 16px;
-	background: var(--e-global-color-3581a59, #fff);
+	background: var(--e-global-color-3581a59);
 	box-shadow: 0 13px 20px 0 rgba(0, 0, 0, 0.05);
-}
-
-/*
- * Elementor containers take their corners and padding from these values, so
- * the card looks the same on them. Padding or corners set on the container
- * in Elementor still win.
- */
-.e-con.crc-card {
-	--border-radius: 16px;
-	--padding-top: 32px;
-	--padding-right: 32px;
-	--padding-bottom: 40px;
-	--padding-left: 32px;
 }
 
 /* Description */
@@ -43,12 +30,5 @@
 @media (max-width: 767px) {
 	.crc-card {
 		padding: 24px 24px 32px 24px;
-	}
-
-	.e-con.crc-card {
-		--padding-top: 24px;
-		--padding-right: 24px;
-		--padding-bottom: 32px;
-		--padding-left: 24px;
 	}
 }

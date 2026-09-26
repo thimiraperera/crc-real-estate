@@ -22,8 +22,11 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.4.5 =
+* crc-card uses the site's white color variable directly, with no extra fallback. The plugin's styles load after Elementor's, so the card's padding and corners apply on Elementor containers.
+
 = 0.4.4 =
-* crc-card padding: 32px 32px 40px 32px, and 24px 24px 32px 24px on mobile. Works the same on Elementor containers.
+* crc-card padding: 32px 32px 40px 32px, and 24px 24px 32px 24px on mobile.
 
 = 0.4.3 =
 * Info page shows only shortcodes.
