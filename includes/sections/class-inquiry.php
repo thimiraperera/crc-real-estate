@@ -78,7 +78,7 @@ final class Inquiry {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Inquiry form', 'crc-real-estate' ),
-				'description' => __( 'The "Send an inquiry" form: First Name, Last Name, Phone Number with a country code (Sri Lanka unless changed), Email and Your Message. First Name, Phone Number and Email must be filled in. Everything is checked while people type and again when the inquiry arrives, with clear messages under each field. On a listing page the inquiry says which listing it is about; on any other page it is a general inquiry. Inquiries are emailed to the address in Listings → Settings and kept under Listings → Inquiries. Turn on hCaptcha in Listings → Settings to stop spam robots.', 'crc-real-estate' ),
+				'description' => __( 'The "Send an inquiry" form: First Name, Last Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail and Your Message. First Name, Phone Number and E-Mail must be filled in. Everything is checked while people type and again when the inquiry arrives, with clear messages under each field. The fields and labels take the site\'s own Elementor styles. On a listing page the inquiry says which listing it is about; on any other page it is a general inquiry. Inquiries are emailed to the address in Listings → Settings and kept under Listings → Inquiries. Turn on hCaptcha in Listings → Settings to stop spam robots.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'      => array(
 						'default'     => '',
@@ -137,10 +137,10 @@ final class Inquiry {
 			'phone_invalid'  => __( 'Please enter a valid phone number for %1$s (+%2$s).', 'crc-real-estate' ),
 			/* translators: 1: country name, 2: its calling code, e.g. 94, 3: example number. */
 			'phone_example'  => __( 'Please enter a valid phone number for %1$s (+%2$s), for example %3$s.', 'crc-real-estate' ),
-			'email'          => __( 'Please enter your email address.', 'crc-real-estate' ),
-			'email_invalid'  => __( 'Please enter a valid email address, for example name@example.com.', 'crc-real-estate' ),
-			/* translators: %s: the part of the email address after @, e.g. gmial.com. */
-			'email_domain'   => __( 'We couldn\'t find "%s". Please check your email address for typing mistakes.', 'crc-real-estate' ),
+			'email'          => __( 'Please enter your e-mail address.', 'crc-real-estate' ),
+			'email_invalid'  => __( 'Please enter a valid e-mail address, for example nimal.perera@gmail.com.', 'crc-real-estate' ),
+			/* translators: %s: the part of the e-mail address after @, e.g. gmial.com. */
+			'email_domain'   => __( 'We couldn\'t find "%s". Please check your e-mail address for typing mistakes.', 'crc-real-estate' ),
 			/* translators: %s: suggested email address. */
 			'email_suggest'  => __( 'Did you mean %s?', 'crc-real-estate' ),
 			/* translators: %s: the most characters allowed, e.g. 2,000. */
@@ -151,7 +151,7 @@ final class Inquiry {
 			'busy'           => __( 'You\'ve sent a few inquiries in a short time. Please wait a few minutes, then try again.', 'crc-real-estate' ),
 			'failed'         => self::failed_message(),
 			'network'        => __( 'Your inquiry couldn\'t be sent. Please check your internet connection and try again.', 'crc-real-estate' ),
-			/* translators: %s: names of the fields to check, e.g. "Phone Number, Email". */
+			/* translators: %s: names of the fields to check, e.g. "Phone Number, E-Mail". */
 			'fields'         => __( 'Your inquiry wasn\'t sent. Please check these and try again: %s.', 'crc-real-estate' ),
 			'sending'        => __( 'Sending…', 'crc-real-estate' ),
 			/* translators: %s: first name. */
@@ -170,24 +170,88 @@ final class Inquiry {
 			'first_name' => __( 'First Name', 'crc-real-estate' ),
 			'last_name'  => __( 'Last Name', 'crc-real-estate' ),
 			'phone'      => __( 'Phone Number', 'crc-real-estate' ),
-			'email'      => __( 'Email', 'crc-real-estate' ),
+			'email'      => __( 'E-Mail', 'crc-real-estate' ),
 			'message'    => __( 'Your Message', 'crc-real-estate' ),
 			'captcha'    => __( 'I am human', 'crc-real-estate' ),
 		);
 	}
 
 	/**
-	 * Example numbers shown when a phone number isn't right, by country.
+	 * Example phone numbers, as dialled in each country. They show in the
+	 * empty phone box, and in the message when a number isn't right.
 	 *
-	 * @return string[]
+	 * @return string[] Country code => example.
 	 */
 	public static function examples() {
 		/**
-		 * Filters the example phone numbers shown when a number isn't right.
+		 * Filters the example phone numbers.
 		 *
 		 * @param string[] $examples Country code => example, as dialled in that country.
 		 */
-		return (array) apply_filters( 'crc_re_phone_examples', array( 'LK' => '077 123 4567' ) );
+		return (array) apply_filters(
+			'crc_re_phone_examples',
+			array(
+				'LK' => '077 123 4567',
+				'IN' => '081234 56789',
+				'MV' => '771 2345',
+				'AE' => '050 123 4567',
+				'QA' => '3312 3456',
+				'SA' => '051 234 5678',
+				'KW' => '500 12345',
+				'OM' => '9212 3456',
+				'BH' => '3600 1234',
+				'SG' => '8123 4567',
+				'MY' => '012-345 6789',
+				'JP' => '090-1234-5678',
+				'KR' => '010-2000-0000',
+				'AU' => '0412 345 678',
+				'NZ' => '021 123 4567',
+				'GB' => '07400 123456',
+				'IT' => '312 345 6789',
+				'DE' => '01512 3456789',
+				'FR' => '06 12 34 56 78',
+				'CA' => '(506) 234-5678',
+				'US' => '(201) 555-0123',
+			)
+		);
+	}
+
+	/**
+	 * Examples shown in the empty fields, with Sri Lankan details.
+	 *
+	 * @return string[] Field key => text. "phone" gets the chosen country's example number in place of %s; "phone_other" is for countries without one.
+	 */
+	public static function placeholders() {
+		/**
+		 * Filters the examples shown in the empty inquiry fields.
+		 *
+		 * @param string[] $placeholders Field key => text. "phone" gets the chosen country's example number in place of %s; "phone_other" is for countries without one.
+		 */
+		return (array) apply_filters(
+			'crc_re_inquiry_placeholders',
+			array(
+				'first_name'  => __( 'e.g. Nimal', 'crc-real-estate' ),
+				'last_name'   => __( 'e.g. Perera', 'crc-real-estate' ),
+				/* translators: %s: example phone number, e.g. 077 123 4567. */
+				'phone'       => __( 'e.g. %s', 'crc-real-estate' ),
+				'phone_other' => __( 'Type your phone number here', 'crc-real-estate' ),
+				'email'       => __( 'e.g. nimal.perera@gmail.com', 'crc-real-estate' ),
+				'message'     => __( 'e.g. Is this still available? I\'d like to see it this weekend.', 'crc-real-estate' ),
+			)
+		);
+	}
+
+	/**
+	 * The example in the empty phone box for a country.
+	 *
+	 * @param string $country Country code.
+	 * @return string
+	 */
+	public static function phone_placeholder( $country ) {
+		$examples     = self::examples();
+		$placeholders = self::placeholders();
+
+		return ! empty( $examples[ $country ] ) ? sprintf( $placeholders['phone'], $examples[ $country ] ) : $placeholders['phone_other'];
 	}
 
 	/**
@@ -232,6 +296,7 @@ final class Inquiry {
 		$button    = '' !== $button ? $button : __( 'Send Inquiry', 'crc-real-estate' );
 		$id        = 'crc-inquiry-' . ( ++self::$count );
 		$labels    = self::labels();
+		$examples  = self::placeholders();
 
 		$this->enqueue();
 
@@ -250,14 +315,14 @@ final class Inquiry {
 			'first_name',
 			$labels['first_name'],
 			true,
-			self::input( $id, 'first_name', 'text', __( 'Type your First Name here', 'crc-real-estate' ), ' autocomplete="given-name" autocapitalize="words" maxlength="' . self::NAME_LENGTH . '" required' )
+			self::input( $id, 'first_name', 'text', $examples['first_name'], ' autocomplete="given-name" autocapitalize="words" maxlength="' . self::NAME_LENGTH . '" required' )
 		);
 		$html .= self::field(
 			$id,
 			'last_name',
 			$labels['last_name'],
 			false,
-			self::input( $id, 'last_name', 'text', __( 'Type your Last Name here', 'crc-real-estate' ), ' autocomplete="family-name" autocapitalize="words" maxlength="' . self::NAME_LENGTH . '"' )
+			self::input( $id, 'last_name', 'text', $examples['last_name'], ' autocomplete="family-name" autocapitalize="words" maxlength="' . self::NAME_LENGTH . '"' )
 		);
 		$html .= '</div>';
 
@@ -267,7 +332,7 @@ final class Inquiry {
 			'email',
 			$labels['email'],
 			true,
-			self::input( $id, 'email', 'email', __( 'Type your Email address here', 'crc-real-estate' ), ' autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="' . self::EMAIL_LENGTH . '" required', true )
+			self::input( $id, 'email', 'email', $examples['email'], ' autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="' . self::EMAIL_LENGTH . '" required', true )
 		);
 		$html .= self::field(
 			$id,
@@ -278,7 +343,7 @@ final class Inquiry {
 				'<textarea class="crc-inquiry-input crc-inquiry-message" id="%1$s-message" name="crc_message" rows="5" maxlength="%2$d" placeholder="%3$s" aria-describedby="%1$s-message-error"></textarea>',
 				esc_attr( $id ),
 				self::MESSAGE_LENGTH,
-				esc_attr__( 'Type your message here', 'crc-real-estate' )
+				esc_attr( $examples['message'] )
 			)
 		);
 
@@ -319,7 +384,7 @@ final class Inquiry {
 			esc_attr( $key ),
 			esc_attr( $id . '-' . str_replace( '_', '-', $key ) ),
 			esc_html( $label ),
-			$required ? '<span class="crc-inquiry-required" aria-hidden="true">*</span>' : '',
+			$required ? '<span class="crc-inquiry-required" aria-hidden="true">&nbsp;*</span>' : '',
 			$control,
 			'email' === $key ? '<p class="crc-inquiry-hint" id="' . esc_attr( $id ) . '-email-hint" hidden></p>' : ''
 		);
@@ -380,7 +445,7 @@ final class Inquiry {
 			esc_attr( $id ),
 			esc_attr__( 'Country code of the phone number', 'crc-real-estate' ),
 			$options,
-			self::input( $id, 'phone', 'tel', __( 'Type your Phone Number here', 'crc-real-estate' ), ' autocomplete="tel" inputmode="tel" maxlength="24" required' )
+			self::input( $id, 'phone', 'tel', self::phone_placeholder( $country ), ' autocomplete="tel" inputmode="tel" maxlength="24" required' )
 		);
 	}
 
@@ -451,13 +516,14 @@ final class Inquiry {
 			'crc-re-inquiry',
 			'crcReInquiry',
 			array(
-				'countries' => Phone::script_data(),
-				'main'      => Phone::MAIN,
-				'examples'  => self::examples(),
-				'domains'   => self::email_domains(),
-				'labels'    => self::labels(),
-				'messages'  => self::messages(),
-				'captcha'   => Settings::captcha_on() ? array(
+				'countries'    => Phone::script_data(),
+				'main'         => Phone::MAIN,
+				'examples'     => self::examples(),
+				'placeholders' => self::placeholders(),
+				'domains'      => self::email_domains(),
+				'labels'       => self::labels(),
+				'messages'     => self::messages(),
+				'captcha'      => Settings::captcha_on() ? array(
 					'sitekey' => Settings::inquiry( 'site_key' ),
 					'script'  => add_query_arg(
 						array(

@@ -13,6 +13,7 @@
 	var KEYS = [ 'first_name', 'last_name', 'phone', 'email', 'message' ];
 	var EMAIL = /^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
 	var BAD_ENDINGS = [ '.con', '.cmo', '.cpm', '.vom', '.xom', '.comm', '.coom' ];
+	var NUMBER_GAP = 12; // Room between the line after the country code and the number.
 	var captchaState = 'idle';
 	var waiting = [];
 	var nameRule = null;
@@ -345,15 +346,48 @@
 		}
 	}
 
-	// Shows the chosen country's code in the phone box.
+	// The country code sits at the start of the phone box. It takes the text
+	// style of the site's fields (read from the E-Mail box, which the form
+	// leaves as it is), and the number starts just after it.
+	function fitCountry( form ) {
+		var country = form.querySelector( '.crc-inquiry-country' );
+		var number = controlOf( fieldOf( form, 'phone' ) );
+		var model = controlOf( fieldOf( form, 'email' ) );
+		var look;
+
+		if ( ! country || ! number || ! model || ! window.getComputedStyle || ! number.offsetWidth ) {
+			return;
+		}
+
+		look = window.getComputedStyle( model );
+		country.style.paddingLeft = ( ( parseFloat( look.paddingLeft ) || 0 ) + ( parseFloat( look.borderLeftWidth ) || 0 ) ) + 'px';
+		country.style.color = look.color;
+		country.style.fontFamily = look.fontFamily;
+		country.style.fontSize = look.fontSize;
+		country.style.fontWeight = look.fontWeight;
+		country.style.letterSpacing = look.letterSpacing;
+		number.style.paddingLeft = Math.ceil( country.getBoundingClientRect().width + NUMBER_GAP - ( parseFloat( window.getComputedStyle( number ).borderLeftWidth ) || 0 ) ) + 'px';
+	}
+
+	// Shows the chosen country's code, and its example number in the empty box.
 	function showCode( form ) {
 		var select = form.querySelector( '.crc-inquiry-country-select' );
 		var code = form.querySelector( '.crc-inquiry-country-code' );
+		var number = controlOf( fieldOf( form, 'phone' ) );
 		var details = select ? country( select.value ) : null;
+		var examples = config.placeholders || {};
+		var example;
 
 		if ( code && details ) {
 			code.textContent = '+' + details.dial;
 		}
+
+		if ( number && details && examples.phone ) {
+			example = ( config.examples || {} )[ details.code ];
+			number.placeholder = example ? format( examples.phone, example ) : examples.phone_other;
+		}
+
+		fitCountry( form );
 	}
 
 	// A number typed with "+" (or 00) chooses its own country.
@@ -790,10 +824,44 @@
 
 	function start() {
 		var forms = document.querySelectorAll( 'form[data-crc-inquiry]' );
+		var observer;
 		var i;
+
+		function refit() {
+			var j;
+
+			for ( j = 0; j < forms.length; j++ ) {
+				fitCountry( forms[ j ] );
+			}
+		}
 
 		for ( i = 0; i < forms.length; i++ ) {
 			setUp( forms[ i ] );
+		}
+
+		if ( ! forms.length ) {
+			return;
+		}
+
+		// The site's field style can change with the screen size, and the
+		// form can be hidden at first; the country code follows.
+		if ( window.ResizeObserver ) {
+			observer = new window.ResizeObserver( function ( entries ) {
+				entries.forEach( function ( entry ) {
+					fitCountry( entry.target );
+				} );
+			} );
+
+			for ( i = 0; i < forms.length; i++ ) {
+				observer.observe( forms[ i ] );
+			}
+		} else {
+			window.addEventListener( 'resize', refit );
+		}
+
+		// The site's font may arrive after the page.
+		if ( document.fonts && document.fonts.ready ) {
+			document.fonts.ready.then( refit );
 		}
 	}
 

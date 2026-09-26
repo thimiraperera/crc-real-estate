@@ -28,6 +28,12 @@ Real estate listing tools for WordPress.
 
 == Changelog ==
 
+= 0.14.1 =
+* Inquiry form: the fields and labels take the site's own Elementor styles (Site Settings → Form Fields and Typography); the form only lays them out. Fields use the page's font unless those styles give one. The country code in the phone box takes the fields' text style and starts where the text starts in the other fields.
+* Required fields have a red star, after a space.
+* The Email label is now E-Mail, and its messages say e-mail.
+* The empty fields show Sri Lankan examples: e.g. Nimal, e.g. Perera, e.g. 077 123 4567, e.g. nimal.perera@gmail.com and an example message. The phone example follows the chosen country (20 countries besides Sri Lanka have one; others ask for the number in words), and the same example shows when a number isn't right.
+
 = 0.14.0 =
 * Inquiry form: [crc_listing_inquiry] shows the "Send an inquiry" form with First Name, Last Name, Phone Number, Email and Your Message. First name, phone number and email must be filled in. First and last name sit side by side on desktops, laptops and tablets, and one under the other on phones. The Send Inquiry button uses the site's custom-btn-3 style, full width, with an arrow that moves a little on hover.
 * Phone numbers have a country code list with every country, with Sri Lanka chosen at first. Numbers are checked for the chosen country (077 123 4567, 77 123 4567 and +94 77 123 4567 all work), and a number typed with + chooses its own country.
