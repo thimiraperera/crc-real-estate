@@ -22,6 +22,10 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.10.0 =
+* On the listing screen, the ready-made groups (Size and price, Access and road and the others) use the same grey card as the listing's own groups.
+* Each ready-made group has Add detail, for details of the listing's own. They show in the popup after that group's other details, and can be dragged into order or removed. Groups for another category keep their added details.
+
 = 0.9.0 =
 * The See More popup's ready-made groups follow the listing's category: lands have Size and price; properties for sale have Size and layout and Price and terms; properties for rent have Size and layout and Rent and terms. Access and road and Utilities are there for every category.
 * New details: Bedrooms, Bathrooms, Ensuite bathrooms, Floor area (sq ft or sq m), Storeys, Parking, Furnishing, Maintenance fee, Bank loan, Advance payment, Minimum lease, Utility bills, Electricity and Water supply.

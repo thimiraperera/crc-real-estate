@@ -232,11 +232,23 @@
 	margin: 12px 0;
 }
 
-.crc-overview-box-group {
+/* Grey cards: the ready-made groups and the listing's own groups */
+.crc-overview-box-group,
+.crc-overview-box-section {
 	padding: 12px;
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
 	background: #f6f7f7;
+}
+
+.crc-overview-box-section {
+	margin: 12px 0 0;
+}
+
+.crc-overview-box-section .crc-overview-box-subtitle {
+	margin: 0;
+	padding: 0;
+	border: 0;
 }
 
 .crc-overview-box-group-head,

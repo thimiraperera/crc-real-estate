@@ -24,7 +24,8 @@ defined( 'ABSPATH' ) || exit;
 final class Overview {
 
 	const SHORTCODE = 'crc_listing_overview';
-	const MORE_META = '_crc_overview';
+	const MORE_META  = '_crc_overview';
+	const EXTRA_META = '_crc_overview_extra';
 
 	/**
 	 * The main details, in order, keyed by name.
@@ -493,8 +494,8 @@ final class Overview {
 
 	/**
 	 * A listing's filled-in ready-made details, as text, in the groups for
-	 * its category. Details without a value and groups without details are
-	 * left out.
+	 * its category: each group's own details, then the ones the listing added
+	 * to it. Details without a value and groups without details are left out.
 	 *
 	 * @param int $post_id Listing ID.
 	 * @return array[] Each group has a 'title' and 'items', each item a 'label' and a 'value'.
@@ -502,9 +503,10 @@ final class Overview {
 	public static function common_details( $post_id ) {
 		$category = Taxonomy::listing_category( $post_id );
 		$slug     = $category ? $category['slug'] : '';
+		$extras   = self::extras( $post_id );
 		$groups   = array();
 
-		foreach ( self::common_groups() as $group ) {
+		foreach ( self::common_groups() as $key => $group ) {
 			if ( $group['categories'] && ! in_array( $slug, $group['categories'], true ) ) {
 				continue;
 			}
@@ -520,6 +522,10 @@ final class Overview {
 						'value' => $text,
 					);
 				}
+			}
+
+			if ( isset( $extras[ $key ] ) ) {
+				$items = array_merge( $items, $extras[ $key ] );
 			}
 
 			if ( $items ) {
@@ -855,12 +861,23 @@ final class Overview {
 			)
 		);
 
+		register_post_meta(
+			Post_Type::NAME,
+			self::EXTRA_META,
+			array(
+				'type'              => 'array',
+				'single'            => true,
+				'sanitize_callback' => array( __CLASS__, 'sanitize_extras' ),
+				'auth_callback'     => $auth,
+			)
+		);
+
 		Shortcodes::add(
 			self::SHORTCODE,
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Property overview', 'crc-real-estate' ),
-				'description' => __( 'The four main details in boxes: property type, offered for, availability and listed by. Below them, See More opens a popup with the same boxes, then the ready-made groups for the listing\'s category and any groups of the listing\'s own, each detail with a check mark. Lands have Size and price; properties for sale have Size and layout and Price and terms; properties for rent have Size and layout and Rent and terms; all have Access and road and Utilities. Details and groups without a value don\'t show, and See More shows once there is something for the popup. Fill them in the Property overview box on the listing screen.', 'crc-real-estate' ),
+				'description' => __( 'The four main details in boxes: property type, offered for, availability and listed by. Below them, See More opens a popup with the same boxes, then the ready-made groups for the listing\'s category and any groups of the listing\'s own, each detail with a check mark. Lands have Size and price; properties for sale have Size and layout and Price and terms; properties for rent have Size and layout and Rent and terms; all have Access and road and Utilities. Each ready-made group can also take details of the listing\'s own. Details and groups without a value don\'t show, and See More shows once there is something for the popup. Fill them in the Property overview box on the listing screen.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'    => array(
 						'default'     => '',
@@ -969,31 +986,84 @@ final class Overview {
 			}
 
 			$title = isset( $group['title'] ) && is_scalar( $group['title'] ) ? sanitize_text_field( (string) $group['title'] ) : '';
-			$items = array();
-
-			if ( isset( $group['items'] ) && is_array( $group['items'] ) ) {
-				foreach ( $group['items'] as $item ) {
-					if ( ! is_array( $item ) ) {
-						continue;
-					}
-
-					$label = isset( $item['label'] ) && is_scalar( $item['label'] ) ? sanitize_text_field( (string) $item['label'] ) : '';
-					$value = isset( $item['value'] ) && is_scalar( $item['value'] ) ? sanitize_text_field( (string) $item['value'] ) : '';
-
-					if ( '' !== $label || '' !== $value ) {
-						$items[] = array(
-							'label' => $label,
-							'value' => $value,
-						);
-					}
-				}
-			}
+			$items = self::sanitize_items( isset( $group['items'] ) ? $group['items'] : array() );
 
 			if ( '' !== $title || $items ) {
 				$clean[] = array(
 					'title' => $title,
 					'items' => $items,
 				);
+			}
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * Cleans a list of details: plain text only, and details with neither a
+	 * label nor a value dropped.
+	 *
+	 * @param mixed $items Details as typed or saved.
+	 * @return array[] Each with a 'label' and a 'value'.
+	 */
+	public static function sanitize_items( $items ) {
+		$clean = array();
+
+		if ( ! is_array( $items ) ) {
+			return $clean;
+		}
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$label = isset( $item['label'] ) && is_scalar( $item['label'] ) ? sanitize_text_field( (string) $item['label'] ) : '';
+			$value = isset( $item['value'] ) && is_scalar( $item['value'] ) ? sanitize_text_field( (string) $item['value'] ) : '';
+
+			if ( '' !== $label || '' !== $value ) {
+				$clean[] = array(
+					'label' => $label,
+					'value' => $value,
+				);
+			}
+		}
+
+		return $clean;
+	}
+
+	/**
+	 * The details a listing added to the ready-made groups, in their saved
+	 * order.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return array[] Group name => details, each with a 'label' and a 'value'.
+	 */
+	public static function extras( $post_id ) {
+		return self::sanitize_extras( get_post_meta( $post_id, self::EXTRA_META, true ) );
+	}
+
+	/**
+	 * Cleans the details added to the ready-made groups: only groups that
+	 * exist, plain text only, and empty details and groups dropped.
+	 *
+	 * @param mixed $extras Group name => details, as typed or saved.
+	 * @return array[]
+	 */
+	public static function sanitize_extras( $extras ) {
+		$clean = array();
+
+		if ( ! is_array( $extras ) ) {
+			return $clean;
+		}
+
+		$groups = self::common_groups();
+
+		foreach ( $extras as $key => $items ) {
+			$items = isset( $groups[ $key ] ) ? self::sanitize_items( $items ) : array();
+
+			if ( $items ) {
+				$clean[ $key ] = $items;
 			}
 		}
 

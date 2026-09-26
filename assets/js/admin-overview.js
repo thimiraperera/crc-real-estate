@@ -1,6 +1,7 @@
 /**
  * Property overview box: shows the ready-made groups for the chosen category,
- * and adds, removes and reorders the listing's own groups and details.
+ * and adds, removes and reorders details in them and in the listing's own
+ * groups.
  */
 jQuery( function ( $ ) {
 	'use strict';
@@ -10,6 +11,7 @@ jQuery( function ( $ ) {
 	var $groups = $box.find( '.crc-overview-box-groups' );
 	var groupTemplate = $box.find( '.crc-overview-box-group-template' ).html() || '';
 	var detailTemplate = $box.find( '.crc-overview-box-detail-template' ).html() || '';
+	var extraTemplate = $box.find( '.crc-overview-box-extra-template' ).html() || '';
 
 	// New groups and details get numbers no saved one has.
 	var next = Date.now();
@@ -42,7 +44,8 @@ jQuery( function ( $ ) {
 		forcePlaceholderSize: true
 	} );
 
-	$groups.find( '.crc-overview-box-details' ).each( function () {
+	// The details of the listing's own groups and those added to ready-made groups.
+	$box.find( '.crc-overview-box-details' ).each( function () {
 		sortDetails( $( this ) );
 	} );
 
@@ -61,6 +64,16 @@ jQuery( function ( $ ) {
 
 		event.preventDefault();
 		$group.find( '.crc-overview-box-details' ).append( $detail );
+		$detail.find( 'input' ).first().trigger( 'focus' );
+	} );
+
+	// A detail of the listing's own in a ready-made group.
+	$box.on( 'click', '.crc-overview-box-extra-add', function ( event ) {
+		var $list = $( this ).closest( '.crc-overview-box-section' ).find( '.crc-overview-box-extras' );
+		var $detail = $( $.parseHTML( $.trim( fill( extraTemplate, $list.attr( 'data-group' ), next++ ) ) ) );
+
+		event.preventDefault();
+		$list.append( $detail );
 		$detail.find( 'input' ).first().trigger( 'focus' );
 	} );
 

@@ -23,6 +23,8 @@ final class Overview_Box {
 	const NONCE   = 'crc_overview_nonce';
 	const FIELD   = 'crc_overview';
 	const DETAILS = 'crc_details';
+	const EXTRA   = 'crc_overview_extra';
+	const SHOWN   = 'crc_overview_shown';
 
 	/**
 	 * How many recent listings to look through for suggestions.
@@ -78,6 +80,7 @@ final class Overview_Box {
 	 */
 	public function render( $post ) {
 		$groups   = Overview::groups( $post->ID );
+		$extras   = Overview::extras( $post->ID );
 		$suggest  = $this->suggestions();
 		$category = $this->category( $post );
 
@@ -101,7 +104,7 @@ final class Overview_Box {
 			</div>
 
 			<h4 class="crc-overview-box-title"><?php esc_html_e( 'See More popup', 'crc-real-estate' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. The ready-made groups change with the category chosen in the Category box. Fill in what applies to this listing: a detail left empty doesn\'t show on the site, and neither does a group with nothing filled in. See More shows on the listing page once there is something for the popup.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. The ready-made groups change with the category chosen in the Category box, and each one has Add detail for details of your own, which show after its other details. Fill in what applies to this listing: a detail left empty doesn\'t show on the site, and neither does a group with nothing filled in. See More shows on the listing page once there is something for the popup.', 'crc-real-estate' ); ?></p>
 			<p class="description crc-overview-box-no-category"<?php echo $category ? ' hidden' : ''; ?>><?php esc_html_e( 'Choose a category in the Category box to see the details for it.', 'crc-real-estate' ); ?></p>
 
 			<?php foreach ( Overview::common_groups() as $key => $group ) : ?>
@@ -110,6 +113,7 @@ final class Overview_Box {
 				$active = ! $group['categories'] || in_array( $category, $terms, true );
 				?>
 				<div class="crc-overview-box-section" data-categories="<?php echo esc_attr( $group['categories'] ? implode( ' ', $terms ) : 'all' ); ?>"<?php echo $active ? '' : ' hidden'; ?>>
+					<input type="hidden" name="<?php echo esc_attr( self::SHOWN . '[]' ); ?>" value="<?php echo esc_attr( $key ); ?>"<?php echo $active ? '' : ' disabled'; ?>>
 					<h4 class="crc-overview-box-subtitle"><?php echo esc_html( $group['title'] ); ?></h4>
 					<div class="crc-fields crc-overview-box-common">
 						<?php
@@ -118,6 +122,14 @@ final class Overview_Box {
 						}
 						?>
 					</div>
+					<ul class="crc-overview-box-details crc-overview-box-extras" data-group="<?php echo esc_attr( $key ); ?>">
+						<?php
+						foreach ( isset( $extras[ $key ] ) ? $extras[ $key ] : array() as $d => $item ) {
+							$this->extra( $key, $d, $item, ! $active );
+						}
+						?>
+					</ul>
+					<p class="crc-overview-box-group-foot"><button type="button" class="button crc-overview-box-extra-add"<?php echo $active ? '' : ' disabled'; ?>><?php esc_html_e( 'Add detail', 'crc-real-estate' ); ?></button></p>
 				</div>
 			<?php endforeach; ?>
 
@@ -135,6 +147,7 @@ final class Overview_Box {
 
 			<template class="crc-overview-box-group-template"><?php $this->group( '{g}', $this->empty_group( '{d}' ) ); ?></template>
 			<template class="crc-overview-box-detail-template"><?php $this->detail( '{g}', '{d}', array( 'label' => '', 'value' => '' ) ); ?></template>
+			<template class="crc-overview-box-extra-template"><?php $this->extra( '{g}', '{d}', array( 'label' => '', 'value' => '' ), false ); ?></template>
 			<?php
 			$this->datalist( 'crc-overview-box-titles', $suggest['titles'] );
 			$this->datalist( 'crc-overview-box-labels', $suggest['labels'] );
@@ -333,20 +346,43 @@ final class Overview_Box {
 	}
 
 	/**
-	 * Prints one detail: its label and value.
+	 * Prints one detail of the listing's own groups.
 	 *
 	 * @param int|string $g    Index of the group.
 	 * @param int|string $d    Index of the detail.
 	 * @param array      $item Detail with 'label' and 'value'.
 	 */
 	private function detail( $g, $d, array $item ) {
-		$name = self::FIELD . '[' . $g . '][items][' . $d . ']';
+		$this->row( self::FIELD . '[' . $g . '][items][' . $d . ']', $item, false );
+	}
+
+	/**
+	 * Prints one detail added to a ready-made group.
+	 *
+	 * @param string     $group    Ready-made group name.
+	 * @param int|string $d        Index of the detail.
+	 * @param array      $item     Detail with 'label' and 'value'.
+	 * @param bool       $disabled Whether the group is for another category.
+	 */
+	private function extra( $group, $d, array $item, $disabled ) {
+		$this->row( self::EXTRA . '[' . $group . '][' . $d . ']', $item, $disabled );
+	}
+
+	/**
+	 * Prints a detail row: drag handle, label, value and remove button.
+	 *
+	 * @param string $name     Field name the label and value go under.
+	 * @param array  $item     Detail with 'label' and 'value'.
+	 * @param bool   $disabled Whether the fields are switched off.
+	 */
+	private function row( $name, array $item, $disabled ) {
+		$off = $disabled ? ' disabled' : '';
 		?>
 		<li class="crc-overview-box-detail">
 			<span class="crc-overview-box-detail-handle dashicons dashicons-menu" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
-			<input type="text" name="<?php echo esc_attr( $name . '[label]' ); ?>" value="<?php echo esc_attr( $item['label'] ); ?>" list="crc-overview-box-labels" placeholder="<?php esc_attr_e( 'Label, for example Water supply', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Label', 'crc-real-estate' ); ?>" autocomplete="off">
-			<input type="text" name="<?php echo esc_attr( $name . '[value]' ); ?>" value="<?php echo esc_attr( $item['value'] ); ?>" placeholder="<?php esc_attr_e( 'Value, for example Pipe-borne', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Value', 'crc-real-estate' ); ?>" autocomplete="off">
-			<button type="button" class="crc-overview-box-detail-remove" aria-label="<?php esc_attr_e( 'Remove this detail', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+			<input type="text" name="<?php echo esc_attr( $name . '[label]' ); ?>" value="<?php echo esc_attr( $item['label'] ); ?>" list="crc-overview-box-labels" placeholder="<?php esc_attr_e( 'Label, for example Water supply', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Label', 'crc-real-estate' ); ?>" autocomplete="off"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>>
+			<input type="text" name="<?php echo esc_attr( $name . '[value]' ); ?>" value="<?php echo esc_attr( $item['value'] ); ?>" placeholder="<?php esc_attr_e( 'Value, for example Pipe-borne', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Value', 'crc-real-estate' ); ?>" autocomplete="off"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>>
+			<button type="button" class="crc-overview-box-detail-remove" aria-label="<?php esc_attr_e( 'Remove this detail', 'crc-real-estate' ); ?>"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
 		</li>
 		<?php
 	}
@@ -412,6 +448,12 @@ final class Overview_Box {
 					$suggest['labels'][] = $item['label'];
 				}
 			}
+
+			foreach ( Overview::extras( $id ) as $items ) {
+				foreach ( $items as $item ) {
+					$suggest['labels'][] = $item['label'];
+				}
+			}
 		}
 
 		foreach ( $suggest as $key => $values ) {
@@ -423,8 +465,8 @@ final class Overview_Box {
 	}
 
 	/**
-	 * Saves the main details, the ready-made details and the listing's own
-	 * groups. Empty ones are removed.
+	 * Saves the main details, the ready-made details with the details added
+	 * to them, and the listing's own groups. Empty ones are removed.
 	 *
 	 * @param int $post_id Listing ID.
 	 */
@@ -477,6 +519,24 @@ final class Overview_Box {
 			} else {
 				delete_post_meta( $post_id, $item['meta'] . '_unit' );
 			}
+		}
+
+		// Details added to the ready-made groups: groups that were on the screen get what was sent; the others keep theirs.
+		$shown = isset( $_POST[ self::SHOWN ] ) ? array_map( 'sanitize_key', array_filter( (array) wp_unslash( $_POST[ self::SHOWN ] ), 'is_scalar' ) ) : array();
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Cleaned by sanitize_extras().
+		$posted = isset( $_POST[ self::EXTRA ] ) && is_array( $_POST[ self::EXTRA ] ) ? wp_unslash( $_POST[ self::EXTRA ] ) : array();
+		$extras = Overview::extras( $post_id );
+
+		foreach ( $shown as $group ) {
+			$extras[ $group ] = isset( $posted[ $group ] ) ? $posted[ $group ] : array();
+		}
+
+		$extras = Overview::sanitize_extras( $extras );
+
+		if ( $extras ) {
+			update_post_meta( $post_id, Overview::EXTRA_META, wp_slash( $extras ) );
+		} else {
+			delete_post_meta( $post_id, Overview::EXTRA_META );
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Cleaned by sanitize_groups().
