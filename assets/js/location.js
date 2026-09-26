@@ -9,7 +9,7 @@
 		var config;
 		var touch;
 		var map;
-		var area;
+		var center;
 
 		if ( el.crcMap || ! window.L ) {
 			return;
@@ -30,6 +30,11 @@
 			maxZoom: 14
 		} );
 
+		// Fit the whole area first: Leaflet draws nothing until the map has a
+		// view, and a circle can only measure itself once it is drawn.
+		center = window.L.latLng( config.lat, config.lng );
+		map.fitBounds( center.toBounds( config.radius * 2 ), { padding: [ 16, 16 ] } );
+
 		// OpenStreetMap needs to know which site asks for its maps, so the tiles
 		// send the site's address (never the page's), whatever the site's
 		// Referrer-Policy says.
@@ -39,13 +44,12 @@
 			referrerPolicy: 'strict-origin-when-cross-origin'
 		} ).addTo( map );
 
-		area = window.L.circle( [ config.lat, config.lng ], {
+		window.L.circle( center, {
 			radius: config.radius,
 			className: 'crc-location-area',
 			interactive: false
 		} ).addTo( map );
 
-		map.fitBounds( area.getBounds(), { padding: [ 16, 16 ] } );
 		el.crcMap = map;
 	}
 

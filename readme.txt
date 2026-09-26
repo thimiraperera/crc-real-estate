@@ -27,6 +27,9 @@ Real estate listing tools for WordPress.
 
 == Changelog ==
 
+= 0.13.2 =
+* The Location map on listing pages was blank. It asked the area circle for its size before the map had a place to show, which stopped it. It now sets the view from the area's centre and size first, then draws the map and the circle.
+
 = 0.13.1 =
 * Maps work on sites that tell browsers not to share their address with other sites (Referrer-Policy: same-origin, which Cloudflare's "Add security headers" adds). OpenStreetMap blocks map tiles without it, which showed as "Access blocked" squares. The map tiles and the place search now send the site's address, never the page's.
 
