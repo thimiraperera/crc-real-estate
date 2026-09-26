@@ -1,32 +1,19 @@
 # CRC Real Estate
 
-Real estate listing tools for WordPress, built for [CRC Properties](https://www.crcproperties.lk) and ready to run on other real estate websites.
+Real estate listing tools for WordPress.
+
+## Features
+
+- **Listings** with a main photo, more photos, categories and view counts
+- **Photo gallery** with a full-screen photo viewer
+- **Price card** with the price, a Share button, and Call and WhatsApp buttons
+- **Property overview** with the main details and a See More popup of details by category
+- **Shortcodes** for every section, ready to place in Elementor
+- **Updates** straight from GitHub, through the WordPress Updates screen
 
 ## Requirements
 
-- WordPress 5.8 or later
-- PHP 7.4 or later
-
-## Installation
-
-1. Upload the `crc-real-estate` folder to `wp-content/plugins/`, or upload a zip of it from **Plugins → Add New → Upload Plugin**.
-2. Activate **CRC Real Estate**.
-
-## Usage
-
-Add listings under **Listings** in the WordPress admin. Every shortcode, with its options and examples, is listed under **Listings → Info**.
-
-## Updates
-
-Every site running the plugin gets new versions from the `main` branch of this repository, through the normal WordPress **Dashboard → Updates** screen.
-
-To publish an update:
-
-1. Raise the `Version` number in the header of `crc-real-estate.php`.
-2. Add an entry under `== Changelog ==` in `readme.txt`.
-3. Commit and push to `main`.
-
-WordPress checks for updates twice a day. To check straight away, click **Check for updates** under the plugin on the Plugins screen: it asks GitHub right then and shows an **Update now** button when a new version is ready.
+WordPress 5.8 or later and PHP 7.4 or later.
 
 ## License
 
