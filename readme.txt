@@ -22,6 +22,12 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.5.0 =
+* Price card: [crc_listing_price_card] shows a Share button, what the listing is (Land for sale, Property for sale, Property for rent), the price ("/month" for rentals), the price per perch for land, and Call and WhatsApp buttons.
+* Price box on each listing, with a price per perch field for land.
+* Contact numbers box: give a listing its own phone and WhatsApp numbers.
+* Listings → Settings: the default phone and WhatsApp numbers (+94777643264).
+
 = 0.4.6 =
 * "Check for updates" sees a new version the moment it is pushed: the version is read through GitHub's API, with the raw file link as a fallback.
 

@@ -45,10 +45,14 @@ final class Plugin {
 		( new Views() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Sections\Description() )->hooks();
+		( new Sections\Price_Card() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
+		( new Admin\Price_Box() )->hooks();
+		( new Admin\Contact_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Info_Page() )->hooks();
+		( new Admin\Settings_Page() )->hooks();
 
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );
 		add_action( 'init', array( Installer::class, 'maybe_upgrade' ), 20 );

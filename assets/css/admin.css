@@ -109,6 +109,34 @@
 	width: 110px;
 }
 
+/* Price and Contact numbers boxes */
+.crc-field {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin-bottom: 4px;
+}
+
+.crc-field label {
+	min-width: 140px;
+	font-weight: 600;
+}
+
+.crc-money {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.crc-money input {
+	width: 180px;
+}
+
+.crc-price-box__per-perch {
+	margin-top: 16px;
+}
+
 /* Listings list */
 .fixed .column-crc_photo {
 	width: 64px;

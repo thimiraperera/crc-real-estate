@@ -1,0 +1,112 @@
+/* Price card: Share button, category, price and contact buttons. */
+.crc-price {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+}
+
+/* Share button */
+.crc-price .crc-share {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 0;
+	margin: 0 0 24px;
+	padding: 6px 16px;
+	border: 0;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--e-global-color-3581a59) 96.0784%, var(--e-global-color-1ead78b));
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font: inherit;
+	font-size: 16px;
+	font-weight: normal;
+	line-height: 24px;
+	letter-spacing: normal;
+	text-transform: none;
+	cursor: pointer;
+}
+
+.crc-price .crc-share:hover,
+.crc-price .crc-share:focus {
+	background: color-mix(in srgb, var(--e-global-color-3581a59) 96.0784%, var(--e-global-color-1ead78b));
+	color: var(--e-global-color-6e3d619);
+}
+
+.crc-price .crc-share:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 2px;
+}
+
+.crc-price .crc-share__icon {
+	flex: none;
+	width: auto;
+	height: 16px;
+	fill: currentColor;
+}
+
+/* Category, price and price per perch */
+.crc-price .crc-price__label {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.crc-price .crc-price__amount {
+	margin-top: 0;
+	margin-bottom: 0;
+	color: var(--e-global-color-6e3d619);
+}
+
+.crc-price .crc-price__period {
+	font-size: 0.5em;
+}
+
+.crc-price .crc-price__per-perch {
+	margin-top: 8px;
+	margin-bottom: 0;
+	color: var(--e-global-color-6e3d619);
+}
+
+/* Contact for inquiries */
+.crc-price .crc-price__contact {
+	width: 100%;
+	margin-top: 40px;
+}
+
+.crc-price .crc-price__contact-title {
+	margin-top: 0;
+	margin-bottom: 0px;
+	color: var(--e-global-color-text);
+}
+
+.crc-price .crc-price__buttons {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 16px;
+}
+
+.crc-price .crc-price__buttons .elementor-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 100%;
+	text-decoration: none;
+}
+
+.crc-price .elementor-button-content-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+}
+
+.crc-price .elementor-button-icon {
+	display: flex;
+}
+
+.crc-price .elementor-button-icon svg {
+	width: 20px;
+	height: 20px;
+}

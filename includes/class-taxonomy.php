@@ -27,7 +27,13 @@ final class Taxonomy {
 	private static $creating = false;
 
 	/**
-	 * The categories, as slug => name and short description, in display order.
+	 * The categories, in display order, keyed by slug.
+	 *
+	 * - name:        category name.
+	 * - description: short description.
+	 * - label:       what a listing in this category is called on its page.
+	 * - period:      text after the price, e.g. "/month" for rentals.
+	 * - per_perch:   whether listings show a price per perch.
 	 *
 	 * @return array[]
 	 */
@@ -35,7 +41,7 @@ final class Taxonomy {
 		/**
 		 * Filters the fixed listing categories, e.g. to rename them on another site.
 		 *
-		 * @param array[] $terms Slug => array( 'name' => …, 'description' => … ).
+		 * @param array[] $terms Slug => category details.
 		 */
 		return apply_filters(
 			'crc_re_listing_categories',
@@ -43,15 +49,55 @@ final class Taxonomy {
 				'lands'               => array(
 					'name'        => __( 'Lands', 'crc-real-estate' ),
 					'description' => __( 'Land plots for sale.', 'crc-real-estate' ),
+					'label'       => __( 'Land for sale', 'crc-real-estate' ),
+					'period'      => '',
+					'per_perch'   => true,
 				),
 				'properties-for-sale' => array(
 					'name'        => __( 'Properties for sale', 'crc-real-estate' ),
 					'description' => __( 'Houses, apartments and villas for sale.', 'crc-real-estate' ),
+					'label'       => __( 'Property for sale', 'crc-real-estate' ),
+					'period'      => '',
+					'per_perch'   => false,
 				),
 				'properties-for-rent' => array(
 					'name'        => __( 'Properties for rent', 'crc-real-estate' ),
 					'description' => __( 'Houses, annexes, apartments and rooms to rent.', 'crc-real-estate' ),
+					'label'       => __( 'Property for rent', 'crc-real-estate' ),
+					'period'      => __( '/month', 'crc-real-estate' ),
+					'per_perch'   => false,
 				),
+			)
+		);
+	}
+
+	/**
+	 * A listing's category with its details, or null when it has none.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return array|null Category details from terms(), plus 'slug' and 'term'.
+	 */
+	public static function listing_category( $post_id ) {
+		$terms = get_the_terms( $post_id, self::NAME );
+
+		if ( ! $terms || is_wp_error( $terms ) ) {
+			return null;
+		}
+
+		$term    = reset( $terms );
+		$details = self::terms();
+		$details = isset( $details[ $term->slug ] ) ? $details[ $term->slug ] : array();
+
+		return array_merge(
+			array(
+				'label'     => $term->name,
+				'period'    => '',
+				'per_perch' => false,
+			),
+			$details,
+			array(
+				'slug' => $term->slug,
+				'term' => $term,
 			)
 		);
 	}

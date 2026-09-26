@@ -141,4 +141,19 @@ jQuery( function ( $ ) {
 			}
 		} ).observe( $featuredBox[ 0 ], { childList: true, subtree: true } );
 	}
+
+	// "Price per perch" only applies to land, so it shows when Lands is chosen.
+	var $priceBox = $( '.crc-price-box' );
+	var landsTerm = String( $priceBox.data( 'landsTerm' ) || '' );
+
+	function togglePerPerch() {
+		var chosen = String( $categoryBox.find( 'input[type="radio"]:checked' ).val() || '' );
+
+		$priceBox.find( '.crc-price-box__per-perch' ).toggle( '' !== landsTerm && '0' !== landsTerm && chosen === landsTerm );
+	}
+
+	if ( $priceBox.length ) {
+		$categoryBox.on( 'change', 'input[type="radio"]', togglePerPerch );
+		togglePerPerch();
+	}
 } );
