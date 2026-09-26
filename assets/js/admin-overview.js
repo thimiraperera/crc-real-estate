@@ -69,6 +69,15 @@ jQuery( function ( $ ) {
 		$( this ).closest( '.crc-overview-box-detail' ).remove();
 	} );
 
+	// Price per perch in Size and price follows the Price box as it is typed.
+	$( '#crc-per-perch-field' ).on( 'input', function () {
+		var amount = parseInt( String( $( this ).val() ).replace( /[,\s]/g, '' ).split( '.' )[ 0 ], 10 );
+
+		$box.find( '[data-crc-linked="price_per_perch"]' ).text(
+			amount > 0 ? ( text.currency || 'Rs.' ) + ' ' + amount.toLocaleString( 'en-US' ) : ( text.notSet || 'Not set' )
+		);
+	} );
+
 	$box.on( 'click', '.crc-overview-box-group-remove', function ( event ) {
 		var $group = $( this ).closest( '.crc-overview-box-group' );
 		var filled = $group.find( 'input' ).filter( function () {

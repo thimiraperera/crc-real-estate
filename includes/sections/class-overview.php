@@ -11,13 +11,15 @@ use CRC\RealEstate\Icons;
 use CRC\RealEstate\Popup;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Shortcodes;
+use CRC\RealEstate\Taxonomy;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * The listing's four main details in boxes (property type, offered for,
  * availability and listed by), and See More, which opens a popup with those
- * boxes and every other detail, in groups with check marks.
+ * boxes and the other details in groups with check marks: first the
+ * ready-made groups (Size and price, Access and road), then the listing's own.
  */
 final class Overview {
 
@@ -117,9 +119,378 @@ final class Overview {
 	}
 
 	/**
-	 * Group titles and detail labels offered while typing in the See More
-	 * part of the Property overview box. Ones used on other listings are
-	 * offered too.
+	 * The ready-made groups of details every listing can fill in. They show
+	 * in the See More popup, each detail only when it has a value.
+	 *
+	 * Each group has a 'title' and 'items', keyed by name. Each item has:
+	 * - label:    name on the site and on the listing screen.
+	 * - type:     number, select, text, or linked (the value comes from 'value').
+	 * - meta:     where the value is saved (default _crc_{name}).
+	 * - unit:     for numbers, how the number is written, from _n_noop().
+	 * - units:    for numbers, units to choose from: key => _n_noop().
+	 * - decimals: for numbers, whether decimals are allowed.
+	 * - options:  for selects, key => label.
+	 * - value:    for linked items, a callback that gets the listing ID and returns the text.
+	 * - note:     for linked items, help text on the listing screen.
+	 *
+	 * @return array[]
+	 */
+	public static function common_groups() {
+		$area = array(
+			/* translators: %s: number. */
+			'perches'  => _n_noop( '%s perch', '%s perches', 'crc-real-estate' ),
+			/* translators: %s: number. */
+			'acres'    => _n_noop( '%s Acre', '%s Acres', 'crc-real-estate' ),
+			/* translators: %s: number. */
+			'hectares' => _n_noop( '%s Hectare', '%s Hectares', 'crc-real-estate' ),
+		);
+
+		/* translators: %s: number of feet. */
+		$feet = _n_noop( '%s ft', '%s ft', 'crc-real-estate' );
+
+		/**
+		 * Filters the ready-made groups of details, e.g. to add a group or change the choices on another site.
+		 *
+		 * @param array[] $groups Group name => 'title' and 'items'.
+		 */
+		$groups = apply_filters(
+			'crc_re_overview_common_groups',
+			array(
+				'size_price'  => array(
+					'title' => __( 'Size and price', 'crc-real-estate' ),
+					'items' => array(
+						'land_extent'      => array(
+							'label' => __( 'Land extent', 'crc-real-estate' ),
+							'type'  => 'number',
+							'units' => $area,
+						),
+						'extent_perches'   => array(
+							'label' => __( 'Extent in perches', 'crc-real-estate' ),
+							'type'  => 'number',
+							'unit'  => $area['perches'],
+						),
+						'price_per_perch'  => array(
+							'label' => __( 'Price per perch', 'crc-real-estate' ),
+							'type'  => 'linked',
+							'value' => array( __CLASS__, 'price_per_perch' ),
+							'note'  => __( 'Comes from Price per perch in the Price box, so you only type it once. It shows on land listings.', 'crc-real-estate' ),
+						),
+						'price_basis'      => array(
+							'label'   => __( 'Price basis', 'crc-real-estate' ),
+							'type'    => 'select',
+							'options' => array(
+								'per_perch' => __( 'Per perch', 'crc-real-estate' ),
+								'per_acre'  => __( 'Per acre', 'crc-real-estate' ),
+								'total'     => __( 'Total price', 'crc-real-estate' ),
+							),
+						),
+						'price_type'       => array(
+							'label'   => __( 'Price type', 'crc-real-estate' ),
+							'type'    => 'select',
+							'options' => array(
+								'negotiable' => __( 'Negotiable', 'crc-real-estate' ),
+								'fixed'      => __( 'Fixed', 'crc-real-estate' ),
+							),
+						),
+						'plots'            => array(
+							'label'    => __( 'Number of plots', 'crc-real-estate' ),
+							'type'     => 'number',
+							/* translators: %s: number of plots. */
+							'unit'     => _n_noop( '%s plot', '%s plots', 'crc-real-estate' ),
+							'decimals' => false,
+						),
+						'minimum_purchase' => array(
+							'label' => __( 'Minimum purchase', 'crc-real-estate' ),
+							'type'  => 'number',
+							'units' => $area,
+						),
+					),
+				),
+				'access_road' => array(
+					'title' => __( 'Access and road', 'crc-real-estate' ),
+					'items' => array(
+						'road_frontage'      => array(
+							'label' => __( 'Road frontage', 'crc-real-estate' ),
+							'type'  => 'number',
+							'unit'  => $feet,
+						),
+						'road_width'         => array(
+							'label' => __( 'Approach road width', 'crc-real-estate' ),
+							'type'  => 'number',
+							'unit'  => $feet,
+						),
+						'road_type'          => array(
+							'label'   => __( 'Approach road type', 'crc-real-estate' ),
+							'type'    => 'select',
+							'options' => array(
+								'carpeted' => __( 'Carpeted', 'crc-real-estate' ),
+								'tarred'   => __( 'Tarred', 'crc-real-estate' ),
+								'concrete' => __( 'Concrete', 'crc-real-estate' ),
+								'gravel'   => __( 'Gravel', 'crc-real-estate' ),
+								'unpaved'  => __( 'Unpaved', 'crc-real-estate' ),
+							),
+						),
+						'main_road_distance' => array(
+							'label' => __( 'Distance to main road', 'crc-real-estate' ),
+							'type'  => 'number',
+							'units' => array(
+								/* translators: %s: number of metres. */
+								'm'  => _n_noop( '%s m', '%s m', 'crc-real-estate' ),
+								/* translators: %s: number of kilometres. */
+								'km' => _n_noop( '%s km', '%s km', 'crc-real-estate' ),
+							),
+						),
+						'access'             => array(
+							'label'   => __( 'Access', 'crc-real-estate' ),
+							'type'    => 'select',
+							'options' => array(
+								'direct'       => __( 'Direct road access', 'crc-real-estate' ),
+								'private_road' => __( 'Through a private road', 'crc-real-estate' ),
+								'right_of_way' => __( 'Right of way', 'crc-real-estate' ),
+							),
+						),
+						'facing'             => array(
+							'label'   => __( 'Facing direction', 'crc-real-estate' ),
+							'type'    => 'select',
+							'options' => array(
+								'north'      => __( 'North', 'crc-real-estate' ),
+								'north_east' => __( 'North-East', 'crc-real-estate' ),
+								'east'       => __( 'East', 'crc-real-estate' ),
+								'south_east' => __( 'South-East', 'crc-real-estate' ),
+								'south'      => __( 'South', 'crc-real-estate' ),
+								'south_west' => __( 'South-West', 'crc-real-estate' ),
+								'west'       => __( 'West', 'crc-real-estate' ),
+								'north_west' => __( 'North-West', 'crc-real-estate' ),
+							),
+						),
+					),
+				),
+			)
+		);
+
+		// Groups and details added through the filter only need a title or a label.
+		foreach ( (array) $groups as $key => $group ) {
+			$group = wp_parse_args(
+				(array) $group,
+				array(
+					'title' => '',
+					'items' => array(),
+				)
+			);
+
+			foreach ( (array) $group['items'] as $name => $item ) {
+				$group['items'][ $name ] = wp_parse_args(
+					(array) $item,
+					array(
+						'label'    => $name,
+						'type'     => 'text',
+						'meta'     => '_crc_' . $name,
+						'unit'     => null,
+						'units'    => array(),
+						'decimals' => true,
+						'options'  => array(),
+						'value'    => null,
+						'note'     => '',
+					)
+				);
+			}
+
+			$groups[ $key ] = $group;
+		}
+
+		return (array) $groups;
+	}
+
+	/**
+	 * A listing's filled-in ready-made details, as text, in groups. Details
+	 * without a value and groups without details are left out.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return array[] Each group has a 'title' and 'items', each item a 'label' and a 'value'.
+	 */
+	public static function common_details( $post_id ) {
+		$groups = array();
+
+		foreach ( self::common_groups() as $group ) {
+			$items = array();
+
+			foreach ( $group['items'] as $item ) {
+				$text = self::detail_text( $post_id, $item );
+
+				if ( '' !== $text ) {
+					$items[] = array(
+						'label' => $item['label'],
+						'value' => $text,
+					);
+				}
+			}
+
+			if ( $items ) {
+				$groups[] = array(
+					'title' => $group['title'],
+					'items' => $items,
+				);
+			}
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * A ready-made detail as it shows on the site, e.g. "20 Acres", or an
+	 * empty string when it has no value.
+	 *
+	 * @param int   $post_id Listing ID.
+	 * @param array $item    Detail from common_groups().
+	 * @return string
+	 */
+	public static function detail_text( $post_id, array $item ) {
+		if ( 'linked' === $item['type'] ) {
+			return is_callable( $item['value'] ) ? trim( (string) call_user_func( $item['value'], $post_id ) ) : '';
+		}
+
+		$value = get_post_meta( $post_id, $item['meta'], true );
+
+		if ( 'number' === $item['type'] ) {
+			$number = self::sanitize_number( $value, $item['decimals'] );
+
+			return '' !== $number ? self::format_number( $number, self::unit_of( $post_id, $item ) ) : '';
+		}
+
+		$value = trim( (string) $value );
+
+		if ( 'select' === $item['type'] && isset( $item['options'][ $value ] ) ) {
+			return (string) $item['options'][ $value ];
+		}
+
+		return $value;
+	}
+
+	/**
+	 * How a number is written: with the unit chosen on the listing, or the
+	 * detail's own unit.
+	 *
+	 * @param int   $post_id Listing ID.
+	 * @param array $item    Detail from common_groups().
+	 * @return array|null A unit from _n_noop(), or null for none.
+	 */
+	public static function unit_of( $post_id, array $item ) {
+		if ( $item['units'] ) {
+			$key = (string) get_post_meta( $post_id, $item['meta'] . '_unit', true );
+
+			return isset( $item['units'][ $key ] ) ? $item['units'][ $key ] : reset( $item['units'] );
+		}
+
+		return $item['unit'];
+	}
+
+	/**
+	 * A unit's name on its own, e.g. "Acres".
+	 *
+	 * @param array $unit Unit from _n_noop().
+	 * @return string
+	 */
+	public static function unit_name( $unit ) {
+		return trim( sprintf( translate_nooped_plural( $unit, 2, 'crc-real-estate' ), '' ) );
+	}
+
+	/**
+	 * A number written for people, e.g. "3,200 perches" or "1.5 Acres".
+	 *
+	 * @param string     $number Number from sanitize_number().
+	 * @param array|null $unit   Unit from _n_noop(), or null for the number alone.
+	 * @return string
+	 */
+	public static function format_number( $number, $unit ) {
+		$dot      = strpos( $number, '.' );
+		$decimals = false === $dot ? 0 : strlen( $number ) - $dot - 1;
+		$text     = number_format_i18n( (float) $number, $decimals );
+
+		if ( ! $unit ) {
+			return $text;
+		}
+
+		// A number with decimals reads as more than one, e.g. "1.5 Acres".
+		$count = false === $dot ? (int) $number : 2;
+
+		return sprintf( translate_nooped_plural( $unit, $count, 'crc-real-estate' ), $text );
+	}
+
+	/**
+	 * Keeps a number as typed without commas or spaces: "3,200" becomes 3200
+	 * and "1.50" becomes 1.5, with at most two decimals. Zero, negative
+	 * numbers and anything else count as empty.
+	 *
+	 * @param mixed $value    Typed number.
+	 * @param bool  $decimals Whether decimals are allowed; without, "5.7" becomes 5.
+	 * @return string
+	 */
+	public static function sanitize_number( $value, $decimals = true ) {
+		$value = is_scalar( $value ) ? preg_replace( '/[,\s]/', '', (string) $value ) : '';
+
+		if ( ! preg_match( '/^\d*\.?\d*$/', $value ) || ! preg_match( '/\d/', $value ) ) {
+			return '';
+		}
+
+		$number = $decimals ? round( (float) $value, 2 ) : floor( (float) $value );
+
+		if ( $number <= 0 ) {
+			return '';
+		}
+
+		return $decimals ? rtrim( rtrim( number_format( $number, 2, '.', '' ), '0' ), '.' ) : (string) (int) $number;
+	}
+
+	/**
+	 * Cleans a ready-made detail's value for saving.
+	 *
+	 * @param array $item  Detail from common_groups().
+	 * @param mixed $value Value as typed or chosen.
+	 * @return string An empty string when there is nothing to save.
+	 */
+	public static function sanitize_detail( array $item, $value ) {
+		$value = is_scalar( $value ) ? trim( (string) $value ) : '';
+
+		if ( 'number' === $item['type'] ) {
+			return self::sanitize_number( $value, $item['decimals'] );
+		}
+
+		if ( 'select' === $item['type'] ) {
+			return '' !== $value && isset( $item['options'][ $value ] ) ? $value : '';
+		}
+
+		return sanitize_text_field( $value );
+	}
+
+	/**
+	 * Cleans a chosen unit for saving: one of the detail's units, or empty.
+	 *
+	 * @param array $item  Detail from common_groups().
+	 * @param mixed $value Chosen unit.
+	 * @return string
+	 */
+	public static function sanitize_unit( array $item, $value ) {
+		$value = is_scalar( $value ) ? (string) $value : '';
+
+		return '' !== $value && isset( $item['units'][ $value ] ) ? $value : '';
+	}
+
+	/**
+	 * Price per perch from the Price box, e.g. "Rs. 3,125", on land listings.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return string
+	 */
+	public static function price_per_perch( $post_id ) {
+		$category = Taxonomy::listing_category( $post_id );
+		$amount   = Price_Card::price_per_perch( $post_id );
+
+		return ( $category && $category['per_perch'] && '' !== $amount ) ? Price_Card::money( $amount ) : '';
+	}
+
+	/**
+	 * Group titles and detail labels offered while typing in the listing's
+	 * own groups. Ones used on other listings are offered too.
 	 *
 	 * @return array[] 'titles' and 'labels'.
 	 */
@@ -132,17 +503,8 @@ final class Overview {
 		return apply_filters(
 			'crc_re_overview_suggestions',
 			array(
-				'titles' => array(
-					__( 'Size and price', 'crc-real-estate' ),
-				),
-				'labels' => array(
-					__( 'Land extent', 'crc-real-estate' ),
-					__( 'Extent in perches', 'crc-real-estate' ),
-					__( 'Price per perch', 'crc-real-estate' ),
-					__( 'Price basis', 'crc-real-estate' ),
-					__( 'Price type', 'crc-real-estate' ),
-					__( 'Number of plots', 'crc-real-estate' ),
-				),
+				'titles' => array(),
+				'labels' => array(),
 			)
 		);
 	}
@@ -178,6 +540,42 @@ final class Overview {
 			);
 		}
 
+		foreach ( self::common_groups() as $group ) {
+			foreach ( $group['items'] as $item ) {
+				if ( 'linked' === $item['type'] ) {
+					continue;
+				}
+
+				register_post_meta(
+					Post_Type::NAME,
+					$item['meta'],
+					array(
+						'type'              => 'string',
+						'single'            => true,
+						'sanitize_callback' => function ( $value ) use ( $item ) {
+							return self::sanitize_detail( $item, $value );
+						},
+						'auth_callback'     => $auth,
+					)
+				);
+
+				if ( $item['units'] ) {
+					register_post_meta(
+						Post_Type::NAME,
+						$item['meta'] . '_unit',
+						array(
+							'type'              => 'string',
+							'single'            => true,
+							'sanitize_callback' => function ( $value ) use ( $item ) {
+								return self::sanitize_unit( $item, $value );
+							},
+							'auth_callback'     => $auth,
+						)
+					);
+				}
+			}
+		}
+
 		register_post_meta(
 			Post_Type::NAME,
 			self::MORE_META,
@@ -194,7 +592,7 @@ final class Overview {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Property overview', 'crc-real-estate' ),
-				'description' => __( 'The four main details in boxes: property type, offered for, availability and listed by. Below them, See More opens a popup with the same boxes and all the other details, in groups with check marks. See More shows once the listing has other details. Fill them in the Property overview box on the listing screen.', 'crc-real-estate' ),
+				'description' => __( 'The four main details in boxes: property type, offered for, availability and listed by. Below them, See More opens a popup with the same boxes, then Size and price, Access and road, and any groups of the listing\'s own, each detail with a check mark. Details and groups without a value don\'t show, and See More shows once there is something for the popup. Fill them in the Property overview box on the listing screen.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'    => array(
 						'default'     => '',
@@ -349,12 +747,15 @@ final class Overview {
 		}
 
 		$main   = self::main_details( $post->ID );
-		$groups = array_values(
-			array_filter(
-				self::groups( $post->ID ),
-				function ( $group ) {
-					return ! empty( $group['items'] );
-				}
+		$groups = array_merge(
+			self::common_details( $post->ID ),
+			array_values(
+				array_filter(
+					self::groups( $post->ID ),
+					function ( $group ) {
+						return ! empty( $group['items'] );
+					}
+				)
 			)
 		);
 
@@ -409,7 +810,7 @@ final class Overview {
 	}
 
 	/**
-	 * The other details: each group's title and its details with check marks.
+	 * The popup's groups: each group's title and its details with check marks.
 	 *
 	 * @param array[] $groups Groups that have details.
 	 * @return string

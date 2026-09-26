@@ -167,6 +167,57 @@
 	font-size: 14px;
 }
 
+.crc-overview-box-subtitle {
+	margin: 24px 0 0;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+	font-size: 13px;
+}
+
+.crc-overview-box-subtitle + .description {
+	margin-top: 4px;
+}
+
+/* Number with its unit, e.g. 20 Acres */
+.crc-measure {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.crc-measure input {
+	flex: 1 1 auto;
+	box-sizing: border-box;
+	min-width: 0;
+	margin: 0;
+}
+
+.crc-measure select {
+	flex: none;
+	margin: 0;
+}
+
+.crc-measure-unit {
+	flex: none;
+	color: #50575e;
+}
+
+.crc-field .crc-select {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+
+/* A detail that comes from another box */
+.crc-field-label {
+	font-weight: 600;
+}
+
+.crc-field-static {
+	color: #50575e;
+}
+
 .crc-overview-box-groups {
 	display: flex;
 	flex-direction: column;

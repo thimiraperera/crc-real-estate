@@ -9,17 +9,19 @@ namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Overview;
+use CRC\RealEstate\Sections\Price_Card;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Lets editors fill in the four main details, and add more details in groups
- * for the See More popup.
+ * Lets editors fill in the four main details, the ready-made details for the
+ * See More popup (Size and price, Access and road), and groups of their own.
  */
 final class Overview_Box {
 
-	const NONCE = 'crc_overview_nonce';
-	const FIELD = 'crc_overview';
+	const NONCE   = 'crc_overview_nonce';
+	const FIELD   = 'crc_overview';
+	const DETAILS = 'crc_details';
 
 	/**
 	 * How many recent listings to look through for suggestions.
@@ -60,6 +62,8 @@ final class Overview_Box {
 			'crcReOverview',
 			array(
 				'confirmRemove' => __( 'Remove this group and all its details?', 'crc-real-estate' ),
+				'currency'      => Price_Card::currency(),
+				'notSet'        => __( 'Not set', 'crc-real-estate' ),
 			)
 		);
 	}
@@ -72,11 +76,6 @@ final class Overview_Box {
 	public function render( $post ) {
 		$groups  = Overview::groups( $post->ID );
 		$suggest = $this->suggestions();
-
-		// An empty group to start from. Empty groups aren't saved.
-		if ( ! $groups ) {
-			$groups = array( $this->empty_group() );
-		}
 
 		wp_nonce_field( 'crc_overview_save', self::NONCE );
 		?>
@@ -98,7 +97,21 @@ final class Overview_Box {
 			</div>
 
 			<h4 class="crc-overview-box-title"><?php esc_html_e( 'See More popup', 'crc-real-estate' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. Put related details in a group with a title, for example "Size and price" with Land extent, Extent in perches and Price per perch. Drag the groups and details to change their order. See More shows on the listing page once there is a detail here.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. Fill in what applies to this listing: a detail left empty doesn\'t show on the site, and neither does a group with nothing filled in. See More shows on the listing page once there is something for the popup.', 'crc-real-estate' ); ?></p>
+
+			<?php foreach ( Overview::common_groups() as $key => $group ) : ?>
+				<h4 class="crc-overview-box-subtitle"><?php echo esc_html( $group['title'] ); ?></h4>
+				<div class="crc-fields crc-overview-box-common">
+					<?php
+					foreach ( $group['items'] as $name => $item ) {
+						$this->common_field( $post, $name, $item );
+					}
+					?>
+				</div>
+			<?php endforeach; ?>
+
+			<h4 class="crc-overview-box-subtitle"><?php esc_html_e( 'Your own groups', 'crc-real-estate' ); ?></h4>
+			<p class="description"><?php esc_html_e( 'For anything else, add a group with a title and its details, for example "Utilities" with Water supply and Electricity. They show after the groups above. Drag the groups and details to change their order.', 'crc-real-estate' ); ?></p>
 
 			<div class="crc-overview-box-groups">
 				<?php
@@ -117,6 +130,96 @@ final class Overview_Box {
 			?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Prints a ready-made detail's field. A linked detail shows its value,
+	 * which is changed where it comes from.
+	 *
+	 * @param \WP_Post $post Listing being edited.
+	 * @param string   $name Detail name.
+	 * @param array    $item Detail from Overview::common_groups().
+	 */
+	private function common_field( $post, $name, array $item ) {
+		$id = 'crc-detail-' . str_replace( '_', '-', $name );
+		?>
+		<div class="crc-field-group">
+			<?php if ( 'linked' === $item['type'] ) : ?>
+				<?php $text = Overview::detail_text( $post->ID, $item ); ?>
+				<p class="crc-field">
+					<span class="crc-field-label"><?php echo esc_html( $item['label'] ); ?></span>
+					<span class="crc-field-static" data-crc-linked="<?php echo esc_attr( $name ); ?>"><?php echo esc_html( '' !== $text ? $text : __( 'Not set', 'crc-real-estate' ) ); ?></span>
+				</p>
+				<?php if ( '' !== $item['note'] ) : ?>
+					<p class="description"><?php echo esc_html( $item['note'] ); ?></p>
+				<?php endif; ?>
+			<?php else : ?>
+				<p class="crc-field">
+					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $item['label'] ); ?></label>
+					<?php $this->control( $post, $id, $name, $item ); ?>
+				</p>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Prints the input for a ready-made detail: a number with its unit, a
+	 * list to choose from, or a text box.
+	 *
+	 * @param \WP_Post $post Listing being edited.
+	 * @param string   $id   Field id.
+	 * @param string   $name Detail name.
+	 * @param array    $item Detail from Overview::common_groups().
+	 */
+	private function control( $post, $id, $name, array $item ) {
+		$field = self::DETAILS . '[' . $name . ']';
+		$value = (string) get_post_meta( $post->ID, $item['meta'], true );
+
+		if ( 'select' === $item['type'] ) {
+			printf( '<select id="%1$s" name="%2$s" class="crc-select">', esc_attr( $id ), esc_attr( $field ) );
+			printf( '<option value="">%s</option>', esc_html__( '— Select —', 'crc-real-estate' ) );
+
+			foreach ( $item['options'] as $key => $label ) {
+				printf( '<option value="%1$s"%2$s>%3$s</option>', esc_attr( $key ), selected( $value, (string) $key, false ), esc_html( $label ) );
+			}
+
+			echo '</select>';
+			return;
+		}
+
+		if ( 'number' !== $item['type'] ) {
+			printf( '<input type="text" id="%1$s" name="%2$s" value="%3$s" class="regular-text" autocomplete="off">', esc_attr( $id ), esc_attr( $field ), esc_attr( $value ) );
+			return;
+		}
+
+		$number = Overview::sanitize_number( $value, $item['decimals'] );
+
+		echo '<span class="crc-measure">';
+		printf(
+			'<input type="text" inputmode="%1$s" id="%2$s" name="%3$s" value="%4$s" autocomplete="off">',
+			$item['decimals'] ? 'decimal' : 'numeric',
+			esc_attr( $id ),
+			esc_attr( $field ),
+			esc_attr( '' !== $number ? Overview::format_number( $number, null ) : '' )
+		);
+
+		if ( $item['units'] ) {
+			$unit = (string) get_post_meta( $post->ID, $item['meta'] . '_unit', true );
+
+			/* translators: %s: detail name, e.g. "Land extent". */
+			printf( '<select name="%1$s" aria-label="%2$s">', esc_attr( self::DETAILS . '[' . $name . '_unit]' ), esc_attr( sprintf( __( '%s unit', 'crc-real-estate' ), $item['label'] ) ) );
+
+			foreach ( $item['units'] as $key => $noop ) {
+				printf( '<option value="%1$s"%2$s>%3$s</option>', esc_attr( $key ), selected( $unit, (string) $key, false ), esc_html( Overview::unit_name( $noop ) ) );
+			}
+
+			echo '</select>';
+		} elseif ( $item['unit'] ) {
+			printf( '<span class="crc-measure-unit">%s</span>', esc_html( Overview::unit_name( $item['unit'] ) ) );
+		}
+
+		echo '</span>';
 	}
 
 	/**
@@ -149,7 +252,7 @@ final class Overview_Box {
 		<div class="crc-overview-box-group" data-group="<?php echo esc_attr( $g ); ?>">
 			<div class="crc-overview-box-group-head">
 				<span class="crc-overview-box-group-handle dashicons dashicons-move" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
-				<input type="text" name="<?php echo esc_attr( $name . '[title]' ); ?>" value="<?php echo esc_attr( $group['title'] ); ?>" class="crc-overview-box-group-title" list="crc-overview-box-titles" placeholder="<?php esc_attr_e( 'Group title, for example Size and price', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Group title', 'crc-real-estate' ); ?>" autocomplete="off">
+				<input type="text" name="<?php echo esc_attr( $name . '[title]' ); ?>" value="<?php echo esc_attr( $group['title'] ); ?>" class="crc-overview-box-group-title" list="crc-overview-box-titles" placeholder="<?php esc_attr_e( 'Group title, for example Utilities', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Group title', 'crc-real-estate' ); ?>" autocomplete="off">
 				<button type="button" class="button-link button-link-delete crc-overview-box-group-remove"><?php esc_html_e( 'Remove group', 'crc-real-estate' ); ?></button>
 			</div>
 			<ul class="crc-overview-box-details">
@@ -176,8 +279,8 @@ final class Overview_Box {
 		?>
 		<li class="crc-overview-box-detail">
 			<span class="crc-overview-box-detail-handle dashicons dashicons-menu" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
-			<input type="text" name="<?php echo esc_attr( $name . '[label]' ); ?>" value="<?php echo esc_attr( $item['label'] ); ?>" list="crc-overview-box-labels" placeholder="<?php esc_attr_e( 'Label, for example Land extent', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Label', 'crc-real-estate' ); ?>" autocomplete="off">
-			<input type="text" name="<?php echo esc_attr( $name . '[value]' ); ?>" value="<?php echo esc_attr( $item['value'] ); ?>" placeholder="<?php esc_attr_e( 'Value, for example 20 Acres', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Value', 'crc-real-estate' ); ?>" autocomplete="off">
+			<input type="text" name="<?php echo esc_attr( $name . '[label]' ); ?>" value="<?php echo esc_attr( $item['label'] ); ?>" list="crc-overview-box-labels" placeholder="<?php esc_attr_e( 'Label, for example Water supply', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Label', 'crc-real-estate' ); ?>" autocomplete="off">
+			<input type="text" name="<?php echo esc_attr( $name . '[value]' ); ?>" value="<?php echo esc_attr( $item['value'] ); ?>" placeholder="<?php esc_attr_e( 'Value, for example Pipe-borne', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Value', 'crc-real-estate' ); ?>" autocomplete="off">
 			<button type="button" class="crc-overview-box-detail-remove" aria-label="<?php esc_attr_e( 'Remove this detail', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
 		</li>
 		<?php
@@ -255,7 +358,8 @@ final class Overview_Box {
 	}
 
 	/**
-	 * Saves the main details and the See More groups. Empty ones are removed.
+	 * Saves the main details, the ready-made details and the listing's own
+	 * groups. Empty ones are removed.
 	 *
 	 * @param int $post_id Listing ID.
 	 */
@@ -276,6 +380,38 @@ final class Overview_Box {
 				update_post_meta( $post_id, $field['meta'], wp_slash( $value ) );
 			} else {
 				delete_post_meta( $post_id, $field['meta'] );
+			}
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each value is cleaned by Overview::sanitize_detail() and sanitize_unit().
+		$details = isset( $_POST[ self::DETAILS ] ) && is_array( $_POST[ self::DETAILS ] ) ? wp_unslash( $_POST[ self::DETAILS ] ) : array();
+
+		foreach ( Overview::common_groups() as $group ) {
+			foreach ( $group['items'] as $name => $item ) {
+				if ( 'linked' === $item['type'] ) {
+					continue;
+				}
+
+				$value = Overview::sanitize_detail( $item, isset( $details[ $name ] ) ? $details[ $name ] : '' );
+
+				if ( '' !== $value ) {
+					update_post_meta( $post_id, $item['meta'], wp_slash( $value ) );
+				} else {
+					delete_post_meta( $post_id, $item['meta'] );
+				}
+
+				if ( ! $item['units'] ) {
+					continue;
+				}
+
+				// The unit is kept only with a number.
+				$unit = '' !== $value ? Overview::sanitize_unit( $item, isset( $details[ $name . '_unit' ] ) ? $details[ $name . '_unit' ] : '' ) : '';
+
+				if ( '' !== $unit ) {
+					update_post_meta( $post_id, $item['meta'] . '_unit', $unit );
+				} else {
+					delete_post_meta( $post_id, $item['meta'] . '_unit' );
+				}
 			}
 		}
 

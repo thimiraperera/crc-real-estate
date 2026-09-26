@@ -169,6 +169,7 @@
 	margin-top: 0;
 	margin-bottom: 0;
 	color: var(--e-global-color-6e3d619);
+	font-weight: 400;
 }
 
 @media (prefers-reduced-motion: reduce) {

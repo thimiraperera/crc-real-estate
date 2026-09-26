@@ -22,6 +22,12 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.8.0 =
+* See More popup: two ready-made groups, Size and price and Access and road, filled in on the listing screen. Each detail has the right kind of field: a number with its unit (perches, Acres, Hectares, ft, m or km) or a list to choose from (price basis, price type, road type, access and facing direction). Price per perch comes from the Price box, so it is typed once.
+* Details and groups left empty don't show on the site.
+* In the popup, detail names are weight 600 and values weight 400, both in the 6e3d619 color.
+* A listing's own groups stay for anything else and show after the ready-made ones.
+
 = 0.7.0 =
 * Property overview section: [crc_listing_overview] shows the property type, offered for, availability and listed by in boxes with icons, and See More, which opens a popup with those boxes and all the other details in groups with check marks.
 * Property overview box on the listing screen: the four details with suggestions, and groups of other details for the See More popup. Groups and details can be added, removed and dragged into order.
