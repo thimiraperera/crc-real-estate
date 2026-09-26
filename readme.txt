@@ -22,6 +22,10 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.4.2 =
+* Responsive styles follow the site's four modes: Desktop (1367px and up), Laptop (1366px to 1025px), Tablet (1024px to 768px) and Mobile (767px and below).
+* Info page: the Styles section lists just the class names.
+
 = 0.4.1 =
 * Help texts and descriptions are back to their fuller wording.
 

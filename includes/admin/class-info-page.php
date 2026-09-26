@@ -136,8 +136,7 @@ final class Info_Page {
 			<h2><?php esc_html_e( 'Styles', 'crc-real-estate' ); ?></h2>
 			<p class="crc-info__intro"><?php esc_html_e( 'Add a class in Elementor under Advanced → CSS Classes.', 'crc-real-estate' ); ?></p>
 			<section class="crc-info__card">
-				<?php foreach ( $this->styles() as $class => $about ) : ?>
-					<h3 class="crc-info__title"><?php echo esc_html( $about ); ?></h3>
+				<?php foreach ( $this->styles() as $class ) : ?>
 					<p class="crc-info__code">
 						<code><?php echo esc_html( $class ); ?></code>
 						<?php $this->copy_button( $class, $copy, $copied ); ?>
@@ -149,14 +148,12 @@ final class Info_Page {
 	}
 
 	/**
-	 * CSS classes to add to Elementor containers, with what each one does.
+	 * CSS classes to add to Elementor containers.
 	 *
 	 * @return string[]
 	 */
 	private function styles() {
-		return array(
-			'crc-card' => __( 'White box with rounded corners and a soft shadow', 'crc-real-estate' ),
-		);
+		return array( 'crc-card' );
 	}
 
 	/**

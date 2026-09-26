@@ -1,4 +1,4 @@
-/* Gallery: the large featured photo with smaller photos beside it. */
+/* Gallery: the large main photo with smaller photos beside it. */
 
 .crc-gallery {
 	--crc-gallery-gap: 8px;
@@ -119,34 +119,6 @@
 	text-align: center;
 }
 
-/* Phones: the large photo on top, the others in a row below. */
-@media (max-width: 767px) {
-	.crc-gallery {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		grid-template-rows: none;
-		aspect-ratio: auto;
-		border-radius: 0;
-		overflow: visible;
-	}
-
-	.crc-gallery .crc-gallery__item {
-		grid-column: auto;
-		grid-row: auto;
-		aspect-ratio: 1;
-		border-radius: calc(var(--crc-gallery-radius) * 0.6);
-	}
-
-	.crc-gallery .crc-gallery__item--1 {
-		grid-column: 1 / -1;
-		aspect-ratio: 4 / 3;
-	}
-
-	.crc-gallery .crc-gallery__more {
-		font-size: 14px;
-		line-height: 20px;
-	}
-}
-
 /* Full-screen photo viewer */
 html.crc-lightbox-open {
 	overflow: hidden;
@@ -256,7 +228,60 @@ html.crc-lightbox-open {
 	transform: translateY(-50%);
 }
 
+@media (prefers-reduced-motion: reduce) {
+	.crc-gallery .crc-gallery__img {
+		transition: none;
+	}
+
+	.crc-gallery a.crc-gallery__item:hover .crc-gallery__img {
+		transform: none;
+	}
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	/* Your styles for desktop */
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	/* Your styles for laptops */
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
 @media (max-width: 767px) {
+	/* Gallery: the large photo on top, the others in a row below. */
+	.crc-gallery {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-rows: none;
+		aspect-ratio: auto;
+		border-radius: 0;
+		overflow: visible;
+	}
+
+	.crc-gallery .crc-gallery__item {
+		grid-column: auto;
+		grid-row: auto;
+		aspect-ratio: 1;
+		border-radius: calc(var(--crc-gallery-radius) * 0.6);
+	}
+
+	.crc-gallery .crc-gallery__item--1 {
+		grid-column: 1 / -1;
+		aspect-ratio: 4 / 3;
+	}
+
+	.crc-gallery .crc-gallery__more {
+		font-size: 14px;
+		line-height: 20px;
+	}
+
+	/* Photo viewer: arrows move to the bottom. */
 	.crc-lightbox {
 		padding: 72px 12px 104px;
 	}
@@ -279,15 +304,5 @@ html.crc-lightbox-open {
 
 	.crc-lightbox .crc-lightbox__next {
 		right: calc(50% - 60px);
-	}
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.crc-gallery .crc-gallery__img {
-		transition: none;
-	}
-
-	.crc-gallery a.crc-gallery__item:hover .crc-gallery__img {
-		transform: none;
 	}
 }
