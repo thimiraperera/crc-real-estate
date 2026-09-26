@@ -42,11 +42,11 @@ final class Description {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Description', 'crc-real-estate' ),
-				'description' => __( 'The text from the listing\'s text box.', 'crc-real-estate' ),
+				'description' => __( 'The listing\'s description: the text written in the text box on the listing screen, with its formatting. The last paragraph has no space below it, so it sits neatly inside a box.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id' => array(
 						'default'     => '',
-						'description' => __( 'Listing ID. Not needed on a listing page.', 'crc-real-estate' ),
+						'description' => __( 'Listing ID. Leave it out on a listing page to use that listing.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(

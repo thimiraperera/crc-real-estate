@@ -111,12 +111,12 @@ jQuery( function ( $ ) {
 		var missing = [];
 
 		if ( $featuredBox.length && ! hasFeaturedImage() ) {
-			showError( $featuredBox, text.featuredRequired || 'Add a main photo to publish.' );
+			showError( $featuredBox, text.featuredRequired || 'Add a main photo to publish this listing.' );
 			missing.push( $featuredBox );
 		}
 
 		if ( $categoryBox.length && ! hasCategory() ) {
-			showError( $categoryBox, text.categoryRequired || 'Pick a category to publish.' );
+			showError( $categoryBox, text.categoryRequired || 'Choose a category to publish this listing.' );
 			missing.push( $categoryBox );
 		}
 

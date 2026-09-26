@@ -57,11 +57,11 @@ final class Gallery {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Gallery', 'crc-real-estate' ),
-				'description' => __( 'Main photo, more photos, view count and a full-screen photo viewer.', 'crc-real-estate' ),
+				'description' => __( 'The main photo as the large photo, with the other photos beside it. Shows the view count and "+N photos" when there are more photos than fit. Clicking any photo opens the full-screen photo viewer with every photo.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'    => array(
 						'default'     => '',
-						'description' => __( 'Listing ID. Not needed on a listing page.', 'crc-real-estate' ),
+						'description' => __( 'Listing ID. Leave it out on a listing page to use that listing.', 'crc-real-estate' ),
 					),
 					'views' => array(
 						'default'     => 'yes',

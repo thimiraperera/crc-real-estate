@@ -158,14 +158,6 @@
 	margin: 12px 0 4px;
 }
 
-/* Gallery box: button with its hint beside it */
-.crc-gallery-admin__actions {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 8px 12px;
-}
-
 /* Info page */
 .crc-info__meta {
 	color: #646970;

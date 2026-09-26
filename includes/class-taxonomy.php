@@ -310,7 +310,7 @@ final class Taxonomy {
 					<?php echo esc_html( $term->name ); ?>
 				</label>
 			<?php endforeach; ?>
-			<p class="description"><?php esc_html_e( 'Required. Pick one.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Required. Choose one.', 'crc-real-estate' ); ?></p>
 		</div>
 		<?php
 	}

@@ -22,6 +22,9 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.4.1 =
+* Help texts and descriptions are back to their fuller wording.
+
 = 0.4.0 =
 * Listing Categories use the normal WordPress category screen again: names and descriptions can be edited; adding, deleting and changing the web address or parent are locked.
 * Description section: [crc_listing_description] shows the listing's text on the site.

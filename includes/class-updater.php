@@ -164,7 +164,7 @@ final class Updater {
 			);
 		} elseif ( 'error' === $result ) {
 			$error   = (string) get_site_transient( self::ERROR_KEY );
-			$message = __( 'CRC Real Estate couldn\'t check for updates. Try again in a few minutes.', 'crc-real-estate' );
+			$message = __( 'CRC Real Estate couldn\'t reach GitHub to check for updates. Try again in a few minutes.', 'crc-real-estate' );
 
 			if ( '' !== $error ) {
 				/* translators: %s: error details. */
