@@ -50,7 +50,7 @@ final class Gallery_Box {
 		wp_nonce_field( 'crc_gallery_save', self::NONCE );
 		?>
 		<div class="crc-gallery-admin<?php echo $ids ? ' has-images' : ''; ?>">
-			<ul class="crc-gallery-admin__list">
+			<ul class="crc-gallery-admin-list">
 				<?php foreach ( $ids as $id ) : ?>
 					<?php
 					$thumb = wp_get_attachment_image( $id, 'thumbnail' );
@@ -59,16 +59,16 @@ final class Gallery_Box {
 						continue;
 					}
 					?>
-					<li class="crc-gallery-admin__item" data-id="<?php echo esc_attr( $id ); ?>">
+					<li class="crc-gallery-admin-item" data-id="<?php echo esc_attr( $id ); ?>">
 						<?php echo $thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core image markup. ?>
-						<button type="button" class="crc-gallery-admin__remove" aria-label="<?php esc_attr_e( 'Remove photo', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+						<button type="button" class="crc-gallery-admin-remove" aria-label="<?php esc_attr_e( 'Remove photo', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
 					</li>
 				<?php endforeach; ?>
 			</ul>
-			<p class="crc-gallery-admin__empty"><?php esc_html_e( 'No photos yet.', 'crc-real-estate' ); ?></p>
-			<input type="hidden" name="<?php echo esc_attr( self::FIELD ); ?>" class="crc-gallery-admin__ids" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
+			<p class="crc-gallery-admin-empty"><?php esc_html_e( 'No photos yet.', 'crc-real-estate' ); ?></p>
+			<input type="hidden" name="<?php echo esc_attr( self::FIELD ); ?>" class="crc-gallery-admin-ids" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
 			<p>
-				<button type="button" class="button crc-gallery-admin__add"><?php esc_html_e( 'Add photos', 'crc-real-estate' ); ?></button>
+				<button type="button" class="button crc-gallery-admin-add"><?php esc_html_e( 'Add photos', 'crc-real-estate' ); ?></button>
 			</p>
 			<p class="description">
 				<?php esc_html_e( 'The main photo is the large photo. Add the other photos here. They appear beside it in this order, and all of them open in the photo viewer. Drag to reorder.', 'crc-real-estate' ); ?>
@@ -173,7 +173,7 @@ final class Gallery_Box {
 		if ( $image ) {
 			echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core image markup.
 		} else {
-			printf( '<span class="crc-list-photo crc-list-photo--none" title="%1$s">%2$s</span>', esc_attr__( 'No main photo', 'crc-real-estate' ), '<span class="dashicons dashicons-format-image" aria-hidden="true"></span>' );
+			printf( '<span class="crc-list-photo crc-list-photo-none" title="%1$s">%2$s</span>', esc_attr__( 'No main photo', 'crc-real-estate' ), '<span class="dashicons dashicons-format-image" aria-hidden="true"></span>' );
 		}
 	}
 }

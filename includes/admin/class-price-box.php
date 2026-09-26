@@ -48,21 +48,23 @@ final class Price_Box {
 
 		wp_nonce_field( 'crc_price_save', self::NONCE );
 		?>
-		<div class="crc-price-box" data-lands-term="<?php echo esc_attr( $lands ? $lands->term_id : 0 ); ?>">
-			<p class="crc-field">
-				<label for="crc-price-field"><?php esc_html_e( 'Price', 'crc-real-estate' ); ?></label>
-				<span class="crc-money">
-					<span class="crc-money__currency"><?php echo esc_html( $currency ); ?></span>
-					<input type="text" inputmode="numeric" id="crc-price-field" name="crc_price" value="<?php echo esc_attr( '' !== $price ? number_format_i18n( (float) $price ) : '' ); ?>" placeholder="10,000,000">
-				</span>
-			</p>
-			<p class="description"><?php esc_html_e( 'The full price of the listing. For properties for rent, enter the monthly rent; "/month" is added after it on the site.', 'crc-real-estate' ); ?></p>
+		<div class="crc-price-box crc-fields" data-lands-term="<?php echo esc_attr( $lands ? $lands->term_id : 0 ); ?>">
+			<div class="crc-field-group">
+				<p class="crc-field">
+					<label for="crc-price-field"><?php esc_html_e( 'Price', 'crc-real-estate' ); ?></label>
+					<span class="crc-money">
+						<span class="crc-money-currency"><?php echo esc_html( $currency ); ?></span>
+						<input type="text" inputmode="numeric" id="crc-price-field" name="crc_price" value="<?php echo esc_attr( '' !== $price ? number_format_i18n( (float) $price ) : '' ); ?>" placeholder="10,000,000">
+					</span>
+				</p>
+				<p class="description"><?php esc_html_e( 'The full price of the listing. For properties for rent, enter the monthly rent; "/month" is added after it on the site.', 'crc-real-estate' ); ?></p>
+			</div>
 
-			<div class="crc-price-box__per-perch">
+			<div class="crc-field-group crc-price-box-per-perch">
 				<p class="crc-field">
 					<label for="crc-per-perch-field"><?php esc_html_e( 'Price per perch', 'crc-real-estate' ); ?></label>
 					<span class="crc-money">
-						<span class="crc-money__currency"><?php echo esc_html( $currency ); ?></span>
+						<span class="crc-money-currency"><?php echo esc_html( $currency ); ?></span>
 						<input type="text" inputmode="numeric" id="crc-per-perch-field" name="crc_price_per_perch" value="<?php echo esc_attr( '' !== $per_perch ? number_format_i18n( (float) $per_perch ) : '' ); ?>" placeholder="3,125">
 					</span>
 				</p>

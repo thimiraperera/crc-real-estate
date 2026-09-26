@@ -1,5 +1,5 @@
 /* Gallery box */
-.crc-gallery-admin__list {
+.crc-gallery-admin-list {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
@@ -8,7 +8,7 @@
 	list-style: none;
 }
 
-.crc-gallery-admin__item {
+.crc-gallery-admin-item {
 	position: relative;
 	width: 96px;
 	height: 96px;
@@ -20,14 +20,14 @@
 	cursor: move;
 }
 
-.crc-gallery-admin__item img {
+.crc-gallery-admin-item img {
 	display: block;
 	width: 100%;
 	height: 100%;
 	object-fit: cover;
 }
 
-.crc-gallery-admin__remove {
+.crc-gallery-admin-remove {
 	position: absolute;
 	top: 4px;
 	right: 4px;
@@ -44,19 +44,19 @@
 	cursor: pointer;
 }
 
-.crc-gallery-admin__remove:hover,
-.crc-gallery-admin__remove:focus {
+.crc-gallery-admin-remove:hover,
+.crc-gallery-admin-remove:focus {
 	background: #d63638;
 	color: #fff;
 }
 
-.crc-gallery-admin__remove .dashicons {
+.crc-gallery-admin-remove .dashicons {
 	width: 16px;
 	height: 16px;
 	font-size: 16px;
 }
 
-.crc-gallery-admin__placeholder {
+.crc-gallery-admin-placeholder {
 	box-sizing: border-box;
 	width: 96px;
 	height: 96px;
@@ -64,12 +64,12 @@
 	border-radius: 4px;
 }
 
-.crc-gallery-admin__empty {
+.crc-gallery-admin-empty {
 	color: #646970;
 }
 
-.crc-gallery-admin.has-images .crc-gallery-admin__empty,
-.crc-gallery-admin:not(.has-images) .crc-gallery-admin__list {
+.crc-gallery-admin.has-images .crc-gallery-admin-empty,
+.crc-gallery-admin:not(.has-images) .crc-gallery-admin-list {
 	display: none;
 }
 
@@ -88,12 +88,12 @@
 }
 
 /* Category box */
-.crc-category-box__option {
+.crc-category-box-option {
 	display: block;
 	margin: 0 0 8px;
 }
 
-.crc-category-box__option input {
+.crc-category-box-option input {
 	margin: 0 6px 0 0;
 }
 
@@ -109,32 +109,52 @@
 	width: 110px;
 }
 
-/* Price and Contact buttons boxes */
+/* Price and Contact buttons boxes: one column, two on desktop and laptop (see the end of this file) */
+.crc-fields {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 20px 24px;
+	margin: 12px 0;
+}
+
 .crc-field {
 	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 8px 12px;
-	margin-bottom: 4px;
+	flex-direction: column;
+	gap: 6px;
+	margin: 0 0 6px;
 }
 
 .crc-field label {
-	min-width: 140px;
 	font-weight: 600;
 }
 
+.crc-field .regular-text {
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	margin: 0;
+}
+
+.crc-field-group .description {
+	margin: 0;
+}
+
 .crc-money {
-	display: inline-flex;
+	display: flex;
 	align-items: center;
 	gap: 6px;
 }
 
 .crc-money input {
-	width: 180px;
+	flex: 1 1 auto;
+	box-sizing: border-box;
+	min-width: 0;
+	margin: 0;
 }
 
-.crc-price-box__per-perch {
-	margin-top: 16px;
+/* A box moved to the narrow sidebar stays in one column. */
+#side-sortables .crc-fields {
+	grid-template-columns: minmax(0, 1fr);
 }
 
 /* Listings list */
@@ -154,7 +174,7 @@
 	object-fit: cover;
 }
 
-.crc-list-photo--none {
+.crc-list-photo-none {
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -187,15 +207,15 @@
 }
 
 /* Info page */
-.crc-info__meta {
+.crc-info-meta {
 	color: #646970;
 }
 
-.crc-info__intro {
+.crc-info-intro {
 	max-width: 760px;
 }
 
-.crc-info__card {
+.crc-info-card {
 	max-width: 960px;
 	margin: 16px 0;
 	padding: 4px 20px 16px;
@@ -204,35 +224,59 @@
 	background: #fff;
 }
 
-.crc-info__title {
+.crc-info-title {
 	margin: 16px 0 8px;
 }
 
-.crc-info__subtitle {
+.crc-info-subtitle {
 	margin: 20px 0 8px;
 }
 
-.crc-info__code,
-.crc-info__examples li {
+.crc-info-code,
+.crc-info-examples li {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
 }
 
-.crc-info__examples {
+.crc-info-examples {
 	margin: 0;
 }
 
-.crc-info__examples li {
+.crc-info-examples li {
 	margin-bottom: 8px;
 }
 
-.crc-info__table {
+.crc-info-table {
 	margin-top: 12px;
 }
 
-.crc-info__table td:first-child,
-.crc-info__table td:nth-child(2) {
+.crc-info-table td:first-child,
+.crc-info-table td:nth-child(2) {
 	white-space: nowrap;
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	.crc-fields {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	.crc-fields {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	/* Your styles for mobile */
 }

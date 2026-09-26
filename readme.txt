@@ -22,6 +22,12 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.6.0 =
+* Price and Contact buttons boxes use two columns on desktop and laptop screens, and one column on tablets and phones.
+* Each listing category has a Caption, changed on the Listing Categories screen. The defaults are Land for sale, Property for sale and Property for rent. It shows above the price in the site's primary color.
+* Class names use single hyphens, for example crc-price-label instead of crc-price__label.
+* The Share button keeps its own look when hovered, focused or pressed, so the theme's button hover styles don't change it.
+
 = 0.5.2 =
 * Call and Message button texts can be changed: defaults in Listings → Settings, and each listing can have its own. {number} shows the number.
 * The Contact numbers box is now called Contact buttons.

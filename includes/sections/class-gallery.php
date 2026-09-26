@@ -230,15 +230,15 @@ final class Gallery {
 		$this->enqueue_style();
 		wp_enqueue_script( 'crc-re-gallery' );
 
-		$html = sprintf( '<div class="crc-gallery crc-gallery--count-%d" data-crc-lightbox>', count( $shown ) );
+		$html = sprintf( '<div class="crc-gallery crc-gallery-count-%d" data-crc-lightbox>', count( $shown ) );
 
 		if ( $show_views ) {
 			$views = Views::get( $post->ID );
 			$html .= sprintf(
-				'<span class="crc-gallery__badge" data-crc-views="%1$d"%2$s>%3$s<span class="crc-gallery__badge-label">%4$s</span></span>',
+				'<span class="crc-gallery-badge" data-crc-views="%1$d"%2$s>%3$s<span class="crc-gallery-badge-label">%4$s</span></span>',
 				$post->ID,
 				$views ? '' : ' hidden',
-				Icons::svg( 'eye', 'crc-gallery__badge-icon' ),
+				Icons::svg( 'eye', 'crc-gallery-badge-icon' ),
 				esc_html( Views::label( $views ) )
 			);
 		}
@@ -248,7 +248,7 @@ final class Gallery {
 			$number  = $index + 1;
 
 			$attributes = array(
-				'class'    => 'crc-gallery__img',
+				'class'    => 'crc-gallery-img',
 				'alt'      => $this->alt( $id, $title, $number ),
 				'sizes'    => $is_main ? '(max-width: 767px) 100vw, 60vw' : '(max-width: 767px) 25vw, 20vw',
 				'loading'  => $is_main ? 'eager' : 'lazy',
@@ -266,11 +266,11 @@ final class Gallery {
 
 			if ( $hidden > 0 && count( $shown ) === $number ) {
 				/* translators: %s: number of photos not shown in the grid. */
-				$more = '<span class="crc-gallery__more">' . esc_html( sprintf( _n( '+%s photo', '+%s photos', $hidden, 'crc-real-estate' ), number_format_i18n( $hidden ) ) ) . '</span>';
+				$more = '<span class="crc-gallery-more">' . esc_html( sprintf( _n( '+%s photo', '+%s photos', $hidden, 'crc-real-estate' ), number_format_i18n( $hidden ) ) ) . '</span>';
 			}
 
 			$html .= sprintf(
-				'<a class="crc-gallery__item crc-gallery__item--%1$d" href="%2$s" data-index="%3$d">%4$s%5$s</a>',
+				'<a class="crc-gallery-item crc-gallery-item-%1$d" href="%2$s" data-index="%3$d">%4$s%5$s</a>',
 				$number,
 				esc_url( wp_get_attachment_image_url( $id, 'full' ) ),
 				$index,
@@ -279,7 +279,7 @@ final class Gallery {
 			);
 		}
 
-		$html .= '<script type="application/json" class="crc-gallery__data">' . wp_json_encode( $this->lightbox_items( $ids, $title ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . '</script>';
+		$html .= '<script type="application/json" class="crc-gallery-data">' . wp_json_encode( $this->lightbox_items( $ids, $title ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . '</script>';
 
 		return $html . '</div>';
 	}

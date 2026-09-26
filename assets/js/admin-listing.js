@@ -6,8 +6,8 @@ jQuery( function ( $ ) {
 
 	var text = window.crcReListing || {};
 	var $box = $( '.crc-gallery-admin' );
-	var $list = $box.find( '.crc-gallery-admin__list' );
-	var $ids = $box.find( '.crc-gallery-admin__ids' );
+	var $list = $box.find( '.crc-gallery-admin-list' );
+	var $ids = $box.find( '.crc-gallery-admin-ids' );
 	var frame;
 
 	function currentIds() {
@@ -24,8 +24,8 @@ jQuery( function ( $ ) {
 	}
 
 	function item( id, url ) {
-		var $li = $( '<li class="crc-gallery-admin__item"></li>' ).attr( 'data-id', id );
-		var $remove = $( '<button type="button" class="crc-gallery-admin__remove"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>' )
+		var $li = $( '<li class="crc-gallery-admin-item"></li>' ).attr( 'data-id', id );
+		var $remove = $( '<button type="button" class="crc-gallery-admin-remove"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>' )
 			.attr( 'aria-label', text.remove || 'Remove photo' );
 
 		$li.append( $( '<img alt="">' ).attr( 'src', url ) ).append( $remove );
@@ -38,17 +38,17 @@ jQuery( function ( $ ) {
 			items: '> li',
 			cursor: 'move',
 			tolerance: 'pointer',
-			placeholder: 'crc-gallery-admin__placeholder',
+			placeholder: 'crc-gallery-admin-placeholder',
 			update: sync
 		} );
 
-		$box.on( 'click', '.crc-gallery-admin__remove', function ( event ) {
+		$box.on( 'click', '.crc-gallery-admin-remove', function ( event ) {
 			event.preventDefault();
 			$( this ).closest( 'li' ).remove();
 			sync();
 		} );
 
-		$box.on( 'click', '.crc-gallery-admin__add', function ( event ) {
+		$box.on( 'click', '.crc-gallery-admin-add', function ( event ) {
 			event.preventDefault();
 
 			if ( ! frame ) {
@@ -149,7 +149,7 @@ jQuery( function ( $ ) {
 	function togglePerPerch() {
 		var chosen = String( $categoryBox.find( 'input[type="radio"]:checked' ).val() || '' );
 
-		$priceBox.find( '.crc-price-box__per-perch' ).toggle( '' !== landsTerm && '0' !== landsTerm && chosen === landsTerm );
+		$priceBox.find( '.crc-price-box-per-perch' ).toggle( '' !== landsTerm && '0' !== landsTerm && chosen === landsTerm );
 	}
 
 	if ( $priceBox.length ) {

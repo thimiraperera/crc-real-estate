@@ -72,7 +72,7 @@ final class Info_Page {
 		?>
 		<div class="wrap crc-info">
 			<h1><?php esc_html_e( 'CRC Real Estate', 'crc-real-estate' ); ?></h1>
-			<p class="crc-info__meta">
+			<p class="crc-info-meta">
 				<?php
 				/* translators: %s: plugin version. */
 				echo esc_html( sprintf( __( 'Version %s', 'crc-real-estate' ), CRC_RE_VERSION ) );
@@ -83,14 +83,14 @@ final class Info_Page {
 			</p>
 
 			<h2><?php esc_html_e( 'Shortcodes', 'crc-real-estate' ); ?></h2>
-			<p class="crc-info__intro">
+			<p class="crc-info-intro">
 				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. On a listing page, it shows that listing automatically. Anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings.', 'crc-real-estate' ); ?>
 			</p>
 
 			<?php foreach ( Shortcodes::all() as $tag => $info ) : ?>
-				<section class="crc-info__card" id="<?php echo esc_attr( $tag ); ?>">
-					<h3 class="crc-info__title"><?php echo esc_html( $info['title'] ); ?></h3>
-					<p class="crc-info__code">
+				<section class="crc-info-card" id="<?php echo esc_attr( $tag ); ?>">
+					<h3 class="crc-info-title"><?php echo esc_html( $info['title'] ); ?></h3>
+					<p class="crc-info-code">
 						<code>[<?php echo esc_html( $tag ); ?>]</code>
 						<?php $this->copy_button( '[' . $tag . ']', $copy, $copied ); ?>
 					</p>
@@ -99,7 +99,7 @@ final class Info_Page {
 					<?php endif; ?>
 
 					<?php if ( $info['attributes'] ) : ?>
-						<table class="widefat striped crc-info__table">
+						<table class="widefat striped crc-info-table">
 							<thead>
 								<tr>
 									<th scope="col"><?php esc_html_e( 'Option', 'crc-real-estate' ); ?></th>
@@ -120,8 +120,8 @@ final class Info_Page {
 					<?php endif; ?>
 
 					<?php if ( $info['examples'] ) : ?>
-						<h4 class="crc-info__subtitle"><?php esc_html_e( 'Examples', 'crc-real-estate' ); ?></h4>
-						<ul class="crc-info__examples">
+						<h4 class="crc-info-subtitle"><?php esc_html_e( 'Examples', 'crc-real-estate' ); ?></h4>
+						<ul class="crc-info-examples">
 							<?php foreach ( $info['examples'] as $example ) : ?>
 								<li>
 									<code><?php echo esc_html( $example ); ?></code>

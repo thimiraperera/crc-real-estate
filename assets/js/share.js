@@ -52,7 +52,7 @@
 			return;
 		}
 
-		label = button.querySelector( '.crc-share__label' );
+		label = button.querySelector( '.crc-share-label' );
 
 		copyText( url ).then( function () {
 			if ( ! label ) {

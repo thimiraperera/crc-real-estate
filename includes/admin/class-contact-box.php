@@ -36,7 +36,8 @@ final class Contact_Box {
 	}
 
 	/**
-	 * The fields in the box, in order: each button's number, then its text.
+	 * The fields in the box, in order: each button's number, then its text,
+	 * so on wide screens each number sits beside its text.
 	 *
 	 * @return array[]
 	 */
@@ -84,21 +85,26 @@ final class Contact_Box {
 	 */
 	public function render( $post ) {
 		wp_nonce_field( 'crc_contact_save', self::NONCE );
-
-		foreach ( $this->fields() as $key => $field ) {
-			$default = Settings::get( $key );
-			$id      = 'crc-' . str_replace( '_', '-', $key ) . '-field';
-			?>
-			<p class="crc-field">
-				<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
-				<input type="<?php echo esc_attr( $field['type'] ); ?>" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( 'crc_' . $key ); ?>" value="<?php echo esc_attr( get_post_meta( $post->ID, $field['meta'], true ) ); ?>" placeholder="<?php echo esc_attr( $default ); ?>" class="regular-text">
-			</p>
-			<p class="description">
-				<?php echo esc_html( sprintf( $field['help'], '' !== $default ? $default : __( 'none set', 'crc-real-estate' ) ) ); ?>
-			</p>
-			<?php
-		}
 		?>
+		<div class="crc-contact-box crc-fields">
+			<?php
+			foreach ( $this->fields() as $key => $field ) {
+				$default = Settings::get( $key );
+				$id      = 'crc-' . str_replace( '_', '-', $key ) . '-field';
+				?>
+				<div class="crc-field-group">
+					<p class="crc-field">
+						<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
+						<input type="<?php echo esc_attr( $field['type'] ); ?>" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( 'crc_' . $key ); ?>" value="<?php echo esc_attr( get_post_meta( $post->ID, $field['meta'], true ) ); ?>" placeholder="<?php echo esc_attr( $default ); ?>" class="regular-text">
+					</p>
+					<p class="description">
+						<?php echo esc_html( sprintf( $field['help'], '' !== $default ? $default : __( 'none set', 'crc-real-estate' ) ) ); ?>
+					</p>
+				</div>
+				<?php
+			}
+			?>
+		</div>
 		<p><a href="<?php echo esc_url( Settings_Page::url() ); ?>"><?php esc_html_e( 'Change the defaults in Settings', 'crc-real-estate' ); ?></a></p>
 		<?php
 	}

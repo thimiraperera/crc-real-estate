@@ -16,7 +16,7 @@
 	isolation: isolate;
 }
 
-.crc-gallery .crc-gallery__item {
+.crc-gallery .crc-gallery-item {
 	position: relative;
 	display: block;
 	min-width: 0;
@@ -28,11 +28,11 @@
 	text-decoration: none;
 }
 
-.crc-gallery .crc-gallery__item--1 {
+.crc-gallery .crc-gallery-item-1 {
 	grid-row: 1 / span 2;
 }
 
-.crc-gallery .crc-gallery__img {
+.crc-gallery .crc-gallery-img {
 	display: block;
 	width: 100%;
 	max-width: none;
@@ -45,35 +45,35 @@
 	transition: transform 0.4s ease;
 }
 
-.crc-gallery a.crc-gallery__item:hover .crc-gallery__img {
+.crc-gallery a.crc-gallery-item:hover .crc-gallery-img {
 	transform: scale(1.03);
 }
 
-.crc-gallery a.crc-gallery__item:focus-visible {
+.crc-gallery a.crc-gallery-item:focus-visible {
 	outline: 3px solid #fff;
 	outline-offset: -3px;
 }
 
 /* Layouts for listings with fewer than five photos. */
-.crc-gallery--count-1 {
+.crc-gallery-count-1 {
 	grid-template-columns: 1fr;
 }
 
-.crc-gallery--count-2,
-.crc-gallery--count-3 {
+.crc-gallery-count-2,
+.crc-gallery-count-3 {
 	grid-template-columns: 3fr 2fr;
 }
 
-.crc-gallery--count-2 .crc-gallery__item--2 {
+.crc-gallery-count-2 .crc-gallery-item-2 {
 	grid-row: 1 / span 2;
 }
 
-.crc-gallery--count-4 .crc-gallery__item--4 {
+.crc-gallery-count-4 .crc-gallery-item-4 {
 	grid-column: 2 / span 2;
 }
 
 /* View count */
-.crc-gallery .crc-gallery__badge {
+.crc-gallery .crc-gallery-badge {
 	position: absolute;
 	top: 8px;
 	left: 8px;
@@ -92,11 +92,11 @@
 	pointer-events: none;
 }
 
-.crc-gallery .crc-gallery__badge[hidden] {
+.crc-gallery .crc-gallery-badge[hidden] {
 	display: none;
 }
 
-.crc-gallery .crc-gallery__badge-icon {
+.crc-gallery .crc-gallery-badge-icon {
 	flex: none;
 	width: 18px;
 	height: auto;
@@ -104,7 +104,7 @@
 }
 
 /* "+N photos" on the last photo */
-.crc-gallery .crc-gallery__more {
+.crc-gallery .crc-gallery-more {
 	position: absolute;
 	inset: 0;
 	display: flex;
@@ -140,7 +140,7 @@ html.crc-lightbox-open {
 	display: none;
 }
 
-.crc-lightbox .crc-lightbox__stage {
+.crc-lightbox .crc-lightbox-stage {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -150,7 +150,7 @@ html.crc-lightbox-open {
 	margin: 0;
 }
 
-.crc-lightbox .crc-lightbox__img {
+.crc-lightbox .crc-lightbox-img {
 	display: block;
 	width: auto;
 	max-width: 100%;
@@ -163,14 +163,14 @@ html.crc-lightbox-open {
 	-webkit-user-drag: none;
 }
 
-.crc-lightbox .crc-lightbox__counter {
+.crc-lightbox .crc-lightbox-counter {
 	color: #fff;
 	font-size: 14px;
 	line-height: 20px;
 	opacity: 0.85;
 }
 
-.crc-lightbox .crc-lightbox__btn {
+.crc-lightbox .crc-lightbox-btn {
 	position: absolute;
 	display: flex;
 	align-items: center;
@@ -191,49 +191,49 @@ html.crc-lightbox-open {
 	cursor: pointer;
 }
 
-.crc-lightbox .crc-lightbox__btn:hover,
-.crc-lightbox .crc-lightbox__btn:focus {
+.crc-lightbox .crc-lightbox-btn:hover,
+.crc-lightbox .crc-lightbox-btn:focus {
 	background: #f3f3f3;
 	color: #121212;
 }
 
-.crc-lightbox .crc-lightbox__btn:focus-visible {
+.crc-lightbox .crc-lightbox-btn:focus-visible {
 	outline: 2px solid #fff;
 	outline-offset: 3px;
 }
 
-.crc-lightbox .crc-lightbox__btn[hidden] {
+.crc-lightbox .crc-lightbox-btn[hidden] {
 	display: none;
 }
 
-.crc-lightbox .crc-lightbox__btn svg {
+.crc-lightbox .crc-lightbox-btn svg {
 	width: 24px;
 	height: 24px;
 }
 
-.crc-lightbox .crc-lightbox__close {
+.crc-lightbox .crc-lightbox-close {
 	top: 16px;
 	right: 16px;
 }
 
-.crc-lightbox .crc-lightbox__prev {
+.crc-lightbox .crc-lightbox-prev {
 	top: 50%;
 	left: 20px;
 	transform: translateY(-50%);
 }
 
-.crc-lightbox .crc-lightbox__next {
+.crc-lightbox .crc-lightbox-next {
 	top: 50%;
 	right: 20px;
 	transform: translateY(-50%);
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.crc-gallery .crc-gallery__img {
+	.crc-gallery .crc-gallery-img {
 		transition: none;
 	}
 
-	.crc-gallery a.crc-gallery__item:hover .crc-gallery__img {
+	.crc-gallery a.crc-gallery-item:hover .crc-gallery-img {
 		transform: none;
 	}
 }
@@ -264,19 +264,19 @@ html.crc-lightbox-open {
 		overflow: visible;
 	}
 
-	.crc-gallery .crc-gallery__item {
+	.crc-gallery .crc-gallery-item {
 		grid-column: auto;
 		grid-row: auto;
 		aspect-ratio: 1;
 		border-radius: calc(var(--crc-gallery-radius) * 0.6);
 	}
 
-	.crc-gallery .crc-gallery__item--1 {
+	.crc-gallery .crc-gallery-item-1 {
 		grid-column: 1 / -1;
 		aspect-ratio: 4 / 3;
 	}
 
-	.crc-gallery .crc-gallery__more {
+	.crc-gallery .crc-gallery-more {
 		font-size: 14px;
 		line-height: 20px;
 	}
@@ -286,23 +286,23 @@ html.crc-lightbox-open {
 		padding: 72px 12px 104px;
 	}
 
-	.crc-lightbox .crc-lightbox__img {
+	.crc-lightbox .crc-lightbox-img {
 		max-height: calc(100vh - 208px);
 		border-radius: 8px;
 	}
 
-	.crc-lightbox .crc-lightbox__prev,
-	.crc-lightbox .crc-lightbox__next {
+	.crc-lightbox .crc-lightbox-prev,
+	.crc-lightbox .crc-lightbox-next {
 		top: auto;
 		bottom: 28px;
 		transform: none;
 	}
 
-	.crc-lightbox .crc-lightbox__prev {
+	.crc-lightbox .crc-lightbox-prev {
 		left: calc(50% - 60px);
 	}
 
-	.crc-lightbox .crc-lightbox__next {
+	.crc-lightbox .crc-lightbox-next {
 		right: calc(50% - 60px);
 	}
 }

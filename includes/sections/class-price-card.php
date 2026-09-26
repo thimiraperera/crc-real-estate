@@ -69,7 +69,7 @@ final class Price_Card {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Price card', 'crc-real-estate' ),
-				'description' => __( 'The Share button, what the listing is (for example "Land for sale"), the price, the price per perch for land, and the Call and WhatsApp buttons. The numbers come from the listing, or from Settings when the listing has none of its own.', 'crc-real-estate' ),
+				'description' => __( 'The Share button, the category caption (for example "Land for sale", changed on the Listing Categories screen), the price, the price per perch for land, and the Call and WhatsApp buttons. The numbers come from the listing, or from Settings when the listing has none of its own.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id' => array(
 						'default'     => '',
@@ -207,17 +207,17 @@ final class Price_Card {
 
 		$html  = '<div class="crc-price">';
 		$html .= sprintf(
-			'<button type="button" class="crc-share" data-url="%1$s" data-title="%2$s">%3$s<span class="crc-share__label" aria-live="polite">%4$s</span></button>',
+			'<button type="button" class="crc-share" data-url="%1$s" data-title="%2$s">%3$s<span class="crc-share-label" aria-live="polite">%4$s</span></button>',
 			esc_url( $url ),
 			esc_attr( $title ),
-			Icons::svg( 'share', 'crc-share__icon' ),
+			Icons::svg( 'share', 'crc-share-icon' ),
 			esc_html__( 'Share', 'crc-real-estate' )
 		);
 
 		$main = $this->price_lines( $post->ID, $category );
 
 		if ( '' !== $main ) {
-			$html .= '<div class="crc-price__main">' . $main . '</div>';
+			$html .= '<div class="crc-price-main">' . $main . '</div>';
 		}
 
 		$html .= $this->contact( $post->ID, $title, $url );
@@ -226,7 +226,7 @@ final class Price_Card {
 	}
 
 	/**
-	 * The category label, the price and the price per perch.
+	 * The category caption, the price and the price per perch.
 	 *
 	 * @param int        $post_id  Listing ID.
 	 * @param array|null $category Listing category details.
@@ -237,19 +237,19 @@ final class Price_Card {
 		$price = self::price( $post_id );
 
 		if ( $category ) {
-			$html .= '<h6 class="crc-price__label">' . esc_html( $category['label'] ) . '</h6>';
+			$html .= '<h6 class="crc-price-label">' . esc_html( $category['label'] ) . '</h6>';
 		}
 
 		if ( '' !== $price ) {
-			$period = ( $category && '' !== $category['period'] ) ? '<span class="crc-price__period">' . esc_html( $category['period'] ) . '</span>' : '';
-			$html  .= '<h2 class="crc-price__amount">' . esc_html( self::money( $price ) ) . $period . '</h2>';
+			$period = ( $category && '' !== $category['period'] ) ? '<span class="crc-price-period">' . esc_html( $category['period'] ) . '</span>' : '';
+			$html  .= '<h2 class="crc-price-amount">' . esc_html( self::money( $price ) ) . $period . '</h2>';
 		}
 
 		$per_perch = self::price_per_perch( $post_id );
 
 		if ( $category && $category['per_perch'] && '' !== $per_perch ) {
 			/* translators: %s: price per perch, e.g. "Rs. 3,125". */
-			$html .= '<h6 class="crc-price__per-perch">' . esc_html( sprintf( __( '%s per perch', 'crc-real-estate' ), self::money( $per_perch ) ) ) . '</h6>';
+			$html .= '<h6 class="crc-price-per-perch">' . esc_html( sprintf( __( '%s per perch', 'crc-real-estate' ), self::money( $per_perch ) ) ) . '</h6>';
 		}
 
 		return $html;
@@ -283,7 +283,7 @@ final class Price_Card {
 			return '';
 		}
 
-		return '<div class="crc-price__contact"><h6 class="crc-price__contact-title">' . esc_html__( 'Contact for inquiries', 'crc-real-estate' ) . '</h6><div class="crc-price__buttons">' . $buttons . '</div></div>';
+		return '<div class="crc-price-contact"><h6 class="crc-price-contact-title">' . esc_html__( 'Contact for inquiries', 'crc-real-estate' ) . '</h6><div class="crc-price-buttons">' . $buttons . '</div></div>';
 	}
 
 	/**
@@ -297,7 +297,7 @@ final class Price_Card {
 	 */
 	private function button( $href, $text, $icon, $new_tab ) {
 		return sprintf(
-			'<a class="elementor-button crc-price__button" href="%1$s"%2$s><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%3$s</span><span class="elementor-button-icon">%4$s</span></span></a>',
+			'<a class="elementor-button crc-price-button" href="%1$s"%2$s><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%3$s</span><span class="elementor-button-icon">%4$s</span></span></a>',
 			esc_url( $href ),
 			$new_tab ? ' target="_blank" rel="noopener"' : '',
 			esc_html( $text ),

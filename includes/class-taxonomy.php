@@ -11,13 +11,15 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * A fixed set of WordPress categories for listings. The normal category
- * screen works for editing names and descriptions; adding, deleting and
- * changing the web address (slug) or parent are locked.
+ * screen works for editing names, descriptions and captions; adding, deleting
+ * and changing the web address (slug) or parent are locked.
  */
 final class Taxonomy {
 
-	const NAME         = 'crc_listing_category';
-	const TEXTS_OPTION = 'crc_re_category_texts';
+	const NAME          = 'crc_listing_category';
+	const TEXTS_OPTION  = 'crc_re_category_texts';
+	const CAPTION_META  = '_crc_caption';
+	const CAPTION_NONCE = 'crc_caption_nonce';
 
 	/**
 	 * Whether the plugin itself is creating its categories.
@@ -31,7 +33,8 @@ final class Taxonomy {
 	 *
 	 * - name:        category name.
 	 * - description: short description.
-	 * - label:       what a listing in this category is called on its page.
+	 * - label:       default caption, what a listing in this category is called
+	 *                on its page. Each category's Caption field can change it.
 	 * - period:      text after the price, e.g. "/month" for rentals.
 	 * - per_perch:   whether listings show a price per perch.
 	 *
@@ -90,16 +93,41 @@ final class Taxonomy {
 
 		return array_merge(
 			array(
-				'label'     => $term->name,
 				'period'    => '',
 				'per_perch' => false,
 			),
 			$details,
 			array(
-				'slug' => $term->slug,
-				'term' => $term,
+				'label' => self::caption( $term ),
+				'slug'  => $term->slug,
+				'term'  => $term,
 			)
 		);
+	}
+
+	/**
+	 * The caption a category's listings show above the price: the one set on
+	 * the Listing Categories screen, or else the default.
+	 *
+	 * @param \WP_Term $term Category.
+	 * @return string
+	 */
+	public static function caption( $term ) {
+		$caption = (string) get_term_meta( $term->term_id, self::CAPTION_META, true );
+
+		return '' !== $caption ? $caption : self::default_caption( $term );
+	}
+
+	/**
+	 * A category's default caption, e.g. "Land for sale".
+	 *
+	 * @param \WP_Term $term Category.
+	 * @return string
+	 */
+	public static function default_caption( $term ) {
+		$terms = self::terms();
+
+		return isset( $terms[ $term->slug ]['label'] ) ? $terms[ $term->slug ]['label'] : $term->name;
 	}
 
 	/**
@@ -112,7 +140,10 @@ final class Taxonomy {
 		add_filter( 'wp_update_term_parent', array( $this, 'keep_top_level' ), 10, 3 );
 		add_action( 'load-edit-tags.php', array( $this, 'repair_terms' ) );
 		add_action( self::NAME . '_pre_add_form', array( $this, 'fixed_note' ) );
+		add_action( self::NAME . '_edit_form_fields', array( $this, 'caption_field' ) );
+		add_action( 'edited_' . self::NAME, array( $this, 'save_caption' ) );
 		add_filter( 'manage_edit-' . self::NAME . '_columns', array( $this, 'term_columns' ) );
+		add_filter( 'manage_' . self::NAME . '_custom_column', array( $this, 'caption_column' ), 10, 3 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'admin_assets' ) );
 		add_action( 'add_meta_boxes_' . Post_Type::NAME, array( $this, 'add_meta_box' ) );
 		add_filter( 'manage_' . Post_Type::NAME . '_posts_columns', array( $this, 'column_title' ) );
@@ -264,26 +295,96 @@ final class Taxonomy {
 		?>
 		<div class="crc-fixed-note">
 			<h2><?php esc_html_e( 'Fixed categories', 'crc-real-estate' ); ?></h2>
-			<p><?php esc_html_e( 'You can edit names and descriptions. Adding and deleting are turned off.', 'crc-real-estate' ); ?></p>
+			<p><?php esc_html_e( 'You can edit names, descriptions and captions. Adding and deleting are turned off.', 'crc-real-estate' ); ?></p>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Keeps the list simple: no checkboxes or web address column, and the
-	 * count is called "Listings".
+	 * Adds the Caption field to the Edit Listing Category screen.
+	 *
+	 * @param \WP_Term $term Category being edited.
+	 */
+	public function caption_field( $term ) {
+		$default = self::default_caption( $term );
+		?>
+		<tr class="form-field term-caption-wrap">
+			<th scope="row"><label for="crc-caption"><?php esc_html_e( 'Caption', 'crc-real-estate' ); ?></label></th>
+			<td>
+				<?php wp_nonce_field( 'crc_caption_save', self::CAPTION_NONCE ); ?>
+				<input type="text" id="crc-caption" name="crc_caption" value="<?php echo esc_attr( get_term_meta( $term->term_id, self::CAPTION_META, true ) ); ?>" placeholder="<?php echo esc_attr( $default ); ?>" size="40" aria-describedby="crc-caption-description">
+				<p class="description" id="crc-caption-description">
+					<?php
+					/* translators: %s: default caption, e.g. "Land for sale". */
+					echo esc_html( sprintf( __( 'Shown above the price on every listing in this category. Leave it empty to use the default caption (%s).', 'crc-real-estate' ), $default ) );
+					?>
+				</p>
+			</td>
+		</tr>
+		<?php
+	}
+
+	/**
+	 * Saves the caption from the Edit Listing Category screen. An empty
+	 * caption goes back to the default.
+	 *
+	 * @param int $term_id Category ID.
+	 */
+	public function save_caption( $term_id ) {
+		if ( ! isset( $_POST[ self::CAPTION_NONCE ] ) || ! wp_verify_nonce( sanitize_key( wp_unslash( $_POST[ self::CAPTION_NONCE ] ) ), 'crc_caption_save' ) ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_term', $term_id ) ) {
+			return;
+		}
+
+		$caption = isset( $_POST['crc_caption'] ) ? sanitize_text_field( wp_unslash( $_POST['crc_caption'] ) ) : '';
+
+		if ( '' !== $caption ) {
+			update_term_meta( $term_id, self::CAPTION_META, $caption );
+		} else {
+			delete_term_meta( $term_id, self::CAPTION_META );
+		}
+	}
+
+	/**
+	 * Keeps the list simple: no checkboxes or web address column, a Caption
+	 * column, and the count is called "Listings".
 	 *
 	 * @param string[] $columns Columns.
 	 * @return string[]
 	 */
 	public function term_columns( $columns ) {
-		unset( $columns['cb'], $columns['slug'] );
+		$listings = isset( $columns['posts'] );
 
-		if ( isset( $columns['posts'] ) ) {
+		unset( $columns['cb'], $columns['slug'], $columns['posts'] );
+
+		$columns['crc_caption'] = __( 'Caption', 'crc-real-estate' );
+
+		if ( $listings ) {
 			$columns['posts'] = __( 'Listings', 'crc-real-estate' );
 		}
 
 		return $columns;
+	}
+
+	/**
+	 * Fills the Caption column with the caption in use.
+	 *
+	 * @param string $content Column content.
+	 * @param string $column  Column name.
+	 * @param int    $term_id Category ID.
+	 * @return string
+	 */
+	public function caption_column( $content, $column, $term_id ) {
+		if ( 'crc_caption' !== $column ) {
+			return $content;
+		}
+
+		$term = get_term( $term_id, self::NAME );
+
+		return ( $term && ! is_wp_error( $term ) ) ? esc_html( self::caption( $term ) ) : $content;
 	}
 
 	/**
@@ -351,7 +452,7 @@ final class Taxonomy {
 		<div class="crc-category-box">
 			<input type="hidden" name="<?php echo esc_attr( $field ); ?>" value="0">
 			<?php foreach ( self::get_terms() as $term ) : ?>
-				<label class="crc-category-box__option">
+				<label class="crc-category-box-option">
 					<input type="radio" name="<?php echo esc_attr( $field ); ?>" value="<?php echo esc_attr( $term->term_id ); ?>" <?php checked( $current, $term->term_id ); ?>>
 					<?php echo esc_html( $term->name ); ?>
 				</label>

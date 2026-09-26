@@ -51,7 +51,7 @@
 		badges = document.querySelectorAll( '[data-crc-views="' + config.id + '"]' );
 
 		for ( i = 0; i < badges.length; i++ ) {
-			labelEl = badges[ i ].querySelector( '.crc-gallery__badge-label' );
+			labelEl = badges[ i ].querySelector( '.crc-gallery-badge-label' );
 
 			if ( labelEl ) {
 				labelEl.textContent = data.label;

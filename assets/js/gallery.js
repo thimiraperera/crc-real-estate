@@ -23,7 +23,7 @@
 	function button( className, key, fallback ) {
 		var el = document.createElement( 'button' );
 		el.type = 'button';
-		el.className = 'crc-lightbox__btn ' + className;
+		el.className = 'crc-lightbox-btn ' + className;
 		el.setAttribute( 'aria-label', label( key, fallback ) );
 		el.innerHTML = icons[ key ];
 		return el;
@@ -43,17 +43,17 @@
 		box.setAttribute( 'aria-modal', 'true' );
 		box.setAttribute( 'aria-label', label( 'dialog', 'Photo viewer' ) );
 
-		closeBtn = button( 'crc-lightbox__close', 'close', 'Close' );
-		prevBtn = button( 'crc-lightbox__prev', 'prev', 'Previous photo' );
-		nextBtn = button( 'crc-lightbox__next', 'next', 'Next photo' );
+		closeBtn = button( 'crc-lightbox-close', 'close', 'Close' );
+		prevBtn = button( 'crc-lightbox-prev', 'prev', 'Previous photo' );
+		nextBtn = button( 'crc-lightbox-next', 'next', 'Next photo' );
 
 		stage = document.createElement( 'figure' );
-		stage.className = 'crc-lightbox__stage';
+		stage.className = 'crc-lightbox-stage';
 		img = document.createElement( 'img' );
-		img.className = 'crc-lightbox__img';
+		img.className = 'crc-lightbox-img';
 		img.alt = '';
 		counter = document.createElement( 'figcaption' );
-		counter.className = 'crc-lightbox__counter';
+		counter.className = 'crc-lightbox-counter';
 		counter.setAttribute( 'aria-live', 'polite' );
 		stage.appendChild( img );
 		stage.appendChild( counter );
@@ -205,7 +205,7 @@
 	}
 
 	document.addEventListener( 'click', function ( event ) {
-		var link = event.target.closest ? event.target.closest( '.crc-gallery[data-crc-lightbox] a.crc-gallery__item' ) : null;
+		var link = event.target.closest ? event.target.closest( '.crc-gallery[data-crc-lightbox] a.crc-gallery-item' ) : null;
 		var data;
 		var list;
 
@@ -213,7 +213,7 @@
 			return;
 		}
 
-		data = link.parentNode.querySelector( '.crc-gallery__data' );
+		data = link.parentNode.querySelector( '.crc-gallery-data' );
 
 		try {
 			list = JSON.parse( data ? data.textContent : '[]' );
