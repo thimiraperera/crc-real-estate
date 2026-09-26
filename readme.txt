@@ -27,6 +27,9 @@ Real estate listing tools for WordPress.
 
 == Changelog ==
 
+= 0.13.1 =
+* Maps work on sites that tell browsers not to share their address with other sites (Referrer-Policy: same-origin, which Cloudflare's "Add security headers" adds). OpenStreetMap blocks map tiles without it, which showed as "Access blocked" squares. The map tiles and the place search now send the site's address, never the page's.
+
 = 0.13.0 =
 * Location section: [crc_listing_location] shows an OpenStreetMap map with the area around the property (15 km by default), never the exact place. The area's centre is kept a secret distance from the property and shifts a little each day, and its size changes a little too, so the place can't be worked out.
 * Location box on the listing screen: mark the exact place on the map by clicking or dragging the pin, search for places, paste latitude and longitude, and keep a Google Maps link. Only people who edit listings see them.

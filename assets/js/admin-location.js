@@ -62,9 +62,13 @@
 	start = typedPlace();
 	map = L.map( mapEl ).setView( start || L.latLng( text.start ? text.start.lat : 6.0535, text.start ? text.start.lng : 80.221 ), start ? 15 : 11 );
 
+	// OpenStreetMap needs to know which site asks for its maps and search, so
+	// these send the site's address (never the page's), whatever the site's
+	// Referrer-Policy says.
 	L.tileLayer( text.tiles, {
 		attribution: text.credit,
-		maxZoom: 19
+		maxZoom: 19,
+		referrerPolicy: 'strict-origin-when-cross-origin'
 	} ).addTo( map );
 
 	if ( start ) {
@@ -157,7 +161,10 @@
 			'&viewbox=' + [ bounds.getWest(), bounds.getNorth(), bounds.getEast(), bounds.getSouth() ].join( ',' ) +
 			'&accept-language=' + encodeURIComponent( document.documentElement.lang || 'en' );
 
-		window.fetch( url, { headers: { Accept: 'application/json' } } ).then( function ( response ) {
+		window.fetch( url, {
+			headers: { Accept: 'application/json' },
+			referrerPolicy: 'strict-origin-when-cross-origin'
+		} ).then( function ( response ) {
 			return response.ok ? response.json() : Promise.reject( response.status );
 		} ).then( function ( found ) {
 			found = Array.isArray( found ) ? found : [];

@@ -30,9 +30,13 @@
 			maxZoom: 14
 		} );
 
+		// OpenStreetMap needs to know which site asks for its maps, so the tiles
+		// send the site's address (never the page's), whatever the site's
+		// Referrer-Policy says.
 		window.L.tileLayer( config.tiles, {
 			attribution: config.credit,
-			maxZoom: 19
+			maxZoom: 19,
+			referrerPolicy: 'strict-origin-when-cross-origin'
 		} ).addTo( map );
 
 		area = window.L.circle( [ config.lat, config.lng ], {
