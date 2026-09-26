@@ -34,7 +34,9 @@ final class Overview {
 	 * - meta:        where the value is saved.
 	 * - icon:        icon from assets/icons.
 	 * - help:        help text on the listing screen.
-	 * - suggestions: values offered while typing; any other value can be typed.
+	 * - type:        text (typed, with suggestions) or select (chosen from 'options').
+	 * - suggestions: for text, values offered while typing; any other value can be typed.
+	 * - options:     for select, the values to choose from.
 	 *
 	 * @return array[]
 	 */
@@ -76,11 +78,12 @@ final class Overview {
 					),
 				),
 				'availability'  => array(
-					'label'       => __( 'Availability', 'crc-real-estate' ),
-					'meta'        => '_crc_availability',
-					'icon'        => 'land-plots',
-					'help'        => __( 'When it is ready, for example Available Now or Available Soon.', 'crc-real-estate' ),
-					'suggestions' => array(
+					'label'   => __( 'Availability', 'crc-real-estate' ),
+					'meta'    => '_crc_availability',
+					'icon'    => 'land-plots',
+					'type'    => 'select',
+					'help'    => __( 'Whether it can be bought or rented now. Choose Sold or Rented once it has gone.', 'crc-real-estate' ),
+					'options' => array(
 						__( 'Available Now', 'crc-real-estate' ),
 						__( 'Available Soon', 'crc-real-estate' ),
 						__( 'Under Offer', 'crc-real-estate' ),
@@ -111,7 +114,9 @@ final class Overview {
 					'meta'        => '_crc_' . $name,
 					'icon'        => 'check',
 					'help'        => '',
+					'type'        => 'text',
 					'suggestions' => array(),
+					'options'     => array(),
 				)
 			);
 		}
@@ -915,6 +920,50 @@ final class Overview {
 		}
 
 		wp_enqueue_style( 'crc-re-overview' );
+	}
+
+	/**
+	 * Cleans a main detail's value. A list's value must be one of its choices,
+	 * written as in the list; a value saved before the detail became a list is
+	 * kept while it isn't changed.
+	 *
+	 * @param array  $field   Main detail from fields().
+	 * @param mixed  $value   Value as typed or chosen.
+	 * @param string $current Value saved now.
+	 * @return string An empty string when there is nothing to save.
+	 */
+	public static function sanitize_main( array $field, $value, $current = '' ) {
+		$value = is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
+
+		if ( 'select' !== $field['type'] || '' === $value ) {
+			return $value;
+		}
+
+		$choice = self::choice( $field, $value );
+
+		if ( '' !== $choice ) {
+			return $choice;
+		}
+
+		return $value === (string) $current ? $value : '';
+	}
+
+	/**
+	 * The list choice a value stands for, whatever its capitals, e.g.
+	 * "available now" is "Available Now".
+	 *
+	 * @param array  $field Main detail from fields().
+	 * @param string $value Value.
+	 * @return string The choice, or an empty string when it isn't one.
+	 */
+	public static function choice( array $field, $value ) {
+		foreach ( (array) $field['options'] as $option ) {
+			if ( 0 === strcasecmp( (string) $option, trim( (string) $value ) ) ) {
+				return (string) $option;
+			}
+		}
+
+		return '';
 	}
 
 	/**

@@ -448,6 +448,14 @@
 	white-space: nowrap;
 }
 
+/* Settings page: Updates */
+.crc-updates-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	.crc-fields,

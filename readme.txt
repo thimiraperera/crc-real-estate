@@ -17,7 +17,7 @@ Real estate listing tools for WordPress.
 * Property overview with the main details and a See More popup of details by category
 * Property features to tick, grouped by category, with a See More popup
 * Shortcodes for every section, ready to place in Elementor
-* Updates straight from GitHub, through the WordPress Updates screen
+* Updates straight from GitHub, checked and installed from Listings → Settings
 
 == Installation ==
 
@@ -25,6 +25,11 @@ Real estate listing tools for WordPress.
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.12.0 =
+* Updates are in Listings → Settings: the installed and latest versions, Check for updates, a button to update to the new version, and What's new. The Plugins screen has a Settings link instead of Check for updates.
+* Property overview: Availability is a drop-down with Available Now, Available Soon, Under Offer, Sold and Rented. A value typed before stays until it is changed.
+* Popups are at most 70% of the screen height on desktops and laptops, and 90% on tablets and phones.
 
 = 0.11.0 =
 * Property features section: [crc_listing_features] shows the first four features with check marks, and See More, which opens the Property Features popup with all of them in groups.

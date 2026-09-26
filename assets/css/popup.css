@@ -172,17 +172,24 @@ html.crc-popup-open {
 
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
-	/* Your styles for desktop */
+	.crc-popup-dialog {
+		max-height: 70vh;
+	}
 }
 
 /* Laptop: 1366px to 1025px */
 @media (max-width: 1366px) and (min-width: 1025px) {
-	/* Your styles for laptops */
+	.crc-popup-dialog {
+		max-height: 70vh;
+	}
 }
 
 /* Tablet: 1024px to 768px */
 @media (max-width: 1024px) and (min-width: 768px) {
-	/* Your styles for tablets */
+	/* 90% of the screen height, and never taller than the space there is. */
+	.crc-popup-dialog {
+		max-height: min(90vh, 100%);
+	}
 }
 
 /* Mobile: 767px and below */
@@ -196,7 +203,9 @@ html.crc-popup-open {
 		align-items: flex-end;
 	}
 
+	/* 90% of the screen height, and never taller than the space there is. */
 	.crc-popup-dialog {
+		max-height: min(90vh, 100%);
 		border-radius: 24px 24px 0 0;
 		opacity: 1;
 		transform: translateY(100%);

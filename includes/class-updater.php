@@ -13,8 +13,8 @@ defined( 'ABSPATH' ) || exit;
  * Offers an update whenever the version on the repository's main branch is
  * higher than the installed one, and installs it from the branch archive.
  *
- * WordPress checks by itself twice a day. The "Check for updates" link asks
- * GitHub straight away and puts any new version on the Plugins screen.
+ * WordPress checks by itself twice a day. The "Check for updates" button in
+ * Listings → Settings asks GitHub straight away and offers any new version.
  *
  * Works through the plugin's "Update URI" header, so WordPress.org never
  * offers updates for this plugin.
@@ -30,6 +30,7 @@ final class Updater {
 	const ERROR_KEY     = 'crc_re_update_error';
 	const CACHE_TTL     = 900; // 15 minutes.
 	const RETRY_TTL     = 300; // 5 minutes after a failed check.
+	const STATUS_KEY    = 'crc_re_update_status';
 	const CHECK_ACTION  = 'crc_re_check_update';
 	const RESULT_ARG    = 'crc_re_check';
 
@@ -72,7 +73,6 @@ final class Updater {
 		add_filter( 'plugins_api', array( $this, 'plugin_info' ), 20, 3 );
 		add_filter( 'upgrader_source_selection', array( $this, 'fix_source_folder' ), 10, 4 );
 		add_action( 'upgrader_process_complete', array( $this, 'clear_cache' ), 10, 2 );
-		add_filter( 'plugin_row_meta', array( $this, 'row_meta' ), 10, 2 );
 		add_action( 'admin_post_' . self::CHECK_ACTION, array( $this, 'handle_check' ) );
 		add_action( 'admin_notices', array( $this, 'check_notice' ) );
 		add_action( 'network_admin_notices', array( $this, 'check_notice' ) );
@@ -86,6 +86,48 @@ final class Updater {
 	 */
 	public static function check_url() {
 		return wp_nonce_url( admin_url( 'admin-post.php?action=' . self::CHECK_ACTION ), self::CHECK_ACTION );
+	}
+
+	/**
+	 * What the Settings page shows about updates.
+	 *
+	 * @return array {
+	 *     @type string $installed Installed version.
+	 *     @type string $latest    Latest version seen on GitHub, or '' before the first check.
+	 *     @type int    $checked   When it was seen, as a timestamp, or 0.
+	 *     @type bool   $available Whether the latest version is newer than the installed one.
+	 * }
+	 */
+	public function status() {
+		$saved     = get_site_option( self::STATUS_KEY, array() );
+		$saved     = is_array( $saved ) ? $saved : array();
+		$installed = $this->installed_version();
+		$latest    = ! empty( $saved['version'] ) ? (string) $saved['version'] : '';
+
+		return array(
+			'installed' => $installed,
+			'latest'    => $latest,
+			'checked'   => ! empty( $saved['checked'] ) ? (int) $saved['checked'] : 0,
+			'available' => '' !== $latest && version_compare( $latest, $installed, '>' ),
+		);
+	}
+
+	/**
+	 * Address that installs the new version, like "Update now" on the Plugins screen.
+	 *
+	 * @return string
+	 */
+	public function update_url() {
+		return wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' . rawurlencode( $this->basename ) ), 'upgrade-plugin_' . $this->basename );
+	}
+
+	/**
+	 * Address of the window with the changelog, like "View details" on the Plugins screen.
+	 *
+	 * @return string
+	 */
+	public function details_url() {
+		return self_admin_url( 'plugin-install.php?tab=plugin-information&plugin=' . rawurlencode( $this->slug() ) . '&section=changelog&TB_iframe=true&width=600&height=550' );
 	}
 
 	/**
@@ -129,7 +171,7 @@ final class Updater {
 		}
 
 		$back = wp_get_referer();
-		$back = $back ? remove_query_arg( self::RESULT_ARG, $back ) : self_admin_url( 'plugins.php' );
+		$back = $back ? remove_query_arg( self::RESULT_ARG, $back ) : Admin\Settings_Page::url();
 
 		wp_safe_redirect( add_query_arg( self::RESULT_ARG, $result, $back ) );
 		exit;
@@ -153,7 +195,7 @@ final class Updater {
 				'<div class="notice notice-warning"><p>%1$s <a class="button button-primary" href="%2$s">%3$s</a></p></div>',
 				/* translators: %s: new version number. */
 				esc_html( sprintf( __( 'CRC Real Estate %s is available.', 'crc-real-estate' ), $remote['Version'] ) ),
-				esc_url( wp_nonce_url( self_admin_url( 'update.php?action=upgrade-plugin&plugin=' . rawurlencode( $this->basename ) ), 'upgrade-plugin_' . $this->basename ) ),
+				esc_url( $this->update_url() ),
 				esc_html__( 'Update now', 'crc-real-estate' )
 			);
 		} elseif ( 'latest' === $result ) {
@@ -268,25 +310,6 @@ final class Updater {
 	}
 
 	/**
-	 * Adds a "Check for updates" link under the plugin on the Plugins screen.
-	 *
-	 * @param string[] $links Links shown under the plugin description.
-	 * @param string   $file  Plugin basename of the row.
-	 * @return string[]
-	 */
-	public function row_meta( $links, $file ) {
-		if ( $file === $this->basename && current_user_can( 'update_plugins' ) ) {
-			$links[] = sprintf(
-				'<a href="%s">%s</a>',
-				esc_url( self::check_url() ),
-				esc_html__( 'Check for updates', 'crc-real-estate' )
-			);
-		}
-
-		return $links;
-	}
-
-	/**
 	 * Update details in the form WordPress expects.
 	 *
 	 * @param array $remote Headers read from GitHub.
@@ -375,6 +398,14 @@ final class Updater {
 
 			if ( ! empty( $headers['Version'] ) ) {
 				$data = $headers;
+
+				update_site_option(
+					self::STATUS_KEY,
+					array(
+						'version' => $headers['Version'],
+						'checked' => time(),
+					)
+				);
 			} else {
 				$this->last_error = __( 'The plugin file on GitHub has no version number.', 'crc-real-estate' );
 			}

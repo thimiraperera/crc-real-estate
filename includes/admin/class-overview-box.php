@@ -79,9 +79,21 @@ final class Overview_Box {
 					<div class="crc-field-group">
 						<p class="crc-field">
 							<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
-							<input type="text" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( 'crc_' . $name ); ?>" value="<?php echo esc_attr( get_post_meta( $post->ID, $field['meta'], true ) ); ?>" list="<?php echo esc_attr( $id . '-list' ); ?>" class="regular-text" autocomplete="off">
+							<?php
+							if ( 'select' === $field['type'] ) {
+								$this->main_select( $post, $id, $name, $field );
+							} else {
+								?>
+								<input type="text" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( 'crc_' . $name ); ?>" value="<?php echo esc_attr( get_post_meta( $post->ID, $field['meta'], true ) ); ?>" list="<?php echo esc_attr( $id . '-list' ); ?>" class="regular-text" autocomplete="off">
+								<?php
+							}
+							?>
 						</p>
-						<?php Boxes::datalist( $id . '-list', $suggest[ $name ] ); ?>
+						<?php
+						if ( 'select' !== $field['type'] ) {
+							Boxes::datalist( $id . '-list', $suggest[ $name ] );
+						}
+						?>
 						<p class="description"><?php echo esc_html( $field['help'] ); ?></p>
 					</div>
 				<?php endforeach; ?>
@@ -135,6 +147,34 @@ final class Overview_Box {
 			?>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Prints the drop-down of a main detail with a list, e.g. Availability.
+	 * A value saved before the detail became a list stays as a choice, so it
+	 * isn't lost.
+	 *
+	 * @param \WP_Post $post  Listing being edited.
+	 * @param string   $id    Field id.
+	 * @param string   $name  Detail name.
+	 * @param array    $field Main detail from Overview::fields().
+	 */
+	private function main_select( $post, $id, $name, array $field ) {
+		$saved  = (string) get_post_meta( $post->ID, $field['meta'], true );
+		$chosen = '' !== $saved ? Overview::choice( $field, $saved ) : '';
+
+		printf( '<select id="%1$s" name="%2$s" class="crc-select">', esc_attr( $id ), esc_attr( 'crc_' . $name ) );
+		printf( '<option value="">%s</option>', esc_html__( '— Select —', 'crc-real-estate' ) );
+
+		foreach ( (array) $field['options'] as $option ) {
+			printf( '<option value="%1$s"%2$s>%3$s</option>', esc_attr( $option ), selected( $chosen, (string) $option, false ), esc_html( $option ) );
+		}
+
+		if ( '' !== $saved && '' === $chosen ) {
+			printf( '<option value="%1$s" selected="selected">%2$s</option>', esc_attr( $saved ), esc_html( $saved ) );
+		}
+
+		echo '</select>';
 	}
 
 	/**
@@ -436,7 +476,7 @@ final class Overview_Box {
 
 		foreach ( Overview::fields() as $name => $field ) {
 			$key   = 'crc_' . $name;
-			$value = isset( $_POST[ $key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $key ] ) ) : '';
+			$value = isset( $_POST[ $key ] ) ? Overview::sanitize_main( $field, wp_unslash( $_POST[ $key ] ), get_post_meta( $post_id, $field['meta'], true ) ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Cleaned by sanitize_main().
 
 			if ( '' !== $value ) {
 				update_post_meta( $post_id, $field['meta'], wp_slash( $value ) );

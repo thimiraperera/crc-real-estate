@@ -9,11 +9,13 @@ namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Settings;
+use CRC\RealEstate\Updater;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Listings → Settings: the default phone and WhatsApp numbers.
+ * Listings → Settings: the default phone and WhatsApp numbers and button
+ * texts, and plugin updates.
  */
 final class Settings_Page {
 
@@ -26,6 +28,8 @@ final class Settings_Page {
 	public function hooks() {
 		add_action( 'admin_menu', array( $this, 'menu' ) );
 		add_action( 'admin_init', array( $this, 'register' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+		add_filter( 'plugin_action_links_' . CRC_RE_BASENAME, array( $this, 'action_links' ) );
 	}
 
 	/**
@@ -35,6 +39,35 @@ final class Settings_Page {
 	 */
 	public static function url() {
 		return admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=' . self::SLUG );
+	}
+
+	/**
+	 * Adds a Settings link under the plugin on the Plugins screen.
+	 *
+	 * @param string[] $links Links under the plugin name.
+	 * @return string[]
+	 */
+	public function action_links( $links ) {
+		if ( current_user_can( 'manage_options' ) ) {
+			array_unshift( $links, sprintf( '<a href="%s">%s</a>', esc_url( self::url() ), esc_html__( 'Settings', 'crc-real-estate' ) ) );
+		}
+
+		return $links;
+	}
+
+	/**
+	 * Loads the page's styles, and the window that shows what's new in an update.
+	 *
+	 * @param string $hook Current admin page.
+	 */
+	public function assets( $hook ) {
+		if ( Post_Type::NAME . '_page_' . self::SLUG !== $hook ) {
+			return;
+		}
+
+		wp_enqueue_style( 'crc-re-admin', CRC_RE_URL . 'assets/css/admin.css', array(), CRC_RE_VERSION );
+		add_thickbox();
+		wp_enqueue_script( 'plugin-install' );
 	}
 
 	/**
@@ -146,7 +179,56 @@ final class Settings_Page {
 				submit_button();
 				?>
 			</form>
+			<?php $this->updates(); ?>
 		</div>
+		<?php
+	}
+
+	/**
+	 * Prints the Updates part: the installed and latest versions, and buttons
+	 * to look for a new version and install it.
+	 */
+	private function updates() {
+		if ( ! current_user_can( 'update_plugins' ) ) {
+			return;
+		}
+
+		$updater = new Updater( CRC_RE_FILE );
+		$status  = $updater->status();
+		?>
+		<h2><?php esc_html_e( 'Updates', 'crc-real-estate' ); ?></h2>
+		<p><?php esc_html_e( 'New versions come from GitHub and install like any other plugin update. WordPress looks for them twice a day; Check for updates looks straight away.', 'crc-real-estate' ); ?></p>
+		<table class="form-table crc-updates" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Installed version', 'crc-real-estate' ); ?></th>
+				<td><?php echo esc_html( $status['installed'] ); ?></td>
+			</tr>
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Latest version', 'crc-real-estate' ); ?></th>
+				<td>
+					<?php
+					if ( '' === $status['latest'] ) {
+						esc_html_e( 'Not checked yet.', 'crc-real-estate' );
+					} else {
+						echo esc_html( $status['latest'] );
+
+						if ( $status['checked'] ) {
+							/* translators: %s: how long ago, e.g. "5 mins". */
+							echo ' <span class="description">' . esc_html( sprintf( __( '(checked %s ago)', 'crc-real-estate' ), human_time_diff( $status['checked'] ) ) ) . '</span>';
+						}
+					}
+					?>
+				</td>
+			</tr>
+		</table>
+		<p class="crc-updates-actions">
+			<?php if ( $status['available'] ) : ?>
+				<?php /* translators: %s: new version number. */ ?>
+				<a class="button button-primary" href="<?php echo esc_url( $updater->update_url() ); ?>"><?php echo esc_html( sprintf( __( 'Update to %s', 'crc-real-estate' ), $status['latest'] ) ); ?></a>
+			<?php endif; ?>
+			<a class="button" href="<?php echo esc_url( Updater::check_url() ); ?>"><?php esc_html_e( 'Check for updates', 'crc-real-estate' ); ?></a>
+			<a class="thickbox open-plugin-details-modal" href="<?php echo esc_url( $updater->details_url() ); ?>"><?php esc_html_e( 'What\'s new', 'crc-real-estate' ); ?></a>
+		</p>
 		<?php
 	}
 }
