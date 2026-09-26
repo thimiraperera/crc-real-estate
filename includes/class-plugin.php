@@ -40,10 +40,12 @@ final class Plugin {
 	private function __construct() {
 		( new Updater( CRC_RE_FILE ) )->register();
 		( new Post_Type() )->hooks();
+		( new Taxonomy() )->hooks();
 		( new Views() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
-		( new Admin\Featured_Image() )->hooks();
+		( new Admin\Views_Box() )->hooks();
+		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Info_Page() )->hooks();
 
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );

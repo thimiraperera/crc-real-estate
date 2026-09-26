@@ -22,6 +22,13 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.3.0 =
+* Listing categories: Lands, Properties for sale and Properties for rent. Pick one per listing; the list is fixed, so categories can't be added, renamed or deleted.
+* A listing needs a featured image and a category to be published.
+* Views box: set a listing's view count by hand (e.g. after publishing it again); visitors keep adding to it.
+* The photo viewer is always on in the gallery.
+* New eye icon on the view count.
+
 = 0.2.1 =
 * "Check for updates" now asks GitHub straight away, puts a new version on the Plugins screen with an Update now button, and says why if GitHub can't be reached.
 * A new push is noticed within minutes instead of hours.

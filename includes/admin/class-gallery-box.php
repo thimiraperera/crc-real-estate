@@ -132,6 +132,7 @@ final class Gallery_Box {
 				'frameButton'      => __( 'Add to gallery', 'crc-real-estate' ),
 				'remove'           => __( 'Remove image', 'crc-real-estate' ),
 				'featuredRequired' => __( 'Add a featured image to publish this listing.', 'crc-real-estate' ),
+				'categoryRequired' => __( 'Choose a category to publish this listing.', 'crc-real-estate' ),
 			)
 		);
 	}

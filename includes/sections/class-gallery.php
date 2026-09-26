@@ -7,6 +7,7 @@
 
 namespace CRC\RealEstate\Sections;
 
+use CRC\RealEstate\Icons;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Shortcodes;
 use CRC\RealEstate\Views;
@@ -56,25 +57,21 @@ final class Gallery {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Gallery', 'crc-real-estate' ),
-				'description' => __( 'The featured image as the large photo, with the gallery images beside it. Shows the view count, "+N photos" when there are more photos than fit, and opens a full-screen photo viewer on click.', 'crc-real-estate' ),
+				'description' => __( 'The featured image as the large photo, with the gallery images beside it. Shows the view count and "+N photos" when there are more photos than fit. Clicking any photo opens the full-screen photo viewer with every photo.', 'crc-real-estate' ),
 				'attributes'  => array(
-					'id'       => array(
+					'id'    => array(
 						'default'     => '',
 						'description' => __( 'Listing ID. Leave it out on a listing page to use that listing.', 'crc-real-estate' ),
 					),
-					'views'    => array(
+					'views' => array(
 						'default'     => 'yes',
 						'description' => __( 'Show the view count. Use "no" to hide it.', 'crc-real-estate' ),
-					),
-					'lightbox' => array(
-						'default'     => 'yes',
-						'description' => __( 'Open photos full screen when clicked. Use "no" to turn it off.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
 					'[' . self::SHORTCODE . ' id="123"]',
-					'[' . self::SHORTCODE . ' views="no" lightbox="no"]',
+					'[' . self::SHORTCODE . ' views="no"]',
 				),
 			)
 		);
@@ -225,24 +222,15 @@ final class Gallery {
 			return Shortcodes::placeholder( self::SHORTCODE, __( 'This listing has no featured image yet.', 'crc-real-estate' ) );
 		}
 
-		$lightbox   = Shortcodes::is_on( $atts['lightbox'] );
 		$show_views = Shortcodes::is_on( $atts['views'] );
 		$shown      = array_slice( $ids, 0, self::GRID );
 		$hidden     = count( $ids ) - count( $shown );
 		$title      = wp_strip_all_tags( get_post_field( 'post_title', $post ) );
-		$tag        = $lightbox ? 'a' : 'div';
 
 		$this->enqueue_style();
+		wp_enqueue_script( 'crc-re-gallery' );
 
-		if ( $lightbox ) {
-			wp_enqueue_script( 'crc-re-gallery' );
-		}
-
-		$html = sprintf(
-			'<div class="crc-gallery crc-gallery--count-%d"%s>',
-			count( $shown ),
-			$lightbox ? ' data-crc-lightbox' : ''
-		);
+		$html = sprintf( '<div class="crc-gallery crc-gallery--count-%d" data-crc-lightbox>', count( $shown ) );
 
 		if ( $show_views ) {
 			$views = Views::get( $post->ID );
@@ -250,7 +238,7 @@ final class Gallery {
 				'<span class="crc-gallery__badge" data-crc-views="%1$d"%2$s>%3$s<span class="crc-gallery__badge-label">%4$s</span></span>',
 				$post->ID,
 				$views ? '' : ' hidden',
-				'<svg class="crc-gallery__badge-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+				Icons::svg( 'eye', 'crc-gallery__badge-icon' ),
 				esc_html( Views::label( $views ) )
 			);
 		}
@@ -282,18 +270,16 @@ final class Gallery {
 			}
 
 			$html .= sprintf(
-				'<%1$s class="crc-gallery__item crc-gallery__item--%2$d"%3$s>%4$s%5$s</%1$s>',
-				$tag,
+				'<a class="crc-gallery__item crc-gallery__item--%1$d" href="%2$s" data-index="%3$d">%4$s%5$s</a>',
 				$number,
-				$lightbox ? sprintf( ' href="%s" data-index="%d"', esc_url( wp_get_attachment_image_url( $id, 'full' ) ), $index ) : '',
+				esc_url( wp_get_attachment_image_url( $id, 'full' ) ),
+				$index,
 				$image,
 				$more
 			);
 		}
 
-		if ( $lightbox ) {
-			$html .= '<script type="application/json" class="crc-gallery__data">' . wp_json_encode( $this->lightbox_items( $ids, $title ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . '</script>';
-		}
+		$html .= '<script type="application/json" class="crc-gallery__data">' . wp_json_encode( $this->lightbox_items( $ids, $title ), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT ) . '</script>';
 
 		return $html . '</div>';
 	}

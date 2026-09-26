@@ -73,18 +73,40 @@
 	display: none;
 }
 
-/* Required featured image */
-#postimagediv.crc-featured-missing {
+/* Required featured image and category */
+.postbox.crc-box-missing {
 	box-shadow: 0 0 0 2px #d63638;
 }
 
-.crc-featured-error {
+.crc-box-error {
 	color: #d63638;
 	font-weight: 600;
 }
 
 .crc-featured-note {
 	margin-top: 8px;
+}
+
+/* Category box */
+.crc-category-box__option {
+	display: block;
+	margin: 0 0 8px;
+}
+
+.crc-category-box__option input {
+	margin: 0 6px 0 0;
+}
+
+/* Views box */
+.crc-views-box {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.crc-views-box .small-text {
+	width: 110px;
 }
 
 /* Listings list */

@@ -99,7 +99,8 @@
 .crc-gallery .crc-gallery__badge-icon {
 	flex: none;
 	width: 18px;
-	height: 18px;
+	height: auto;
+	aspect-ratio: 350 / 238.63;
 }
 
 /* "+N photos" on the last photo */

@@ -83,41 +83,62 @@ jQuery( function ( $ ) {
 	}
 
 	/*
-	 * The featured image is the listing's large photo, so publishing (or
-	 * updating a published listing) needs one. Saving a draft doesn't.
+	 * Publishing (or updating a published listing) needs a featured image,
+	 * which is the large photo, and a category. Saving a draft doesn't.
 	 */
+	var $featuredBox = $( '#postimagediv' );
+	var $categoryBox = $( '#crc_listing_categorydiv' );
+
 	function hasFeaturedImage() {
 		return parseInt( $( '#_thumbnail_id' ).val(), 10 ) > 0;
 	}
 
-	function clearFeaturedError() {
-		$( '#postimagediv' ).removeClass( 'crc-featured-missing' ).find( '.crc-featured-error' ).remove();
+	function hasCategory() {
+		return parseInt( $categoryBox.find( 'input[type="radio"]:checked' ).val(), 10 ) > 0;
+	}
+
+	function clearError( $box ) {
+		$box.removeClass( 'crc-box-missing' ).find( '.crc-box-error' ).remove();
+	}
+
+	function showError( $box, message ) {
+		clearError( $box );
+		$box.addClass( 'crc-box-missing' ).removeClass( 'closed' );
+		$box.find( '.inside' ).prepend( $( '<p class="crc-box-error" role="alert"></p>' ).text( message ) );
 	}
 
 	$( '#publish' ).on( 'click', function ( event ) {
-		var $featured = $( '#postimagediv' );
+		var missing = [];
 
-		if ( ! $featured.length || hasFeaturedImage() ) {
+		if ( $featuredBox.length && ! hasFeaturedImage() ) {
+			showError( $featuredBox, text.featuredRequired || 'Add a featured image to publish this listing.' );
+			missing.push( $featuredBox );
+		}
+
+		if ( $categoryBox.length && ! hasCategory() ) {
+			showError( $categoryBox, text.categoryRequired || 'Choose a category to publish this listing.' );
+			missing.push( $categoryBox );
+		}
+
+		if ( ! missing.length ) {
 			return;
 		}
 
 		event.preventDefault();
 		event.stopImmediatePropagation();
+		$( 'html, body' ).animate( { scrollTop: Math.max( missing[ 0 ].offset().top - 60, 0 ) }, 200 );
+	} );
 
-		clearFeaturedError();
-		$featured.addClass( 'crc-featured-missing' ).removeClass( 'closed' );
-		$featured.find( '.inside' ).prepend(
-			$( '<p class="crc-featured-error" role="alert"></p>' ).text( text.featuredRequired || 'Add a featured image to publish this listing.' )
-		);
-		$( 'html, body' ).animate( { scrollTop: Math.max( $featured.offset().top - 60, 0 ) }, 200 );
+	$categoryBox.on( 'change', 'input[type="radio"]', function () {
+		clearError( $categoryBox );
 	} );
 
 	// WordPress redraws the Featured image box after an image is chosen.
-	if ( window.MutationObserver && document.getElementById( 'postimagediv' ) ) {
+	if ( window.MutationObserver && $featuredBox.length ) {
 		new window.MutationObserver( function () {
 			if ( hasFeaturedImage() ) {
-				clearFeaturedError();
+				clearError( $featuredBox );
 			}
-		} ).observe( document.getElementById( 'postimagediv' ), { childList: true, subtree: true } );
+		} ).observe( $featuredBox[ 0 ], { childList: true, subtree: true } );
 	}
 } );
