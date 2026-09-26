@@ -10,7 +10,6 @@ namespace CRC\RealEstate\Admin;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Overview;
 use CRC\RealEstate\Sections\Price_Card;
-use CRC\RealEstate\Taxonomy;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -53,20 +52,9 @@ final class Overview_Box {
 	 * @param string $hook Current admin page.
 	 */
 	public function assets( $hook ) {
-		$screen = get_current_screen();
-
-		if ( ! $screen || Post_Type::NAME !== $screen->post_type || ! in_array( $hook, array( 'post.php', 'post-new.php' ), true ) ) {
-			return;
+		if ( Boxes::on_listing_screen( $hook ) ) {
+			Boxes::enqueue_script();
 		}
-
-		wp_enqueue_script( 'crc-re-admin-overview', CRC_RE_URL . 'assets/js/admin-overview.js', array( 'jquery', 'jquery-ui-sortable' ), CRC_RE_VERSION, true );
-		wp_localize_script(
-			'crc-re-admin-overview',
-			'crcReOverview',
-			array(
-				'confirmRemove' => __( 'Remove this group and all its details?', 'crc-real-estate' ),
-			)
-		);
 	}
 
 	/**
@@ -78,12 +66,12 @@ final class Overview_Box {
 		$groups   = Overview::groups( $post->ID );
 		$extras   = Overview::extras( $post->ID );
 		$suggest  = $this->suggestions();
-		$category = $this->category( $post );
+		$category = Boxes::category( $post );
 
 		wp_nonce_field( 'crc_overview_save', self::NONCE );
 		?>
-		<div class="crc-overview-box">
-			<p class="description crc-overview-box-intro"><?php esc_html_e( 'These four show as boxes on the listing page, and again at the top of the See More popup. Pick a suggestion or type your own. Leave one empty to hide its box.', 'crc-real-estate' ); ?></p>
+		<div class="crc-box crc-overview-box">
+			<p class="description crc-box-intro"><?php esc_html_e( 'These four show as boxes on the listing page, and again at the top of the See More popup. Pick a suggestion or type your own. Leave one empty to hide its box.', 'crc-real-estate' ); ?></p>
 
 			<div class="crc-fields">
 				<?php foreach ( Overview::fields() as $name => $field ) : ?>
@@ -93,95 +81,60 @@ final class Overview_Box {
 							<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $field['label'] ); ?></label>
 							<input type="text" id="<?php echo esc_attr( $id ); ?>" name="<?php echo esc_attr( 'crc_' . $name ); ?>" value="<?php echo esc_attr( get_post_meta( $post->ID, $field['meta'], true ) ); ?>" list="<?php echo esc_attr( $id . '-list' ); ?>" class="regular-text" autocomplete="off">
 						</p>
-						<?php $this->datalist( $id . '-list', $suggest[ $name ] ); ?>
+						<?php Boxes::datalist( $id . '-list', $suggest[ $name ] ); ?>
 						<p class="description"><?php echo esc_html( $field['help'] ); ?></p>
 					</div>
 				<?php endforeach; ?>
 			</div>
 
-			<h4 class="crc-overview-box-title"><?php esc_html_e( 'See More popup', 'crc-real-estate' ); ?></h4>
+			<h4 class="crc-box-title"><?php esc_html_e( 'See More popup', 'crc-real-estate' ); ?></h4>
 			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. The ready-made groups change with the category chosen in the Category box, and each one has Add detail for details of your own, which show after its other details. Fill in what applies to this listing: a detail left empty doesn\'t show on the site, and neither does a group with nothing filled in. See More shows on the listing page once there is something for the popup.', 'crc-real-estate' ); ?></p>
-			<p class="description crc-overview-box-no-category"<?php echo $category ? ' hidden' : ''; ?>><?php esc_html_e( 'Choose a category in the Category box to see the details for it.', 'crc-real-estate' ); ?></p>
+			<p class="description crc-box-no-category"<?php echo $category ? ' hidden' : ''; ?>><?php esc_html_e( 'Choose a category in the Category box to see the details for it.', 'crc-real-estate' ); ?></p>
 
 			<?php foreach ( Overview::common_groups() as $key => $group ) : ?>
-				<?php
-				$terms  = $this->term_ids( $group['categories'] );
-				$active = ! $group['categories'] || in_array( $category, $terms, true );
-				?>
-				<div class="crc-overview-box-section" data-categories="<?php echo esc_attr( $group['categories'] ? implode( ' ', $terms ) : 'all' ); ?>"<?php echo $active ? '' : ' hidden'; ?>>
+				<?php $active = Boxes::is_for( $group['categories'], $category ); ?>
+				<div class="crc-box-section" data-categories="<?php echo esc_attr( Boxes::categories_attr( $group['categories'] ) ); ?>"<?php echo $active ? '' : ' hidden'; ?>>
 					<input type="hidden" name="<?php echo esc_attr( self::SHOWN . '[]' ); ?>" value="<?php echo esc_attr( $key ); ?>"<?php echo $active ? '' : ' disabled'; ?>>
-					<h4 class="crc-overview-box-subtitle"><?php echo esc_html( $group['title'] ); ?></h4>
-					<div class="crc-fields crc-overview-box-common">
+					<h4 class="crc-box-subtitle"><?php echo esc_html( $group['title'] ); ?></h4>
+					<div class="crc-fields crc-box-common">
 						<?php
 						foreach ( $group['items'] as $name => $item ) {
 							$this->common_field( $post, $key, $name, $item, ! $active );
 						}
 						?>
 					</div>
-					<ul class="crc-overview-box-details crc-overview-box-extras" data-group="<?php echo esc_attr( $key ); ?>">
+					<ul class="crc-box-items crc-box-extras" data-group="<?php echo esc_attr( $key ); ?>">
 						<?php
 						foreach ( isset( $extras[ $key ] ) ? $extras[ $key ] : array() as $d => $item ) {
 							$this->extra( $key, $d, $item, ! $active );
 						}
 						?>
 					</ul>
-					<p class="crc-overview-box-group-foot"><button type="button" class="button crc-overview-box-extra-add"<?php echo $active ? '' : ' disabled'; ?>><?php esc_html_e( 'Add detail', 'crc-real-estate' ); ?></button></p>
+					<p class="crc-box-group-foot"><button type="button" class="button crc-box-extra-add"<?php echo $active ? '' : ' disabled'; ?>><?php esc_html_e( 'Add detail', 'crc-real-estate' ); ?></button></p>
 				</div>
 			<?php endforeach; ?>
 
-			<h4 class="crc-overview-box-subtitle"><?php esc_html_e( 'Your own groups', 'crc-real-estate' ); ?></h4>
+			<h4 class="crc-box-subtitle"><?php esc_html_e( 'Your own groups', 'crc-real-estate' ); ?></h4>
 			<p class="description"><?php esc_html_e( 'For anything else, add a group with a title and its details, for example "Nearby places" with Nearest town and Nearest school. They show after the groups above. Drag the groups and details to change their order.', 'crc-real-estate' ); ?></p>
 
-			<div class="crc-overview-box-groups">
+			<div class="crc-box-groups">
 				<?php
 				foreach ( $groups as $g => $group ) {
 					$this->group( $g, $group );
 				}
 				?>
 			</div>
-			<p><button type="button" class="button crc-overview-box-group-add"><?php esc_html_e( 'Add group', 'crc-real-estate' ); ?></button></p>
+			<p><button type="button" class="button crc-box-group-add"><?php esc_html_e( 'Add group', 'crc-real-estate' ); ?></button></p>
 
-			<template class="crc-overview-box-group-template"><?php $this->group( '{g}', $this->empty_group( '{d}' ) ); ?></template>
-			<template class="crc-overview-box-detail-template"><?php $this->detail( '{g}', '{d}', array( 'label' => '', 'value' => '' ) ); ?></template>
-			<template class="crc-overview-box-extra-template"><?php $this->extra( '{g}', '{d}', array( 'label' => '', 'value' => '' ), false ); ?></template>
+			<template class="crc-box-group-template"><?php $this->group( '{g}', $this->empty_group( '{d}' ) ); ?></template>
+			<template class="crc-box-item-template"><?php $this->detail( '{g}', '{d}', array( 'label' => '', 'value' => '' ) ); ?></template>
+			<template class="crc-box-extra-template"><?php $this->extra( '{g}', '{d}', array( 'label' => '', 'value' => '' ), false ); ?></template>
 			<?php
-			$this->datalist( 'crc-overview-box-titles', $suggest['titles'] );
-			$this->datalist( 'crc-overview-box-labels', $suggest['labels'] );
+			Boxes::datalist( 'crc-overview-box-titles', $suggest['titles'] );
+			Boxes::datalist( 'crc-overview-box-labels', $suggest['labels'] );
 			?>
 		</div>
 		<?php
-	}
-
-	/**
-	 * The listing's category, as a term ID.
-	 *
-	 * @param \WP_Post $post Listing being edited.
-	 * @return int 0 when none is chosen.
-	 */
-	private function category( $post ) {
-		$terms = wp_get_object_terms( $post->ID, Taxonomy::NAME, array( 'fields' => 'ids' ) );
-
-		return ( ! is_wp_error( $terms ) && $terms ) ? (int) $terms[0] : 0;
-	}
-
-	/**
-	 * Term IDs for category slugs.
-	 *
-	 * @param string[] $slugs Category slugs.
-	 * @return int[]
-	 */
-	private function term_ids( array $slugs ) {
-		$ids = array();
-
-		foreach ( $slugs as $slug ) {
-			$term = get_term_by( 'slug', $slug, Taxonomy::NAME );
-
-			if ( $term && ! is_wp_error( $term ) ) {
-				$ids[] = (int) $term->term_id;
-			}
-		}
-
-		return $ids;
 	}
 
 	/**
@@ -365,20 +318,20 @@ final class Overview_Box {
 	private function group( $g, array $group ) {
 		$name = self::FIELD . '[' . $g . ']';
 		?>
-		<div class="crc-overview-box-group" data-group="<?php echo esc_attr( $g ); ?>">
-			<div class="crc-overview-box-group-head">
-				<span class="crc-overview-box-group-handle dashicons dashicons-move" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
-				<input type="text" name="<?php echo esc_attr( $name . '[title]' ); ?>" value="<?php echo esc_attr( $group['title'] ); ?>" class="crc-overview-box-group-title" list="crc-overview-box-titles" placeholder="<?php esc_attr_e( 'Group title, for example Utilities', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Group title', 'crc-real-estate' ); ?>" autocomplete="off">
-				<button type="button" class="button-link button-link-delete crc-overview-box-group-remove"><?php esc_html_e( 'Remove group', 'crc-real-estate' ); ?></button>
+		<div class="crc-box-group" data-group="<?php echo esc_attr( $g ); ?>">
+			<div class="crc-box-group-head">
+				<span class="crc-box-group-handle dashicons dashicons-move" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
+				<input type="text" name="<?php echo esc_attr( $name . '[title]' ); ?>" value="<?php echo esc_attr( $group['title'] ); ?>" class="crc-box-group-title" list="crc-overview-box-titles" placeholder="<?php esc_attr_e( 'Group title, for example Utilities', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Group title', 'crc-real-estate' ); ?>" autocomplete="off">
+				<button type="button" class="button-link button-link-delete crc-box-group-remove"><?php esc_html_e( 'Remove group', 'crc-real-estate' ); ?></button>
 			</div>
-			<ul class="crc-overview-box-details">
+			<ul class="crc-box-items">
 				<?php
 				foreach ( $group['items'] as $d => $item ) {
 					$this->detail( $g, $d, $item );
 				}
 				?>
 			</ul>
-			<p class="crc-overview-box-group-foot"><button type="button" class="button crc-overview-box-detail-add"><?php esc_html_e( 'Add detail', 'crc-real-estate' ); ?></button></p>
+			<p class="crc-box-group-foot"><button type="button" class="button crc-box-item-add"><?php esc_html_e( 'Add detail', 'crc-real-estate' ); ?></button></p>
 		</div>
 		<?php
 	}
@@ -416,29 +369,13 @@ final class Overview_Box {
 	private function row( $name, array $item, $disabled ) {
 		$off = $disabled ? ' disabled' : '';
 		?>
-		<li class="crc-overview-box-detail">
-			<span class="crc-overview-box-detail-handle dashicons dashicons-menu" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
+		<li class="crc-box-item">
+			<span class="crc-box-item-handle dashicons dashicons-menu" title="<?php esc_attr_e( 'Drag to reorder', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
 			<input type="text" name="<?php echo esc_attr( $name . '[label]' ); ?>" value="<?php echo esc_attr( $item['label'] ); ?>" list="crc-overview-box-labels" placeholder="<?php esc_attr_e( 'Label, for example Water supply', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Label', 'crc-real-estate' ); ?>" autocomplete="off"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>>
 			<input type="text" name="<?php echo esc_attr( $name . '[value]' ); ?>" value="<?php echo esc_attr( $item['value'] ); ?>" placeholder="<?php esc_attr_e( 'Value, for example Pipe-borne', 'crc-real-estate' ); ?>" aria-label="<?php esc_attr_e( 'Value', 'crc-real-estate' ); ?>" autocomplete="off"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>>
-			<button type="button" class="crc-overview-box-detail-remove" aria-label="<?php esc_attr_e( 'Remove this detail', 'crc-real-estate' ); ?>"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+			<button type="button" class="crc-box-item-remove" aria-label="<?php esc_attr_e( 'Remove this detail', 'crc-real-estate' ); ?>"<?php echo $off; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute. ?>><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
 		</li>
 		<?php
-	}
-
-	/**
-	 * Prints a list of suggestions for text fields.
-	 *
-	 * @param string   $id     List id.
-	 * @param string[] $values Suggestions.
-	 */
-	private function datalist( $id, array $values ) {
-		echo '<datalist id="' . esc_attr( $id ) . '">';
-
-		foreach ( $values as $value ) {
-			echo '<option value="' . esc_attr( $value ) . '"></option>';
-		}
-
-		echo '</datalist>';
 	}
 
 	/**
@@ -459,22 +396,7 @@ final class Overview_Box {
 			$suggest[ $name ] = $field['suggestions'];
 		}
 
-		$ids = get_posts(
-			array(
-				'post_type'      => Post_Type::NAME,
-				'post_status'    => 'any',
-				'posts_per_page' => self::SUGGEST_FROM,
-				'orderby'        => 'modified',
-				'fields'         => 'ids',
-				'no_found_rows'  => true,
-			)
-		);
-
-		if ( $ids ) {
-			update_meta_cache( 'post', $ids );
-		}
-
-		foreach ( $ids as $id ) {
+		foreach ( Boxes::recent_listings( self::SUGGEST_FROM ) as $id ) {
 			foreach ( $fields as $name => $field ) {
 				$suggest[ $name ][] = (string) get_post_meta( $id, $field['meta'], true );
 			}
@@ -494,12 +416,7 @@ final class Overview_Box {
 			}
 		}
 
-		foreach ( $suggest as $key => $values ) {
-			$values          = array_filter( array_map( 'trim', $values ), 'strlen' );
-			$suggest[ $key ] = array_values( array_unique( $values ) );
-		}
-
-		return $suggest;
+		return array_map( array( Boxes::class, 'unique' ), $suggest );
 	}
 
 	/**

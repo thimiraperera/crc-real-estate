@@ -1,0 +1,187 @@
+/* Property features: the first few features on the page, and See More with all of them in groups. */
+.crc-features {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 40px;
+}
+
+/* Features on the page */
+.crc-features .crc-features-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 40px 32px;
+	align-self: stretch;
+	margin: 0;
+	padding: 0 0 0 16px;
+	list-style: none;
+}
+
+.crc-features .crc-features-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+	padding: 0;
+}
+
+.crc-features .crc-features-icon {
+	flex: none;
+	width: 14px;
+	height: 14px;
+	fill: var(--e-global-color-primary);
+}
+
+.crc-features .crc-features-label {
+	color: var(--e-global-color-6e3d619);
+	font-weight: 600;
+}
+
+/* See More: normal */
+.crc-features .crc-features-more {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+	width: auto;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font: inherit;
+	font-weight: 500;
+	letter-spacing: normal;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	opacity: 1;
+	transform: none;
+	cursor: pointer;
+}
+
+/* See More: hover, focus and pressed. The theme's button hover styles don't apply. */
+.crc-features .crc-features-more:hover,
+.crc-features .crc-features-more:focus,
+.crc-features .crc-features-more:active {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	outline: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font-weight: 500;
+	letter-spacing: normal;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	opacity: 1;
+	transform: none;
+}
+
+/* See More: keyboard focus ring */
+.crc-features .crc-features-more:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 4px;
+}
+
+.crc-features .crc-features-more-text {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* The arrow moves a little to the right on hover. */
+.crc-features .crc-features-more-icon {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+	transition: transform 0.3s ease;
+}
+
+.crc-features .crc-features-more:hover .crc-features-more-icon,
+.crc-features .crc-features-more:focus-visible .crc-features-more-icon {
+	transform: translateX(4px);
+}
+
+/* In the popup: every feature, in groups, like the Property overview popup */
+.crc-features .crc-features-group {
+	margin-top: 48px;
+	padding-top: 48px;
+	border-top: 1px solid color-mix(in srgb, var(--e-global-color-text) 10%, var(--e-global-color-bb33687));
+}
+
+.crc-features .crc-features-group:first-child {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.crc-features .crc-features-group-title {
+	margin-top: 0;
+	margin-bottom: 24px;
+	color: var(--e-global-color-6e3d619);
+}
+
+.crc-features .crc-features-all .crc-features-list {
+	grid-template-columns: repeat(2, minmax(0, 320px));
+	gap: 28px 32px;
+	padding: 0;
+}
+
+.crc-features .crc-features-all .crc-features-item {
+	gap: 20px;
+}
+
+.crc-features .crc-features-all .crc-features-icon {
+	width: 24px;
+	height: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-features .crc-features-more-icon {
+		transition: none;
+	}
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	/* Your styles for desktop */
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	/* Your styles for laptops */
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	.crc-features {
+		gap: 32px;
+	}
+
+	.crc-features .crc-features-list {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 20px;
+		padding-left: 0;
+	}
+
+	.crc-features .crc-features-all .crc-features-list {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
+	}
+
+	.crc-features .crc-features-group {
+		margin-top: 32px;
+		padding-top: 32px;
+	}
+}

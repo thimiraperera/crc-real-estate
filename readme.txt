@@ -15,6 +15,7 @@ Real estate listing tools for WordPress.
 * Photo gallery with a full-screen photo viewer
 * Price card with the price, a Share button, and Call and WhatsApp buttons
 * Property overview with the main details and a See More popup of details by category
+* Property features to tick, grouped by category, with a See More popup
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, through the WordPress Updates screen
 
@@ -24,6 +25,11 @@ Real estate listing tools for WordPress.
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.11.0 =
+* Property features section: [crc_listing_features] shows the first four features with check marks, and See More, which opens the Property Features popup with all of them in groups.
+* Property features box on the listing screen: ready-made features to tick, in groups for the listing's category (Legal and documents, Land features, Home features, Security, Tenants and Nearby), Add feature in each group, and groups of your own. It uses the same grey cards as the Property overview box.
+* The listing screen boxes share one script and one set of styles.
 
 = 0.10.1 =
 * Details that come from the Price box (Price per perch, Price and Rent) and the worked-out price per perch show as locked fields in their groups: the value like the other fields, with Rs., a lock icon and a note. They can't be typed in, and they follow the Price box as it is typed.

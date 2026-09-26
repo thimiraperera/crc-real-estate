@@ -153,32 +153,33 @@
 }
 
 /* A box moved to the narrow sidebar stays in one column. */
-#side-sortables .crc-fields {
+#side-sortables .crc-fields,
+#side-sortables .crc-box-checks {
 	grid-template-columns: minmax(0, 1fr);
 }
 
-/* Property overview box */
-.crc-overview-box-intro {
+/* Boxes with groups: Property overview and Property features */
+.crc-box-intro {
 	margin: 12px 0 0;
 }
 
-.crc-overview-box-title {
+.crc-box-title {
 	margin: 28px 0 4px;
 	font-size: 14px;
 }
 
-.crc-overview-box-subtitle {
+.crc-box-subtitle {
 	margin: 24px 0 0;
 	padding-top: 16px;
 	border-top: 1px solid #dcdcde;
 	font-size: 13px;
 }
 
-.crc-overview-box-subtitle + .description {
+.crc-box-subtitle + .description {
 	margin-top: 4px;
 }
 
-.crc-overview-box-no-category {
+.crc-box-no-category {
 	margin: 16px 0 0;
 	padding: 8px 12px;
 	border-left: 4px solid #72aee6;
@@ -228,7 +229,7 @@
 	color: #8c8f94;
 }
 
-.crc-overview-box-groups {
+.crc-box-groups {
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
@@ -236,63 +237,63 @@
 }
 
 /* Grey cards: the ready-made groups and the listing's own groups */
-.crc-overview-box-group,
-.crc-overview-box-section {
+.crc-box-group,
+.crc-box-section {
 	padding: 12px;
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
 	background: #f6f7f7;
 }
 
-.crc-overview-box-section {
+.crc-box-section {
 	margin: 12px 0 0;
 }
 
-.crc-overview-box-section .crc-overview-box-subtitle {
+.crc-box-section .crc-box-subtitle {
 	margin: 0;
 	padding: 0;
 	border: 0;
 }
 
-.crc-overview-box-group-head,
-.crc-overview-box-detail {
+.crc-box-group-head,
+.crc-box-item {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px;
 }
 
-.crc-overview-box-group-head .crc-overview-box-group-title {
+.crc-box-group-head .crc-box-group-title {
 	flex: 1 1 200px;
 	min-width: 0;
 	margin: 0;
 	font-weight: 600;
 }
 
-.crc-overview-box-group-handle,
-.crc-overview-box-detail-handle {
+.crc-box-group-handle,
+.crc-box-item-handle {
 	flex: none;
 	color: #8c8f94;
 	cursor: move;
 }
 
-.crc-overview-box-details {
+.crc-box-items {
 	margin: 12px 0 0;
 	padding: 0;
 	list-style: none;
 }
 
-.crc-overview-box-detail {
+.crc-box-item {
 	margin: 0 0 8px;
 }
 
-.crc-overview-box-detail input {
+.crc-box-item input {
 	flex: 1 1 160px;
 	min-width: 0;
 	margin: 0;
 }
 
-.crc-overview-box-detail-remove {
+.crc-box-item-remove {
 	display: flex;
 	flex: none;
 	align-items: center;
@@ -307,26 +308,44 @@
 	cursor: pointer;
 }
 
-.crc-overview-box-detail-remove:hover,
-.crc-overview-box-detail-remove:focus {
+.crc-box-item-remove:hover,
+.crc-box-item-remove:focus {
 	background: #f0f0f1;
 	color: #d63638;
 }
 
-.crc-overview-box-group-foot {
+.crc-box-group-foot {
 	margin: 4px 0 0;
 }
 
-.crc-overview-box-group-placeholder,
-.crc-overview-box-detail-placeholder {
+.crc-box-group-placeholder,
+.crc-box-item-placeholder {
 	box-sizing: border-box;
 	border: 2px dashed #c3c4c7;
 	border-radius: 4px;
 }
 
-.crc-overview-box-detail-placeholder {
+.crc-box-item-placeholder {
 	height: 32px;
 	margin: 0 0 8px;
+}
+
+/* Property features box: features to tick, two columns on desktop and laptop */
+.crc-box-checks {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 8px 24px;
+	margin: 12px 0 0;
+}
+
+.crc-box-check {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.crc-box-check input[type="checkbox"] {
+	margin: 0;
 }
 
 /* Listings list */
@@ -431,14 +450,16 @@
 
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
-	.crc-fields {
+	.crc-fields,
+	.crc-box-checks {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
 /* Laptop: 1366px to 1025px */
 @media (max-width: 1366px) and (min-width: 1025px) {
-	.crc-fields {
+	.crc-fields,
+	.crc-box-checks {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
