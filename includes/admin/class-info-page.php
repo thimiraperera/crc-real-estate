@@ -78,7 +78,7 @@ final class Info_Page {
 				echo esc_html( sprintf( __( 'Version %s', 'crc-real-estate' ), CRC_RE_VERSION ) );
 				?>
 				<?php if ( current_user_can( 'update_plugins' ) ) : ?>
-					· <a href="<?php echo esc_url( self_admin_url( 'update-core.php?force-check=1' ) ); ?>"><?php esc_html_e( 'Check for updates', 'crc-real-estate' ); ?></a>
+					· <a href="<?php echo esc_url( \CRC\RealEstate\Updater::check_url() ); ?>"><?php esc_html_e( 'Check for updates', 'crc-real-estate' ); ?></a>
 				<?php endif; ?>
 			</p>
 

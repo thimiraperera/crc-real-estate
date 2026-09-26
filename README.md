@@ -26,7 +26,7 @@ To publish an update:
 2. Add an entry under `== Changelog ==` in `readme.txt`.
 3. Commit and push to `main`.
 
-WordPress checks for updates twice a day. To check straight away, click **Check for updates** under the plugin on the Plugins screen. After a push, GitHub can take a few minutes to serve the new version.
+WordPress checks for updates twice a day. To check straight away, click **Check for updates** under the plugin on the Plugins screen: it asks GitHub right then and shows an **Update now** button when a new version is ready.
 
 ## License
 
