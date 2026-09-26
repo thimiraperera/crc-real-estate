@@ -22,6 +22,11 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.7.0 =
+* Property overview section: [crc_listing_overview] shows the property type, offered for, availability and listed by in boxes with icons, and See More, which opens a popup with those boxes and all the other details in groups with check marks.
+* Property overview box on the listing screen: the four details with suggestions, and groups of other details for the See More popup. Groups and details can be added, removed and dragged into order.
+* One popup style for all popups on listing pages: the title on the left, the close button on the right, and a smooth opening and closing animation. On phones it slides up from the bottom.
+
 = 0.6.0 =
 * Price and Contact buttons boxes use two columns on desktop and laptop screens, and one column on tablets and phones.
 * Each listing category has a Caption, changed on the Listing Categories screen. The defaults are Land for sale, Property for sale and Property for rent. It shows above the price in the site's primary color.

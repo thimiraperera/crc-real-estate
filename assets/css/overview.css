@@ -1,0 +1,215 @@
+/* Property overview: the main details in boxes, See More, and the details in its popup. */
+.crc-overview {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 40px;
+}
+
+.crc-overview .crc-overview-cards {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 320px));
+	gap: 32px;
+	align-self: stretch;
+}
+
+/* Main details */
+.crc-overview .crc-overview-card {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	box-sizing: border-box;
+	padding: 16px;
+	border-radius: 12px;
+	border: 1px solid color-mix(in srgb, var(--e-global-color-text) 10%, var(--e-global-color-bb33687));
+}
+
+.crc-overview .crc-overview-icon {
+	flex: none;
+	width: 26px;
+	height: 26px;
+	fill: var(--e-global-color-primary);
+}
+
+.crc-overview .crc-overview-text {
+	min-width: 0;
+}
+
+.crc-overview .crc-overview-label {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.crc-overview .crc-overview-value {
+	margin-top: 0;
+	margin-bottom: 0;
+	color: var(--e-global-color-6e3d619);
+}
+
+/* See More: normal */
+.crc-overview .crc-overview-more {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+	width: auto;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font: inherit;
+	font-weight: normal;
+	letter-spacing: normal;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	opacity: 1;
+	transform: none;
+	cursor: pointer;
+}
+
+/* See More: hover, focus and pressed. The theme's button hover styles don't apply. */
+.crc-overview .crc-overview-more:hover,
+.crc-overview .crc-overview-more:focus,
+.crc-overview .crc-overview-more:active {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	outline: none;
+	background: transparent;
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	font-weight: normal;
+	letter-spacing: normal;
+	text-decoration: none;
+	text-shadow: none;
+	text-transform: none;
+	opacity: 1;
+	transform: none;
+}
+
+/* See More: keyboard focus ring */
+.crc-overview .crc-overview-more:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 4px;
+}
+
+.crc-overview .crc-overview-more-text {
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* The arrow moves a little to the right on hover. */
+.crc-overview .crc-overview-more-icon {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+	transition: transform 0.3s ease;
+}
+
+.crc-overview .crc-overview-more:hover .crc-overview-more-icon,
+.crc-overview .crc-overview-more:focus-visible .crc-overview-more-icon {
+	transform: translateX(4px);
+}
+
+/* In the popup: more details in groups, each with a check mark */
+.crc-overview .crc-overview-group {
+	margin-top: 48px;
+	padding-top: 48px;
+	border-top: 1px solid color-mix(in srgb, var(--e-global-color-text) 10%, var(--e-global-color-bb33687));
+}
+
+.crc-overview .crc-overview-group:first-child {
+	margin-top: 0;
+	padding-top: 0;
+	border-top: 0;
+}
+
+.crc-overview .crc-overview-group-title {
+	margin-top: 0;
+	margin-bottom: 24px;
+	color: var(--e-global-color-6e3d619);
+}
+
+.crc-overview .crc-overview-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 320px));
+	gap: 28px 32px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.crc-overview .crc-overview-item {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	margin: 0;
+	padding: 0;
+}
+
+.crc-overview .crc-overview-item .crc-overview-icon {
+	width: 24px;
+	height: 24px;
+}
+
+.crc-overview .crc-overview-item-label {
+	margin-top: 0;
+	margin-bottom: 0;
+	color: var(--e-global-color-6e3d619);
+	font-weight: 600;
+}
+
+.crc-overview .crc-overview-item-value {
+	margin-top: 0;
+	margin-bottom: 0;
+	color: var(--e-global-color-6e3d619);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-overview .crc-overview-more-icon {
+		transition: none;
+	}
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	/* Your styles for desktop */
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	/* Your styles for laptops */
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	.crc-overview {
+		gap: 32px;
+	}
+
+	.crc-overview .crc-overview-cards {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 16px;
+	}
+
+	.crc-overview .crc-overview-list {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 24px;
+	}
+
+	.crc-overview .crc-overview-group {
+		margin-top: 32px;
+		padding-top: 32px;
+	}
+}

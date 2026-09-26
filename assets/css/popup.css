@@ -1,0 +1,212 @@
+/* Popup: the window See More and other buttons on listing pages open. */
+html.crc-popup-open {
+	overflow: hidden;
+	padding-right: var(--crc-popup-scrollbar, 0px);
+}
+
+.crc-popup {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: none;
+	height: 100%;
+	max-height: none;
+	margin: 0;
+	padding: 24px;
+	overflow: hidden;
+	border: 0;
+	background: transparent;
+	color: inherit;
+}
+
+.crc-popup:not([open]) {
+	display: none;
+}
+
+.crc-popup[open] {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.crc-popup::backdrop {
+	background: transparent;
+}
+
+/* Dark layer over the page */
+.crc-popup-backdrop {
+	position: absolute;
+	inset: 0;
+	background: color-mix(in srgb, var(--e-global-color-1ead78b) 40%, var(--e-global-color-bb33687));
+	opacity: 0;
+	transition: opacity 0.2s ease;
+}
+
+/* The window: fades in and rises into place, and does the reverse on closing */
+.crc-popup-dialog {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	width: 100%;
+	max-width: 910px;
+	max-height: 100%;
+	overflow: hidden;
+	border-radius: 24px;
+	background: var(--e-global-color-3581a59);
+	box-shadow: 0 13px 20px 0 rgba(0, 0, 0, 0.05);
+	opacity: 0;
+	transform: translateY(24px) scale(0.98);
+	transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.crc-popup.is-open .crc-popup-backdrop {
+	opacity: 1;
+	transition: opacity 0.3s ease;
+}
+
+.crc-popup.is-open .crc-popup-dialog {
+	opacity: 1;
+	transform: none;
+	transition: opacity 0.3s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Top bar: title on the left, close button on the right */
+.crc-popup-header {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 32px;
+	background: var(--e-global-color-3581a59);
+	box-shadow: 0 13px 20px 0 rgba(0, 0, 0, 0.05);
+}
+
+.crc-popup .crc-popup-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	color: var(--e-global-color-6e3d619);
+}
+
+/* Close button: normal */
+.crc-popup .crc-popup-close {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 46px;
+	height: 46px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--e-global-color-3581a59) 96.0784%, var(--e-global-color-1ead78b));
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	line-height: 1;
+	text-decoration: none;
+	text-shadow: none;
+	opacity: 1;
+	transform: none;
+	transition: background-color 0.3s, color 0.3s;
+	cursor: pointer;
+}
+
+/* Close button: hover, focus and pressed. The theme's button hover styles don't apply. */
+.crc-popup .crc-popup-close:hover,
+.crc-popup .crc-popup-close:focus,
+.crc-popup .crc-popup-close:active {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	outline: none;
+	background: color-mix(in srgb, var(--e-global-color-3581a59) 96.0784%, var(--e-global-color-1ead78b));
+	box-shadow: none;
+	color: var(--e-global-color-6e3d619);
+	text-decoration: none;
+	text-shadow: none;
+	opacity: 1;
+	transform: none;
+}
+
+/* Close button: keyboard focus ring */
+.crc-popup .crc-popup-close:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 2px;
+}
+
+.crc-popup .crc-popup-close-icon {
+	flex: none;
+	width: 18px;
+	height: 18px;
+	fill: currentColor;
+}
+
+/* Content: scrolls under the top bar */
+.crc-popup-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 32px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-popup-backdrop,
+	.crc-popup-dialog,
+	.crc-popup.is-open .crc-popup-backdrop,
+	.crc-popup.is-open .crc-popup-dialog {
+		transition: none;
+	}
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	/* Your styles for desktop */
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	/* Your styles for laptops */
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	/* The popup slides up from the bottom of the screen. */
+	.crc-popup {
+		padding: 48px 0 0;
+	}
+
+	.crc-popup[open] {
+		align-items: flex-end;
+	}
+
+	.crc-popup-dialog {
+		border-radius: 24px 24px 0 0;
+		opacity: 1;
+		transform: translateY(100%);
+	}
+
+	.crc-popup-header {
+		padding: 12px 20px;
+	}
+
+	.crc-popup-body {
+		padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+	}
+}

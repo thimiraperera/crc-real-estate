@@ -43,13 +43,16 @@ final class Plugin {
 		( new Post_Type() )->hooks();
 		( new Taxonomy() )->hooks();
 		( new Views() )->hooks();
+		( new Popup() )->hooks();
 		( new Sections\Title() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Sections\Description() )->hooks();
 		( new Sections\Price_Card() )->hooks();
+		( new Sections\Overview() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();
+		( new Admin\Overview_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Info_Page() )->hooks();
