@@ -67,48 +67,62 @@ final class Settings_Page {
 
 		add_settings_section(
 			'crc_re_contact',
-			__( 'Contact numbers', 'crc-real-estate' ),
+			__( 'Contact buttons', 'crc-real-estate' ),
 			function () {
-				echo '<p>' . esc_html__( 'These numbers are used on every listing, unless a listing has its own numbers.', 'crc-real-estate' ) . '</p>';
+				echo '<p>' . esc_html__( 'These numbers and button texts are used on every listing, unless a listing has its own.', 'crc-real-estate' ) . '</p>';
 			},
 			self::SLUG
 		);
 
-		add_settings_field(
-			'crc_re_phone',
-			__( 'Phone number', 'crc-real-estate' ),
-			array( $this, 'number_field' ),
-			self::SLUG,
-			'crc_re_contact',
-			array(
-				'label_for'   => 'crc-default-phone',
-				'key'         => 'phone',
+		$fields = array(
+			'phone'        => array(
+				'type'        => 'tel',
+				'label'       => __( 'Phone number', 'crc-real-estate' ),
 				'description' => __( 'Shown on the Call button of every listing. People can tap it to call this number.', 'crc-real-estate' ),
-			)
+			),
+			'call_text'    => array(
+				'type'        => 'text',
+				'label'       => __( 'Call button text', 'crc-real-estate' ),
+				'description' => __( 'The text on the Call button. Write {number} where the phone number should appear, for example "Call {number}".', 'crc-real-estate' ),
+			),
+			'whatsapp'     => array(
+				'type'        => 'tel',
+				'label'       => __( 'WhatsApp number', 'crc-real-estate' ),
+				'description' => __( 'Used for the Message button of every listing, which opens a WhatsApp chat with this number. Include the country code, for example +94.', 'crc-real-estate' ),
+			),
+			'message_text' => array(
+				'type'        => 'text',
+				'label'       => __( 'Message button text', 'crc-real-estate' ),
+				'description' => __( 'The text on the Message button. Write {number} where the WhatsApp number should appear, for example "Message {number}".', 'crc-real-estate' ),
+			),
 		);
 
-		add_settings_field(
-			'crc_re_whatsapp',
-			__( 'WhatsApp number', 'crc-real-estate' ),
-			array( $this, 'number_field' ),
-			self::SLUG,
-			'crc_re_contact',
-			array(
-				'label_for'   => 'crc-default-whatsapp',
-				'key'         => 'whatsapp',
-				'description' => __( 'Used for the Message button of every listing, which opens a WhatsApp chat with this number. Include the country code, for example +94.', 'crc-real-estate' ),
-			)
-		);
+		foreach ( $fields as $key => $field ) {
+			add_settings_field(
+				'crc_re_' . $key,
+				$field['label'],
+				array( $this, 'field' ),
+				self::SLUG,
+				'crc_re_contact',
+				array(
+					'label_for'   => 'crc-default-' . str_replace( '_', '-', $key ),
+					'key'         => $key,
+					'type'        => $field['type'],
+					'description' => $field['description'],
+				)
+			);
+		}
 	}
 
 	/**
-	 * Prints a number field.
+	 * Prints a settings field.
 	 *
 	 * @param array $args Field details.
 	 */
-	public function number_field( $args ) {
+	public function field( $args ) {
 		printf(
-			'<input type="tel" id="%1$s" name="%2$s[%3$s]" value="%4$s" class="regular-text"><p class="description">%5$s</p>',
+			'<input type="%1$s" id="%2$s" name="%3$s[%4$s]" value="%5$s" class="regular-text"><p class="description">%6$s</p>',
+			esc_attr( $args['type'] ),
 			esc_attr( $args['label_for'] ),
 			esc_attr( Settings::OPTION ),
 			esc_attr( $args['key'] ),

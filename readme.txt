@@ -22,6 +22,10 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.5.2 =
+* Call and Message button texts can be changed: defaults in Listings → Settings, and each listing can have its own. {number} shows the number.
+* The Contact numbers box is now called Contact buttons.
+
 = 0.5.1 =
 * Title section: [crc_listing_title] shows the listing's title as an H3.
 * Empty style places for the section containers: crc-listing-details, crc-listing-overview, crc-listing-location, crc-listing-inquiry, crc-listing-faq and crc-listing-price.

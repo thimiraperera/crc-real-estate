@@ -41,10 +41,12 @@ final class Price_Card {
 	 */
 	public function register() {
 		$fields = array(
-			self::PRICE_META        => array( __CLASS__, 'sanitize_amount' ),
-			self::PER_PERCH_META    => array( __CLASS__, 'sanitize_amount' ),
-			Settings::PHONE_META    => array( Settings::class, 'sanitize_number' ),
-			Settings::WHATSAPP_META => array( Settings::class, 'sanitize_number' ),
+			self::PRICE_META            => array( __CLASS__, 'sanitize_amount' ),
+			self::PER_PERCH_META        => array( __CLASS__, 'sanitize_amount' ),
+			Settings::PHONE_META        => array( Settings::class, 'sanitize_number' ),
+			Settings::WHATSAPP_META     => array( Settings::class, 'sanitize_number' ),
+			Settings::CALL_TEXT_META    => array( Settings::class, 'sanitize_text' ),
+			Settings::MESSAGE_TEXT_META => array( Settings::class, 'sanitize_text' ),
 		);
 
 		foreach ( $fields as $key => $sanitize ) {
@@ -267,16 +269,14 @@ final class Price_Card {
 		$buttons  = '';
 
 		if ( '' !== $phone ) {
-			/* translators: %s: phone number. */
-			$buttons .= '<div class="custom-btn-1-lite">' . $this->button( 'tel:' . self::dial( $phone ), sprintf( __( 'Call %s', 'crc-real-estate' ), $phone ), 'phone', false ) . '</div>';
+			$buttons .= '<div class="custom-btn-1-lite">' . $this->button( 'tel:' . self::dial( $phone ), Settings::button_text( $post_id, 'call' ), 'phone', false ) . '</div>';
 		}
 
 		if ( '' !== $whatsapp ) {
 			/* translators: 1: listing title, 2: listing address. */
 			$message  = sprintf( __( 'Hi, I\'m interested in this listing: %1$s %2$s', 'crc-real-estate' ), $title, $url );
 			$link     = 'https://wa.me/' . preg_replace( '/\D/', '', $whatsapp ) . '?text=' . rawurlencode( $message );
-			/* translators: %s: WhatsApp number. */
-			$buttons .= $this->button( $link, sprintf( __( 'Message %s', 'crc-real-estate' ), $whatsapp ), 'whatsapp', true );
+			$buttons .= $this->button( $link, Settings::button_text( $post_id, 'message' ), 'whatsapp', true );
 		}
 
 		if ( '' === $buttons ) {
