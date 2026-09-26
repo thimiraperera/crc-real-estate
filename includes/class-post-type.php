@@ -24,6 +24,7 @@ final class Post_Type {
 		add_action( 'after_setup_theme', array( $this, 'add_thumbnail_support' ), 100 );
 		add_filter( 'use_block_editor_for_post_type', array( $this, 'use_block_editor' ), 10, 2 );
 		add_filter( 'post_row_actions', array( $this, 'row_actions' ), 10, 2 );
+		add_action( 'current_screen', array( $this, 'remove_media_button' ) );
 	}
 
 	/**
@@ -69,7 +70,7 @@ final class Post_Type {
 				'show_in_rest'  => true,
 				'menu_position' => 5,
 				'menu_icon'     => 'dashicons-admin-home',
-				'supports'      => array( 'title', 'editor', 'thumbnail', 'author', 'revisions' ),
+				'supports'      => array( 'title', 'editor', 'thumbnail', 'revisions' ),
 				'has_archive'   => false,
 				'rewrite'       => array(
 					/**
@@ -100,6 +101,17 @@ final class Post_Type {
 	 */
 	public function use_block_editor( $use_block_editor, $post_type ) {
 		return self::NAME === $post_type ? false : $use_block_editor;
+	}
+
+	/**
+	 * Removes "Add Media" above the listing's text box; photos have their own boxes.
+	 *
+	 * @param \WP_Screen $screen Current admin screen.
+	 */
+	public function remove_media_button( $screen ) {
+		if ( 'post' === $screen->base && self::NAME === $screen->post_type ) {
+			remove_action( 'media_buttons', 'media_buttons' );
+		}
 	}
 
 	/**

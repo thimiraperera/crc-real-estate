@@ -50,9 +50,6 @@ final class Gallery_Box {
 		wp_nonce_field( 'crc_gallery_save', self::NONCE );
 		?>
 		<div class="crc-gallery-admin<?php echo $ids ? ' has-images' : ''; ?>">
-			<p class="description">
-				<?php esc_html_e( 'Shown next to the main photo. Drag to change the order.', 'crc-real-estate' ); ?>
-			</p>
 			<ul class="crc-gallery-admin__list">
 				<?php foreach ( $ids as $id ) : ?>
 					<?php
@@ -70,8 +67,9 @@ final class Gallery_Box {
 			</ul>
 			<p class="crc-gallery-admin__empty"><?php esc_html_e( 'No photos yet.', 'crc-real-estate' ); ?></p>
 			<input type="hidden" name="<?php echo esc_attr( self::FIELD ); ?>" class="crc-gallery-admin__ids" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
-			<p>
+			<p class="crc-gallery-admin__actions">
 				<button type="button" class="button crc-gallery-admin__add"><?php esc_html_e( 'Add photos', 'crc-real-estate' ); ?></button>
+				<span class="description"><?php esc_html_e( 'Shown next to the main photo. Drag to reorder.', 'crc-real-estate' ); ?></span>
 			</p>
 		</div>
 		<?php

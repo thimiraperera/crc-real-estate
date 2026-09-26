@@ -22,6 +22,13 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.4.0 =
+* Listing Categories use the normal WordPress category screen again: names and descriptions can be edited; adding, deleting and changing the web address or parent are locked.
+* Description section: [crc_listing_description] shows the listing's text on the site.
+* New crc-card class for containers: white box, rounded corners, soft shadow.
+* No Author box and no Add Media button on listings.
+* Shorter help texts.
+
 = 0.3.1 =
 * New Listings → Categories page: each category with a short description, its number of listings and a link to them.
 * Friendlier, shorter wording on every admin screen: "Main photo", "More photos", "Category" and "Views".

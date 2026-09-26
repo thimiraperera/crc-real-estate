@@ -10,12 +10,14 @@ namespace CRC\RealEstate;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * A fixed set of WordPress categories for listings. Editors pick one per
- * listing; nobody can add, rename or delete categories from the admin.
+ * A fixed set of WordPress categories for listings. The normal category
+ * screen works for editing names and descriptions; adding, deleting and
+ * changing the web address (slug) or parent are locked.
  */
 final class Taxonomy {
 
-	const NAME = 'crc_listing_category';
+	const NAME         = 'crc_listing_category';
+	const TEXTS_OPTION = 'crc_re_category_texts';
 
 	/**
 	 * Whether the plugin itself is creating its categories.
@@ -60,6 +62,12 @@ final class Taxonomy {
 	public function hooks() {
 		add_action( 'init', array( $this, 'register' ) );
 		add_filter( 'pre_insert_term', array( $this, 'block_new_terms' ), 10, 2 );
+		add_filter( 'wp_update_term_data', array( $this, 'keep_slug' ), 10, 3 );
+		add_filter( 'wp_update_term_parent', array( $this, 'keep_top_level' ), 10, 3 );
+		add_action( 'load-edit-tags.php', array( $this, 'repair_terms' ) );
+		add_action( self::NAME . '_pre_add_form', array( $this, 'fixed_note' ) );
+		add_filter( 'manage_edit-' . self::NAME . '_columns', array( $this, 'term_columns' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_assets' ) );
 		add_action( 'add_meta_boxes_' . Post_Type::NAME, array( $this, 'add_meta_box' ) );
 		add_filter( 'manage_' . Post_Type::NAME . '_posts_columns', array( $this, 'column_title' ) );
 		add_action( 'restrict_manage_posts', array( $this, 'filter_dropdown' ) );
@@ -74,17 +82,23 @@ final class Taxonomy {
 			Post_Type::NAME,
 			array(
 				'labels'             => array(
-					'name'          => _x( 'Categories', 'taxonomy general name', 'crc-real-estate' ),
-					'singular_name' => _x( 'Category', 'taxonomy singular name', 'crc-real-estate' ),
-					'menu_name'     => __( 'Categories', 'crc-real-estate' ),
-					'all_items'     => __( 'All categories', 'crc-real-estate' ),
-					'search_items'  => __( 'Search categories', 'crc-real-estate' ),
-					'not_found'     => __( 'No categories found.', 'crc-real-estate' ),
+					'name'                   => _x( 'Listing Categories', 'taxonomy general name', 'crc-real-estate' ),
+					'singular_name'          => _x( 'Listing Category', 'taxonomy singular name', 'crc-real-estate' ),
+					'menu_name'              => __( 'Listing Categories', 'crc-real-estate' ),
+					'all_items'              => __( 'All Listing Categories', 'crc-real-estate' ),
+					'edit_item'              => __( 'Edit Listing Category', 'crc-real-estate' ),
+					'view_item'              => __( 'View Listing Category', 'crc-real-estate' ),
+					'update_item'            => __( 'Update Listing Category', 'crc-real-estate' ),
+					'search_items'           => __( 'Search Listing Categories', 'crc-real-estate' ),
+					'not_found'              => __( 'No listing categories found.', 'crc-real-estate' ),
+					'back_to_items'          => __( '&larr; Back to Listing Categories', 'crc-real-estate' ),
+					'name_field_description' => __( 'How it appears on the site.', 'crc-real-estate' ),
+					'desc_field_description' => __( 'One short line about this category.', 'crc-real-estate' ),
 				),
 				'hierarchical'       => true,
 				'public'             => true,
 				'show_ui'            => true,
-				'show_in_menu'       => false, // Listings → Categories is a simple page of its own.
+				'show_in_menu'       => true,
 				'show_admin_column'  => true,
 				'show_in_quick_edit' => false,
 				'show_in_rest'       => true,
@@ -100,7 +114,7 @@ final class Taxonomy {
 				),
 				'capabilities'       => array(
 					'manage_terms' => 'manage_categories',
-					'edit_terms'   => 'do_not_allow',
+					'edit_terms'   => 'manage_categories',
 					'delete_terms' => 'do_not_allow',
 					'assign_terms' => 'edit_posts',
 				),
@@ -109,9 +123,11 @@ final class Taxonomy {
 	}
 
 	/**
-	 * Creates any category that doesn't exist yet, and fills in empty descriptions.
+	 * Creates any category that doesn't exist yet. The short descriptions are
+	 * filled in once; after that, edits made on the Listing Categories screen stay.
 	 */
 	public static function create_terms() {
+		$fill_texts     = ! get_option( self::TEXTS_OPTION );
 		self::$creating = true;
 
 		foreach ( self::terms() as $slug => $term ) {
@@ -126,12 +142,26 @@ final class Taxonomy {
 						'description' => $term['description'],
 					)
 				);
-			} elseif ( '' === $existing->description && '' !== $term['description'] ) {
+			} elseif ( $fill_texts && '' === $existing->description && '' !== $term['description'] ) {
 				wp_update_term( $existing->term_id, self::NAME, array( 'description' => $term['description'] ) );
 			}
 		}
 
 		self::$creating = false;
+
+		if ( $fill_texts ) {
+			update_option( self::TEXTS_OPTION, 1 );
+		}
+	}
+
+	/**
+	 * Puts back a missing category when the Listing Categories screen is opened.
+	 */
+	public function repair_terms() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only decides which screen is showing.
+		if ( isset( $_GET['taxonomy'] ) && self::NAME === $_GET['taxonomy'] ) {
+			self::create_terms();
+		}
 	}
 
 	/**
@@ -147,6 +177,80 @@ final class Taxonomy {
 		}
 
 		return $term;
+	}
+
+	/**
+	 * Keeps each category's web address (slug), which the plugin relies on.
+	 *
+	 * @param array  $data     Term data about to be saved.
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy.
+	 * @return array
+	 */
+	public function keep_slug( $data, $term_id, $taxonomy ) {
+		if ( self::NAME === $taxonomy ) {
+			$term = get_term( $term_id, self::NAME );
+
+			if ( $term && ! is_wp_error( $term ) ) {
+				$data['slug'] = $term->slug;
+			}
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Keeps every category at the top level.
+	 *
+	 * @param int    $parent   Parent term ID.
+	 * @param int    $term_id  Term ID.
+	 * @param string $taxonomy Taxonomy.
+	 * @return int
+	 */
+	public function keep_top_level( $parent, $term_id, $taxonomy ) {
+		return self::NAME === $taxonomy ? 0 : $parent;
+	}
+
+	/**
+	 * Shows a note where the "Add new" form usually is.
+	 */
+	public function fixed_note() {
+		?>
+		<div class="crc-fixed-note">
+			<h2><?php esc_html_e( 'Fixed categories', 'crc-real-estate' ); ?></h2>
+			<p><?php esc_html_e( 'You can edit names and descriptions. Adding and deleting are turned off.', 'crc-real-estate' ); ?></p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Keeps the list simple: no checkboxes or web address column, and the
+	 * count is called "Listings".
+	 *
+	 * @param string[] $columns Columns.
+	 * @return string[]
+	 */
+	public function term_columns( $columns ) {
+		unset( $columns['cb'], $columns['slug'] );
+
+		if ( isset( $columns['posts'] ) ) {
+			$columns['posts'] = __( 'Listings', 'crc-real-estate' );
+		}
+
+		return $columns;
+	}
+
+	/**
+	 * Loads the styles that hide the locked fields on the category screens.
+	 *
+	 * @param string $hook Current admin page.
+	 */
+	public function admin_assets( $hook ) {
+		$screen = get_current_screen();
+
+		if ( $screen && self::NAME === $screen->taxonomy && in_array( $hook, array( 'edit-tags.php', 'term.php' ), true ) ) {
+			wp_enqueue_style( 'crc-re-admin', CRC_RE_URL . 'assets/css/admin.css', array(), CRC_RE_VERSION );
+		}
 	}
 
 	/**

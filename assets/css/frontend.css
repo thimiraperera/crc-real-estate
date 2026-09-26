@@ -1,0 +1,11 @@
+/* Card: white box with rounded corners and a soft shadow. Add the class crc-card to any container. */
+.crc-card {
+	border-radius: 16px;
+	background: var(--e-global-color-3581a59, #fff);
+	box-shadow: 0 13px 20px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Description */
+.crc-description p:last-child {
+	margin-bottom: 0;
+}

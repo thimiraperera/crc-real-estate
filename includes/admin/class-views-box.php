@@ -52,7 +52,7 @@ final class Views_Box {
 			<input type="number" id="crc-views-field" class="small-text" name="<?php echo esc_attr( self::FIELD ); ?>" value="<?php echo esc_attr( $views ); ?>" min="0" step="1">
 			<input type="hidden" name="<?php echo esc_attr( self::ORIGINAL ); ?>" value="<?php echo esc_attr( $views ); ?>">
 		</p>
-		<p class="description"><?php esc_html_e( 'Goes up by itself when people visit. You can change it.', 'crc-real-estate' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Goes up with each visit.', 'crc-real-estate' ); ?></p>
 		<?php
 	}
 
