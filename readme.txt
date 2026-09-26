@@ -16,6 +16,7 @@ Real estate listing tools for WordPress.
 * Price card with the price, a Share button, and Call and WhatsApp buttons
 * Property overview with the main details and a See More popup of details by category
 * Property features to tick, grouped by category, with a See More popup
+* Location map with the area around the property, while the exact place stays in the admin
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -25,6 +26,12 @@ Real estate listing tools for WordPress.
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.13.0 =
+* Location section: [crc_listing_location] shows an OpenStreetMap map with the area around the property (15 km by default), never the exact place. The area's centre is kept a secret distance from the property and shifts a little each day, and its size changes a little too, so the place can't be worked out.
+* Location box on the listing screen: mark the exact place on the map by clicking or dragging the pin, search for places, paste latitude and longitude, and keep a Google Maps link. Only people who edit listings see them.
+* The map can be turned off for a listing. With no map, the container with the class crc-listing-location is hidden.
+* Listings → Settings → Map: the area size, the starting point for new listings (Galle), and another map style with its credit if wanted, with a short guide. No API key is needed.
 
 = 0.12.0 =
 * Updates are in Listings → Settings: the installed and latest versions, Check for updates, a button to update to the new version, and What's new. The Plugins screen has a Settings link instead of Check for updates.

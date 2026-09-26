@@ -50,11 +50,13 @@ final class Plugin {
 		( new Sections\Price_Card() )->hooks();
 		( new Sections\Overview() )->hooks();
 		( new Sections\Features() )->hooks();
+		( new Sections\Location() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();
 		( new Admin\Overview_Box() )->hooks();
 		( new Admin\Features_Box() )->hooks();
+		( new Admin\Location_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Info_Page() )->hooks();

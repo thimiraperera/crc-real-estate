@@ -11,11 +11,12 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * The default contact numbers and button texts from Listings → Settings, and
- * each listing's own ones when it has them.
+ * each listing's own ones when it has them; and the map settings.
  */
 final class Settings {
 
 	const OPTION            = 'crc_re_contact';
+	const MAP_OPTION        = 'crc_re_map';
 	const DEFAULT_NUMBER    = '+94777643264';
 	const PHONE_META        = '_crc_phone';
 	const WHATSAPP_META     = '_crc_whatsapp';
@@ -111,6 +112,63 @@ final class Settings {
 	 */
 	public static function sanitize_text( $value ) {
 		return trim( sanitize_text_field( (string) $value ) );
+	}
+
+	/**
+	 * Map settings used until they are saved: how far the area on a listing
+	 * page reaches (km), where the map starts for a new listing (Galle, Sri
+	 * Lanka), and another map style's tiles address and credit (empty for
+	 * OpenStreetMap).
+	 *
+	 * @return array
+	 */
+	public static function map_defaults() {
+		return array(
+			'radius' => 15,
+			'lat'    => 6.0535,
+			'lng'    => 80.221,
+			'tiles'  => '',
+			'credit' => '',
+		);
+	}
+
+	/**
+	 * A saved map setting.
+	 *
+	 * @param string $key "radius", "lat", "lng", "tiles" or "credit".
+	 * @return float|string|null
+	 */
+	public static function map( $key ) {
+		$saved = self::sanitize_map( get_option( self::MAP_OPTION, array() ) );
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Cleans the map settings. A value out of range goes back to its default;
+	 * a tiles address must be https and contain {z}, {x} and {y}.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_map( $input ) {
+		$input    = is_array( $input ) ? $input : array();
+		$defaults = self::map_defaults();
+		$number   = function ( $key, $min, $max, $decimals ) use ( $input, $defaults ) {
+			$value = isset( $input[ $key ] ) && is_scalar( $input[ $key ] ) ? trim( (string) $input[ $key ] ) : '';
+
+			return is_numeric( $value ) && (float) $value >= $min && (float) $value <= $max ? round( (float) $value, $decimals ) : $defaults[ $key ];
+		};
+		$tiles    = isset( $input['tiles'] ) && is_scalar( $input['tiles'] ) ? trim( sanitize_text_field( (string) $input['tiles'] ) ) : '';
+		$valid    = 0 === strpos( $tiles, 'https://' ) && false !== strpos( $tiles, '{z}' ) && false !== strpos( $tiles, '{x}' ) && false !== strpos( $tiles, '{y}' );
+
+		return array(
+			'radius' => $number( 'radius', 1, 100, 1 ),
+			'lat'    => $number( 'lat', -90, 90, 6 ),
+			'lng'    => $number( 'lng', -180, 180, 6 ),
+			'tiles'  => $valid ? $tiles : '',
+			'credit' => isset( $input['credit'] ) && is_scalar( $input['credit'] ) ? sanitize_text_field( (string) $input['credit'] ) : '',
+		);
 	}
 
 	/**

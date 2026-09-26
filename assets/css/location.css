@@ -1,0 +1,38 @@
+/* Location: a map with the area around the property. The exact place is never shown. */
+.crc-location .crc-location-map {
+	position: relative;
+	z-index: 0;
+	width: 100%;
+	height: 368px;
+	overflow: hidden;
+	background: color-mix(in srgb, var(--e-global-color-3581a59) 96.0784%, var(--e-global-color-1ead78b));
+}
+
+/* The area around the property */
+.crc-location .crc-location-area {
+	fill: #e53935;
+	fill-opacity: 0.3;
+	stroke: none;
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	/* Your styles for desktop */
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	/* Your styles for laptops */
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	.crc-location .crc-location-map {
+		height: 260px;
+	}
+}

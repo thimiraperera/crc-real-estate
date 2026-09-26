@@ -15,7 +15,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Settings: the default phone and WhatsApp numbers and button
- * texts, and plugin updates.
+ * texts, the map, and plugin updates.
  */
 final class Settings_Page {
 
@@ -144,6 +144,116 @@ final class Settings_Page {
 					'description' => $field['description'],
 				)
 			);
+		}
+
+		$this->register_map();
+	}
+
+	/**
+	 * Registers the Map settings and their fields.
+	 */
+	private function register_map() {
+		register_setting(
+			self::GROUP,
+			Settings::MAP_OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_map' ),
+				'default'           => Settings::map_defaults(),
+			)
+		);
+
+		add_settings_section( 'crc_re_map', __( 'Map', 'crc-real-estate' ), array( $this, 'map_guide' ), self::SLUG );
+
+		$fields = array(
+			'radius' => __( 'Area on listing pages', 'crc-real-estate' ),
+			'start'  => __( 'Starting point', 'crc-real-estate' ),
+			'tiles'  => __( 'Map style', 'crc-real-estate' ),
+			'credit' => __( 'Map credit', 'crc-real-estate' ),
+		);
+
+		foreach ( $fields as $key => $label ) {
+			add_settings_field(
+				'crc_re_map_' . $key,
+				$label,
+				array( $this, 'map_field' ),
+				self::SLUG,
+				'crc_re_map',
+				array(
+					'label_for' => 'crc-map-' . ( 'start' === $key ? 'lat' : $key ),
+					'key'       => $key,
+				)
+			);
+		}
+	}
+
+	/**
+	 * The short guide at the top of the Map settings.
+	 */
+	public function map_guide() {
+		$link = function ( $url, $text ) {
+			return sprintf( '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( $url ), esc_html( $text ) );
+		};
+
+		printf(
+			/* translators: 1: OpenStreetMap link, 2: Nominatim link, 3: tile policy link, 4: search policy link, 5: MapTiler link. */
+			'<p>' . esc_html__( 'Maps come from %1$s and place search from %2$s. Both are free and need no key; just keep to their %3$s and %4$s rules. For another map style, paste a tiles address from a service such as %5$s.', 'crc-real-estate' ) . '</p>',
+			$link( 'https://www.openstreetmap.org/', 'OpenStreetMap' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+			$link( 'https://nominatim.org/', 'Nominatim' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+			$link( 'https://operations.osmfoundation.org/policies/tiles/', __( 'map', 'crc-real-estate' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+			$link( 'https://operations.osmfoundation.org/policies/nominatim/', __( 'search', 'crc-real-estate' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+			$link( 'https://www.maptiler.com/', 'MapTiler' ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
+		);
+	}
+
+	/**
+	 * Prints a Map setting.
+	 *
+	 * @param array $args Field details.
+	 */
+	public function map_field( $args ) {
+		$name = Settings::MAP_OPTION;
+
+		switch ( $args['key'] ) {
+			case 'radius':
+				printf(
+					'<input type="number" id="crc-map-radius" name="%1$s[radius]" value="%2$s" min="1" max="100" step="0.5" class="small-text"> %3$s<p class="description">%4$s</p>',
+					esc_attr( $name ),
+					esc_attr( Settings::map( 'radius' ) ),
+					esc_html__( 'km', 'crc-real-estate' ),
+					esc_html__( 'How far around the property the area on the listing page reaches. The exact place is never shown there.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'start':
+				printf(
+					'<label for="crc-map-lat">%1$s</label> <input type="text" inputmode="decimal" id="crc-map-lat" name="%2$s[lat]" value="%3$s" class="regular-text crc-map-coordinate"> <label for="crc-map-lng">%4$s</label> <input type="text" inputmode="decimal" id="crc-map-lng" name="%2$s[lng]" value="%5$s" class="regular-text crc-map-coordinate"><p class="description">%6$s</p>',
+					esc_html__( 'Latitude', 'crc-real-estate' ),
+					esc_attr( $name ),
+					esc_attr( Settings::map( 'lat' ) ),
+					esc_html__( 'Longitude', 'crc-real-estate' ),
+					esc_attr( Settings::map( 'lng' ) ),
+					esc_html__( 'Where the map starts for a new listing. Galle, Sri Lanka is 6.0535, 80.221.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'tiles':
+				printf(
+					'<input type="text" id="crc-map-tiles" name="%1$s[tiles]" value="%2$s" class="large-text" placeholder="https://tile.openstreetmap.org/{z}/{x}/{y}.png"><p class="description">%3$s</p>',
+					esc_attr( $name ),
+					esc_attr( Settings::map( 'tiles' ) ),
+					esc_html__( 'Optional. Leave it empty for OpenStreetMap. Another style\'s address must start with https:// and contain {z}, {x} and {y}.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'credit':
+				printf(
+					'<input type="text" id="crc-map-credit" name="%1$s[credit]" value="%2$s" class="large-text"><p class="description">%3$s</p>',
+					esc_attr( $name ),
+					esc_attr( Settings::map( 'credit' ) ),
+					esc_html__( 'Only with another map style: the credit line its provider asks for, for example "© MapTiler © OpenStreetMap contributors".', 'crc-real-estate' )
+				);
+				break;
 		}
 	}
 

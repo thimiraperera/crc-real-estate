@@ -448,6 +448,63 @@
 	white-space: nowrap;
 }
 
+/* Location box */
+.crc-location-box-show {
+	margin: 12px 0 0;
+}
+
+.crc-location-box-search {
+	display: flex;
+	gap: 8px;
+	margin: 16px 0 0;
+}
+
+.crc-location-box-search input[type="search"] {
+	flex: 1 1 auto;
+	max-width: none;
+	margin: 0;
+}
+
+.crc-location-box-results {
+	margin: 8px 0 0;
+	padding: 0;
+	list-style: none;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.crc-location-box-results li {
+	margin: 0;
+	padding: 8px 12px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.crc-location-box-results li:first-child {
+	border-top: 0;
+}
+
+.crc-location-box-results .button-link {
+	text-align: left;
+}
+
+.crc-location-box-message {
+	color: #50575e;
+}
+
+.crc-location-box-map {
+	position: relative;
+	z-index: 0;
+	height: 400px;
+	margin: 12px 0 8px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.crc-location-box-google {
+	margin-top: 16px;
+}
+
 /* Settings page: Updates */
 .crc-updates-actions {
 	display: flex;

@@ -37,6 +37,11 @@
 	/* Your styles for property location */
 }
 
+/* Hidden when the listing's map is turned off or it has no place. */
+.crc-no-location .crc-listing-location {
+	display: none !important;
+}
+
 /* Send an inquiry */
 .crc-listing-inquiry {
 	/* Your styles for send an inquiry */
