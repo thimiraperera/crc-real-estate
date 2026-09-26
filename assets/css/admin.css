@@ -138,6 +138,31 @@
 	color: #646970;
 }
 
+/* Categories page */
+.crc-categories__table {
+	max-width: 960px;
+}
+
+.crc-categories__table th,
+.crc-categories__table td {
+	padding: 12px 16px;
+	vertical-align: middle;
+}
+
+.crc-categories__name {
+	font-weight: 600;
+}
+
+.crc-categories__count {
+	text-align: center;
+	white-space: nowrap;
+}
+
+.crc-categories__link {
+	text-align: right;
+	white-space: nowrap;
+}
+
 /* Info page */
 .crc-info__meta {
 	color: #646970;

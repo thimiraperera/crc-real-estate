@@ -57,11 +57,11 @@ final class Gallery {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Gallery', 'crc-real-estate' ),
-				'description' => __( 'The featured image as the large photo, with the gallery images beside it. Shows the view count and "+N photos" when there are more photos than fit. Clicking any photo opens the full-screen photo viewer with every photo.', 'crc-real-estate' ),
+				'description' => __( 'Main photo, more photos, view count and a full-screen photo viewer.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'    => array(
 						'default'     => '',
-						'description' => __( 'Listing ID. Leave it out on a listing page to use that listing.', 'crc-real-estate' ),
+						'description' => __( 'Listing ID. Not needed on a listing page.', 'crc-real-estate' ),
 					),
 					'views' => array(
 						'default'     => 'yes',
@@ -219,7 +219,7 @@ final class Gallery {
 		$ids = self::image_ids( $post->ID );
 
 		if ( ! $ids ) {
-			return Shortcodes::placeholder( self::SHORTCODE, __( 'This listing has no featured image yet.', 'crc-real-estate' ) );
+			return Shortcodes::placeholder( self::SHORTCODE, __( 'This listing has no main photo yet.', 'crc-real-estate' ) );
 		}
 
 		$show_views = Shortcodes::is_on( $atts['views'] );

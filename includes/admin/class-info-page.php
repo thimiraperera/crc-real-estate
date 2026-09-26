@@ -84,7 +84,7 @@ final class Info_Page {
 
 			<h2><?php esc_html_e( 'Shortcodes', 'crc-real-estate' ); ?></h2>
 			<p class="crc-info__intro">
-				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. On a listing page, it shows that listing automatically. Anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings.', 'crc-real-estate' ); ?>
+				<?php esc_html_e( 'Paste a shortcode into Elementor\'s Shortcode widget. On a listing page it shows that listing. Anywhere else, add id="…" (hover a listing to see its ID).', 'crc-real-estate' ); ?>
 			</p>
 
 			<?php foreach ( Shortcodes::all() as $tag => $info ) : ?>

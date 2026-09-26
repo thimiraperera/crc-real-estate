@@ -22,6 +22,10 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.3.1 =
+* New Listings → Categories page: each category with a short description, its number of listings and a link to them.
+* Friendlier, shorter wording on every admin screen: "Main photo", "More photos", "Category" and "Views".
+
 = 0.3.0 =
 * Listing categories: Lands, Properties for sale and Properties for rent. Pick one per listing; the list is fixed, so categories can't be added, renamed or deleted.
 * A listing needs a featured image and a category to be published.

@@ -48,11 +48,11 @@ final class Views_Box {
 		wp_nonce_field( 'crc_views_save', self::NONCE );
 		?>
 		<p class="crc-views-box">
-			<label for="crc-views-field"><?php esc_html_e( 'View count', 'crc-real-estate' ); ?></label>
+			<label for="crc-views-field"><?php esc_html_e( 'Views', 'crc-real-estate' ); ?></label>
 			<input type="number" id="crc-views-field" class="small-text" name="<?php echo esc_attr( self::FIELD ); ?>" value="<?php echo esc_attr( $views ); ?>" min="0" step="1">
 			<input type="hidden" name="<?php echo esc_attr( self::ORIGINAL ); ?>" value="<?php echo esc_attr( $views ); ?>">
 		</p>
-		<p class="description"><?php esc_html_e( 'Goes up by itself when people open the listing. Change it to set a starting number, for example the views of a listing you published again.', 'crc-real-estate' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Goes up by itself when people visit. You can change it.', 'crc-real-estate' ); ?></p>
 		<?php
 	}
 

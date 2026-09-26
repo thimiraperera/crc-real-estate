@@ -36,7 +36,7 @@ final class Gallery_Box {
 	 * Adds the Gallery box.
 	 */
 	public function add() {
-		add_meta_box( 'crc_listing_gallery', __( 'Gallery', 'crc-real-estate' ), array( $this, 'render' ), Post_Type::NAME, 'normal', 'high' );
+		add_meta_box( 'crc_listing_gallery', __( 'More photos', 'crc-real-estate' ), array( $this, 'render' ), Post_Type::NAME, 'normal', 'high' );
 	}
 
 	/**
@@ -51,7 +51,7 @@ final class Gallery_Box {
 		?>
 		<div class="crc-gallery-admin<?php echo $ids ? ' has-images' : ''; ?>">
 			<p class="description">
-				<?php esc_html_e( 'The featured image is the large photo. Add the other photos here. They appear beside it in this order, and all of them open in the photo viewer. Drag to reorder.', 'crc-real-estate' ); ?>
+				<?php esc_html_e( 'Shown next to the main photo. Drag to change the order.', 'crc-real-estate' ); ?>
 			</p>
 			<ul class="crc-gallery-admin__list">
 				<?php foreach ( $ids as $id ) : ?>
@@ -64,14 +64,14 @@ final class Gallery_Box {
 					?>
 					<li class="crc-gallery-admin__item" data-id="<?php echo esc_attr( $id ); ?>">
 						<?php echo $thumb; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core image markup. ?>
-						<button type="button" class="crc-gallery-admin__remove" aria-label="<?php esc_attr_e( 'Remove image', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
+						<button type="button" class="crc-gallery-admin__remove" aria-label="<?php esc_attr_e( 'Remove photo', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>
 					</li>
 				<?php endforeach; ?>
 			</ul>
-			<p class="crc-gallery-admin__empty"><?php esc_html_e( 'No gallery images yet.', 'crc-real-estate' ); ?></p>
+			<p class="crc-gallery-admin__empty"><?php esc_html_e( 'No photos yet.', 'crc-real-estate' ); ?></p>
 			<input type="hidden" name="<?php echo esc_attr( self::FIELD ); ?>" class="crc-gallery-admin__ids" value="<?php echo esc_attr( implode( ',', $ids ) ); ?>">
 			<p>
-				<button type="button" class="button crc-gallery-admin__add"><?php esc_html_e( 'Add images', 'crc-real-estate' ); ?></button>
+				<button type="button" class="button crc-gallery-admin__add"><?php esc_html_e( 'Add photos', 'crc-real-estate' ); ?></button>
 			</p>
 		</div>
 		<?php
@@ -128,11 +128,11 @@ final class Gallery_Box {
 			'crc-re-admin-listing',
 			'crcReListing',
 			array(
-				'frameTitle'       => __( 'Add gallery images', 'crc-real-estate' ),
-				'frameButton'      => __( 'Add to gallery', 'crc-real-estate' ),
-				'remove'           => __( 'Remove image', 'crc-real-estate' ),
-				'featuredRequired' => __( 'Add a featured image to publish this listing.', 'crc-real-estate' ),
-				'categoryRequired' => __( 'Choose a category to publish this listing.', 'crc-real-estate' ),
+				'frameTitle'       => __( 'Add photos', 'crc-real-estate' ),
+				'frameButton'      => __( 'Add photos', 'crc-real-estate' ),
+				'remove'           => __( 'Remove photo', 'crc-real-estate' ),
+				'featuredRequired' => __( 'Add a main photo to publish.', 'crc-real-estate' ),
+				'categoryRequired' => __( 'Pick a category to publish.', 'crc-real-estate' ),
 			)
 		);
 	}
@@ -173,7 +173,7 @@ final class Gallery_Box {
 		if ( $image ) {
 			echo $image; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Core image markup.
 		} else {
-			printf( '<span class="crc-list-photo crc-list-photo--none" title="%1$s">%2$s</span>', esc_attr__( 'No featured image', 'crc-real-estate' ), '<span class="dashicons dashicons-format-image" aria-hidden="true"></span>' );
+			printf( '<span class="crc-list-photo crc-list-photo--none" title="%1$s">%2$s</span>', esc_attr__( 'No main photo', 'crc-real-estate' ), '<span class="dashicons dashicons-format-image" aria-hidden="true"></span>' );
 		}
 	}
 }

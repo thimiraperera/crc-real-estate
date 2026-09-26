@@ -46,6 +46,7 @@ final class Plugin {
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
+		( new Admin\Categories_Page() )->hooks();
 		( new Admin\Info_Page() )->hooks();
 
 		add_action( 'init', array( $this, 'load_textdomain' ), 0 );

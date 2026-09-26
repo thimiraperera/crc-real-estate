@@ -26,7 +26,7 @@ jQuery( function ( $ ) {
 	function item( id, url ) {
 		var $li = $( '<li class="crc-gallery-admin__item"></li>' ).attr( 'data-id', id );
 		var $remove = $( '<button type="button" class="crc-gallery-admin__remove"><span class="dashicons dashicons-no-alt" aria-hidden="true"></span></button>' )
-			.attr( 'aria-label', text.remove || 'Remove image' );
+			.attr( 'aria-label', text.remove || 'Remove photo' );
 
 		$li.append( $( '<img alt="">' ).attr( 'src', url ) ).append( $remove );
 
@@ -53,8 +53,8 @@ jQuery( function ( $ ) {
 
 			if ( ! frame ) {
 				frame = wp.media( {
-					title: text.frameTitle || 'Add gallery images',
-					button: { text: text.frameButton || 'Add to gallery' },
+					title: text.frameTitle || 'Add photos',
+					button: { text: text.frameButton || 'Add photos' },
 					library: { type: 'image' },
 					multiple: 'add'
 				} );
@@ -111,12 +111,12 @@ jQuery( function ( $ ) {
 		var missing = [];
 
 		if ( $featuredBox.length && ! hasFeaturedImage() ) {
-			showError( $featuredBox, text.featuredRequired || 'Add a featured image to publish this listing.' );
+			showError( $featuredBox, text.featuredRequired || 'Add a main photo to publish.' );
 			missing.push( $featuredBox );
 		}
 
 		if ( $categoryBox.length && ! hasCategory() ) {
-			showError( $categoryBox, text.categoryRequired || 'Choose a category to publish this listing.' );
+			showError( $categoryBox, text.categoryRequired || 'Pick a category to publish.' );
 			missing.push( $categoryBox );
 		}
 

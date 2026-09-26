@@ -25,22 +25,31 @@ final class Taxonomy {
 	private static $creating = false;
 
 	/**
-	 * The categories, as slug => name, in display order.
+	 * The categories, as slug => name and short description, in display order.
 	 *
-	 * @return string[]
+	 * @return array[]
 	 */
 	public static function terms() {
 		/**
 		 * Filters the fixed listing categories, e.g. to rename them on another site.
 		 *
-		 * @param string[] $terms Slug => name.
+		 * @param array[] $terms Slug => array( 'name' => …, 'description' => … ).
 		 */
 		return apply_filters(
 			'crc_re_listing_categories',
 			array(
-				'lands'               => __( 'Lands', 'crc-real-estate' ),
-				'properties-for-sale' => __( 'Properties for sale', 'crc-real-estate' ),
-				'properties-for-rent' => __( 'Properties for rent', 'crc-real-estate' ),
+				'lands'               => array(
+					'name'        => __( 'Lands', 'crc-real-estate' ),
+					'description' => __( 'Land plots for sale.', 'crc-real-estate' ),
+				),
+				'properties-for-sale' => array(
+					'name'        => __( 'Properties for sale', 'crc-real-estate' ),
+					'description' => __( 'Houses, apartments and villas for sale.', 'crc-real-estate' ),
+				),
+				'properties-for-rent' => array(
+					'name'        => __( 'Properties for rent', 'crc-real-estate' ),
+					'description' => __( 'Houses, annexes, apartments and rooms to rent.', 'crc-real-estate' ),
+				),
 			)
 		);
 	}
@@ -51,8 +60,8 @@ final class Taxonomy {
 	public function hooks() {
 		add_action( 'init', array( $this, 'register' ) );
 		add_filter( 'pre_insert_term', array( $this, 'block_new_terms' ), 10, 2 );
-		add_action( 'load-edit-tags.php', array( $this, 'repair_terms' ) );
-		add_action( 'after-' . self::NAME . '-table', array( $this, 'fixed_note' ) );
+		add_action( 'add_meta_boxes_' . Post_Type::NAME, array( $this, 'add_meta_box' ) );
+		add_filter( 'manage_' . Post_Type::NAME . '_posts_columns', array( $this, 'column_title' ) );
 		add_action( 'restrict_manage_posts', array( $this, 'filter_dropdown' ) );
 	}
 
@@ -68,20 +77,18 @@ final class Taxonomy {
 					'name'          => _x( 'Categories', 'taxonomy general name', 'crc-real-estate' ),
 					'singular_name' => _x( 'Category', 'taxonomy singular name', 'crc-real-estate' ),
 					'menu_name'     => __( 'Categories', 'crc-real-estate' ),
-					'all_items'     => __( 'All Categories', 'crc-real-estate' ),
-					'edit_item'     => __( 'Edit Category', 'crc-real-estate' ),
-					'view_item'     => __( 'View Category', 'crc-real-estate' ),
-					'search_items'  => __( 'Search Categories', 'crc-real-estate' ),
+					'all_items'     => __( 'All categories', 'crc-real-estate' ),
+					'search_items'  => __( 'Search categories', 'crc-real-estate' ),
 					'not_found'     => __( 'No categories found.', 'crc-real-estate' ),
-					'back_to_items' => __( '&larr; Go to Categories', 'crc-real-estate' ),
 				),
 				'hierarchical'       => true,
 				'public'             => true,
 				'show_ui'            => true,
+				'show_in_menu'       => false, // Listings → Categories is a simple page of its own.
 				'show_admin_column'  => true,
 				'show_in_quick_edit' => false,
 				'show_in_rest'       => true,
-				'meta_box_cb'        => array( $this, 'meta_box' ),
+				'meta_box_cb'        => false, // The Category box below replaces WordPress's checkboxes.
 				'rewrite'            => array(
 					/**
 					 * Filters the URL base of category pages, e.g. example.com/listings/lands/.
@@ -102,28 +109,29 @@ final class Taxonomy {
 	}
 
 	/**
-	 * Creates any of the categories that don't exist yet.
+	 * Creates any category that doesn't exist yet, and fills in empty descriptions.
 	 */
 	public static function create_terms() {
 		self::$creating = true;
 
-		foreach ( self::terms() as $slug => $name ) {
-			if ( ! term_exists( $slug, self::NAME ) ) {
-				wp_insert_term( $name, self::NAME, array( 'slug' => $slug ) );
+		foreach ( self::terms() as $slug => $term ) {
+			$existing = get_term_by( 'slug', $slug, self::NAME );
+
+			if ( ! $existing ) {
+				wp_insert_term(
+					$term['name'],
+					self::NAME,
+					array(
+						'slug'        => $slug,
+						'description' => $term['description'],
+					)
+				);
+			} elseif ( '' === $existing->description && '' !== $term['description'] ) {
+				wp_update_term( $existing->term_id, self::NAME, array( 'description' => $term['description'] ) );
 			}
 		}
 
 		self::$creating = false;
-	}
-
-	/**
-	 * Puts back a missing category when the Categories screen is opened.
-	 */
-	public function repair_terms() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only decides which screen is showing.
-		if ( isset( $_GET['taxonomy'] ) && self::NAME === $_GET['taxonomy'] ) {
-			self::create_terms();
-		}
 	}
 
 	/**
@@ -174,7 +182,14 @@ final class Taxonomy {
 	}
 
 	/**
-	 * The Category box on the listing screen: pick one.
+	 * Adds the Category box to the listing screen.
+	 */
+	public function add_meta_box() {
+		add_meta_box( self::NAME . 'div', __( 'Category', 'crc-real-estate' ), array( $this, 'meta_box' ), Post_Type::NAME, 'side', 'default' );
+	}
+
+	/**
+	 * The Category box: pick one.
 	 *
 	 * @param \WP_Post $post Listing being edited.
 	 */
@@ -191,16 +206,25 @@ final class Taxonomy {
 					<?php echo esc_html( $term->name ); ?>
 				</label>
 			<?php endforeach; ?>
-			<p class="description crc-category-note"><?php esc_html_e( 'Required. Choose one.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Required. Pick one.', 'crc-real-estate' ); ?></p>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Explains on the Categories screen why there is no "Add" form.
+	 * Names the list column "Category", since each listing has one.
+	 *
+	 * @param string[] $columns Columns.
+	 * @return string[]
 	 */
-	public function fixed_note() {
-		printf( '<p class="description">%s</p>', esc_html__( 'These categories are fixed by CRC Real Estate. Choose one on each listing.', 'crc-real-estate' ) );
+	public function column_title( $columns ) {
+		$key = 'taxonomy-' . self::NAME;
+
+		if ( isset( $columns[ $key ] ) ) {
+			$columns[ $key ] = __( 'Category', 'crc-real-estate' );
+		}
+
+		return $columns;
 	}
 
 	/**

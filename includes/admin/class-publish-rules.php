@@ -150,14 +150,14 @@ final class Publish_Rules {
 	 */
 	private static function message( $missing ) {
 		if ( array( 'image', 'category' ) === $missing ) {
-			return __( 'Add a featured image and choose a category to publish this listing.', 'crc-real-estate' );
+			return __( 'Add a main photo and pick a category to publish.', 'crc-real-estate' );
 		}
 
 		if ( array( 'category' ) === $missing ) {
-			return __( 'Choose a category to publish this listing.', 'crc-real-estate' );
+			return __( 'Pick a category to publish.', 'crc-real-estate' );
 		}
 
-		return __( 'Add a featured image to publish this listing.', 'crc-real-estate' );
+		return __( 'Add a main photo to publish.', 'crc-real-estate' );
 	}
 
 	/**
@@ -202,7 +202,7 @@ final class Publish_Rules {
 
 		printf(
 			'<div class="notice notice-error is-dismissible"><p>%1$s %2$s</p></div>',
-			esc_html__( 'The listing was saved as a draft.', 'crc-real-estate' ),
+			esc_html__( 'Saved as a draft.', 'crc-real-estate' ),
 			esc_html( self::message( $missing ) )
 		);
 	}
@@ -219,6 +219,6 @@ final class Publish_Rules {
 			return $html;
 		}
 
-		return $html . '<p class="description crc-featured-note">' . esc_html__( 'Required. This is the large photo at the top of the listing.', 'crc-real-estate' ) . '</p>';
+		return $html . '<p class="description crc-featured-note">' . esc_html__( 'Required. The big photo at the top.', 'crc-real-estate' ) . '</p>';
 	}
 }
