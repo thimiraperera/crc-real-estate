@@ -22,6 +22,10 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.5.1 =
+* Title section: [crc_listing_title] shows the listing's title as an H3.
+* Empty style places for the section containers: crc-listing-details, crc-listing-overview, crc-listing-location, crc-listing-inquiry, crc-listing-faq and crc-listing-price.
+
 = 0.5.0 =
 * Price card: [crc_listing_price_card] shows a Share button, what the listing is (Land for sale, Property for sale, Property for rent), the price ("/month" for rentals), the price per perch for land, and Call and WhatsApp buttons.
 * Price box on each listing, with a price per perch field for land.

@@ -11,6 +11,47 @@
 	margin-bottom: 0;
 }
 
+/* Title */
+.crc-title {
+	margin-bottom: 0px;
+	margin-top: 0px;
+}
+
+/*
+ * Section containers: add these classes to the Elementor containers
+ * (Advanced → CSS Classes), next to crc-card.
+ */
+
+/* Property details */
+.crc-listing-details {
+	/* Your styles for property details */
+}
+
+/* Property overview */
+.crc-listing-overview {
+	/* Your styles for property overview */
+}
+
+/* Property location */
+.crc-listing-location {
+	/* Your styles for property location */
+}
+
+/* Send an inquiry */
+.crc-listing-inquiry {
+	/* Your styles for send an inquiry */
+}
+
+/* Frequently asked questions */
+.crc-listing-faq {
+	/* Your styles for frequently asked questions */
+}
+
+/* Price box */
+.crc-listing-price {
+	/* Your styles for the price box */
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	/* Your styles for desktop */

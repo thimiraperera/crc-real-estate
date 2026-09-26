@@ -43,6 +43,7 @@ final class Plugin {
 		( new Post_Type() )->hooks();
 		( new Taxonomy() )->hooks();
 		( new Views() )->hooks();
+		( new Sections\Title() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Sections\Description() )->hooks();
 		( new Sections\Price_Card() )->hooks();
