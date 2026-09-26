@@ -470,13 +470,29 @@ final class Updater {
 	}
 
 	/**
-	 * Downloads a text file from the main branch. The time in the address
-	 * skips GitHub's few-minute cache, so a new push is seen at once.
+	 * Downloads a text file from the main branch.
+	 *
+	 * Asks GitHub's API first, which always has the latest push. The raw file
+	 * link is only the fallback (e.g. when the API's hourly limit is reached),
+	 * because GitHub can keep serving an older copy of it for a few minutes.
 	 *
 	 * @param string $path File path inside the repository.
 	 * @return string File contents, or an empty string on failure.
 	 */
 	private function fetch( $path ) {
+		$api      = sprintf( 'https://api.github.com/repos/%s/%s/contents/%s?ref=%s', self::OWNER, self::REPO, $path, self::BRANCH );
+		$response = wp_remote_get(
+			$api,
+			array(
+				'timeout' => 15,
+				'headers' => array( 'Accept' => 'application/vnd.github.raw' ),
+			)
+		);
+
+		if ( ! is_wp_error( $response ) && 200 === (int) wp_remote_retrieve_response_code( $response ) ) {
+			return (string) wp_remote_retrieve_body( $response );
+		}
+
 		$url      = sprintf( 'https://raw.githubusercontent.com/%s/%s/%s/%s', self::OWNER, self::REPO, self::BRANCH, $path );
 		$response = wp_remote_get( add_query_arg( 't', time(), $url ), array( 'timeout' => 15 ) );
 

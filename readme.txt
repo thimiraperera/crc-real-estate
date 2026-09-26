@@ -22,6 +22,9 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.4.6 =
+* "Check for updates" sees a new version the moment it is pushed: the version is read through GitHub's API, with the raw file link as a fallback.
+
 = 0.4.5 =
 * crc-card uses the site's white color variable directly, with no extra fallback. The plugin's styles load after Elementor's, so the card's padding and corners apply on Elementor containers.
 
