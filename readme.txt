@@ -22,7 +22,7 @@ Real estate listing tools for WordPress.
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
-Round country flags: circle-flags by HatScripts (MIT license), https://github.com/HatScripts/circle-flags. Maps: Leaflet and OpenStreetMap.
+Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-icons. Maps: Leaflet and OpenStreetMap.
 
 == Installation ==
 
@@ -30,6 +30,11 @@ Round country flags: circle-flags by HatScripts (MIT license), https://github.co
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.15.1 =
+* Inquiry form: fields never show an outline while typing, whatever the theme or browser draws; only the site's Elementor field style shows.
+* The phone box shows ordinary rectangular country flags (flag-icons) instead of round ones.
+* The country list is now the form's own. It always opens under the phone box, and the page scrolls a little when the list doesn't fit on the screen. Each country shows its flag, name and code. The search box finds countries by name or code, for example "sri" or "+94". It also works with the keyboard (arrows, Enter and Escape). The chosen country is sent as before, and without JavaScript the browser's own list still works.
 
 = 0.15.0 =
 * FAQs: [crc_listing_faq] shows questions in cards with a 1px var(--e-global-color-f5fd1b7) border and 16px corners. Questions are padded 12px 24px in var(--e-global-color-6e3d619), and answers are in var(--e-global-color-text), 24px under the question. Answers open and close smoothly with the given chevron arrows (16px wide), and the first one is open at the start. open="none" or open="all" change that.

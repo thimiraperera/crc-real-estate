@@ -17,7 +17,7 @@ Real estate listing tools for WordPress.
 
 ## Credits
 
-Round country flags: [circle-flags](https://github.com/HatScripts/circle-flags) by HatScripts (MIT license). Maps: [Leaflet](https://leafletjs.com/) and [OpenStreetMap](https://www.openstreetmap.org/copyright).
+Country flags: [flag-icons](https://github.com/lipis/flag-icons) by lipis (MIT license). Maps: [Leaflet](https://leafletjs.com/) and [OpenStreetMap](https://www.openstreetmap.org/copyright).
 
 ## Requirements
 

@@ -38,7 +38,7 @@ final class Inquiry {
 	const CAPTCHA_SCRIPT = 'https://js.hcaptcha.com/1/api.js';
 	const CAPTCHA_CHECK  = 'https://api.hcaptcha.com/siteverify';
 	const CAPTCHA_ISSUE  = 'crc_re_captcha_issue';
-	const FLAGS          = 'https://cdn.jsdelivr.net/gh/HatScripts/circle-flags@2.8.0/flags/';
+	const FLAGS          = 'https://cdn.jsdelivr.net/npm/flag-icons@7.5.0/flags/4x3/';
 
 	/**
 	 * Replies from hCaptcha that mean its keys in Settings aren't right.
@@ -154,6 +154,10 @@ final class Inquiry {
 			'network'        => __( 'Your inquiry couldn\'t be sent. Please check your internet connection and try again.', 'crc-real-estate' ),
 			/* translators: %s: names of the fields to check, e.g. "Phone Number, E-Mail". */
 			'fields'         => __( 'Your inquiry wasn\'t sent. Please check these and try again: %s.', 'crc-real-estate' ),
+			/* translators: 1: country name, 2: its calling code, e.g. 94. */
+			'country_button' => __( 'Country code: %1$s (+%2$s). Change the country', 'crc-real-estate' ),
+			'country_search' => __( 'Search for a country', 'crc-real-estate' ),
+			'country_none'   => __( 'No country found. Try another name or code.', 'crc-real-estate' ),
 			'sending'        => __( 'Sending…', 'crc-real-estate' ),
 			/* translators: %s: first name. */
 			'sent'           => __( 'Thank you, %s! Your inquiry has been sent. We\'ll get back to you soon.', 'crc-real-estate' ),
@@ -440,7 +444,7 @@ final class Inquiry {
 		}
 
 		return sprintf(
-			'<div class="crc-inquiry-phone"><div class="crc-inquiry-country"><img class="crc-inquiry-country-flag" src="%1$s" alt="" width="20" height="20" loading="lazy" decoding="async"><span class="crc-inquiry-country-code" aria-hidden="true">+%2$s</span>%3$s<select class="crc-inquiry-country-select" id="%4$s-country" name="crc_country" aria-label="%5$s">%6$s</select></div>%7$s</div>',
+			'<div class="crc-inquiry-phone"><div class="crc-inquiry-country"><img class="crc-inquiry-country-flag" src="%1$s" alt="" width="20" height="15" loading="lazy" decoding="async"><span class="crc-inquiry-country-code" aria-hidden="true">+%2$s</span>%3$s<select class="crc-inquiry-country-select" id="%4$s-country" name="crc_country" aria-label="%5$s">%6$s</select></div>%7$s</div>',
 			esc_url( self::flag( $country ) ),
 			esc_html( $countries[ $country ]['dial'] ),
 			Icons::svg( 'chevron-down', 'crc-inquiry-country-icon' ),
@@ -452,14 +456,14 @@ final class Inquiry {
 	}
 
 	/**
-	 * Where the round country flags load from: circle-flags (MIT license) on
+	 * Where the country flags load from: flag-icons (MIT license) on
 	 * jsDelivr, one small picture per country, named by its two-letter code.
 	 *
 	 * @return string Folder address ending in a slash.
 	 */
 	public static function flags_url() {
 		/**
-		 * Filters where the round country flags load from, e.g. to load them from the site itself.
+		 * Filters where the country flags load from, e.g. to load them from the site itself.
 		 *
 		 * @param string $url Folder with lk.svg, gb.svg and so on, ending in a slash.
 		 */
@@ -467,7 +471,7 @@ final class Inquiry {
 	}
 
 	/**
-	 * A country's round flag.
+	 * A country's flag.
 	 *
 	 * @param string $country Country code, e.g. "LK".
 	 * @return string

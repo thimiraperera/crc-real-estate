@@ -374,6 +374,7 @@
 		var select = form.querySelector( '.crc-inquiry-country-select' );
 		var flag = form.querySelector( '.crc-inquiry-country-flag' );
 		var code = form.querySelector( '.crc-inquiry-country-code' );
+		var button = form.querySelector( '.crc-inquiry-country-button' );
 		var number = controlOf( fieldOf( form, 'phone' ) );
 		var details = select ? country( select.value ) : null;
 		var examples = config.placeholders || {};
@@ -390,6 +391,10 @@
 
 		if ( code && details ) {
 			code.textContent = '+' + details.dial;
+		}
+
+		if ( button && details && messages.country_button ) {
+			button.setAttribute( 'aria-label', format( messages.country_button, details.name, details.dial ) );
 		}
 
 		if ( number && details && examples.phone ) {
@@ -764,6 +769,402 @@
 		send( form, token );
 	}
 
+	// Letters without accents, for searching: "cote" finds Côte d'Ivoire.
+	function plain( text ) {
+		var value = String( text || '' ).toLowerCase();
+
+		return value.normalize ? value.normalize( 'NFD' ).replace( /[̀-ͯ]/g, '' ) : value;
+	}
+
+	function still() {
+		return window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+	}
+
+	// The country list. A button over the flag and code opens a list of every
+	// country with its flag, always under the phone box, with a search. The
+	// select stays in the form, hidden, and still sends the choice.
+	function countryList( form ) {
+		var select = form.querySelector( '.crc-inquiry-country-select' );
+		var box = form.querySelector( '.crc-inquiry-country' );
+		var phone = form.querySelector( '.crc-inquiry-phone' );
+		var button;
+		var panel = null;
+		var search;
+		var list;
+		var empty;
+		var items = [];
+		var current = null;
+		var flags = null;
+
+		if ( ! select || ! box || ! phone || ! select.id ) {
+			return;
+		}
+
+		button = document.createElement( 'button' );
+		button.type = 'button';
+		button.className = 'crc-inquiry-country-button';
+		button.setAttribute( 'aria-haspopup', 'listbox' );
+		button.setAttribute( 'aria-expanded', 'false' );
+		button.setAttribute( 'aria-controls', select.id + '-list' );
+		box.appendChild( button );
+		select.hidden = true;
+
+		function showFlag( row ) {
+			var img = row.querySelector( 'img' );
+
+			if ( img && ! img.getAttribute( 'src' ) && img.getAttribute( 'data-src' ) ) {
+				img.setAttribute( 'src', img.getAttribute( 'data-src' ) );
+			}
+
+			if ( flags ) {
+				flags.unobserve( row );
+			}
+		}
+
+		function rowOf( target ) {
+			while ( target && target !== list ) {
+				if ( target.crcCode ) {
+					return target;
+				}
+
+				target = target.parentNode;
+			}
+
+			return null;
+		}
+
+		function rows() {
+			return Array.prototype.filter.call( list.children, function ( row ) {
+				return ! row.hidden;
+			} );
+		}
+
+		// The flags of the rows in view show at once; the rest load as they scroll in.
+		function flagsInView() {
+			var top = list.scrollTop - 120;
+			var bottom = list.scrollTop + list.clientHeight + 120;
+
+			rows().forEach( function ( row ) {
+				if ( row.offsetTop + row.offsetHeight >= top && row.offsetTop <= bottom ) {
+					showFlag( row );
+				}
+			} );
+		}
+
+		function highlight( row, scroll ) {
+			if ( current ) {
+				current.classList.remove( 'is-active' );
+			}
+
+			current = row || null;
+
+			if ( ! current ) {
+				search.removeAttribute( 'aria-activedescendant' );
+				return;
+			}
+
+			current.classList.add( 'is-active' );
+			search.setAttribute( 'aria-activedescendant', current.id );
+
+			if ( scroll && current.offsetTop < list.scrollTop ) {
+				list.scrollTop = current.offsetTop;
+			} else if ( scroll && current.offsetTop + current.offsetHeight > list.scrollTop + list.clientHeight ) {
+				list.scrollTop = current.offsetTop + current.offsetHeight - list.clientHeight;
+			}
+		}
+
+		// Countries whose name starts with what's typed come first; a number
+		// finds countries by their code, "+44" or "44". "quiet" leaves the
+		// flags for later, when the list is about to move anyway.
+		function filter( quiet ) {
+			var query = plain( search.value ).replace( /^\s+|\s+$/g, '' );
+			var digits = /^\+?\d+$/.test( query ) ? query.replace( '+', '' ) : '';
+			var first = [];
+			var later = [];
+
+			items.forEach( function ( row ) {
+				var hit = '' === query || ( digits ? 0 === row.crcDial.indexOf( digits ) : ( -1 !== row.crcName.indexOf( query ) || row.crcCode.toLowerCase() === query ) );
+
+				row.hidden = ! hit;
+
+				if ( hit ) {
+					( '' !== query && ! digits && 0 === row.crcName.indexOf( query ) ? first : later ).push( row );
+				}
+			} );
+
+			first.concat( later ).forEach( function ( row ) {
+				list.appendChild( row );
+			} );
+
+			empty.hidden = first.length + later.length > 0;
+			list.scrollTop = 0;
+			highlight( first.concat( later )[ 0 ], true );
+
+			if ( true !== quiet ) {
+				flagsInView();
+			}
+		}
+
+		function choose( row ) {
+			var number = controlOf( fieldOf( form, 'phone' ) );
+
+			if ( ! row ) {
+				return;
+			}
+
+			if ( select.value !== row.crcCode ) {
+				select.value = row.crcCode;
+				select.dispatchEvent( new window.Event( 'change' ) );
+			}
+
+			close( false );
+
+			// Next comes the number.
+			if ( number ) {
+				number.focus();
+			}
+		}
+
+		function keys( event ) {
+			var shown = rows();
+			var at = shown.indexOf( current );
+
+			if ( 'ArrowDown' === event.key || 'Down' === event.key ) {
+				event.preventDefault();
+				highlight( shown[ Math.min( at + 1, shown.length - 1 ) ], true );
+			} else if ( 'ArrowUp' === event.key || 'Up' === event.key ) {
+				event.preventDefault();
+				highlight( shown[ Math.max( at - 1, 0 ) ], true );
+			} else if ( 'Enter' === event.key ) {
+				// Enter chooses a country; it never sends the form.
+				event.preventDefault();
+				choose( current );
+			} else if ( 'Escape' === event.key || 'Esc' === event.key ) {
+				event.preventDefault();
+				close( true );
+			} else if ( 'Tab' === event.key ) {
+				close( false );
+			}
+		}
+
+		function build() {
+			var i;
+			var details;
+			var row;
+			var img;
+			var name;
+			var dial;
+
+			panel = document.createElement( 'div' );
+			panel.className = 'crc-inquiry-countries';
+			panel.hidden = true;
+
+			search = document.createElement( 'input' );
+			search.type = 'search';
+			search.className = 'crc-inquiry-countries-search';
+			search.placeholder = messages.country_search || '';
+			search.setAttribute( 'aria-label', messages.country_search || '' );
+			search.setAttribute( 'autocomplete', 'off' );
+			search.setAttribute( 'spellcheck', 'false' );
+			search.setAttribute( 'role', 'combobox' );
+			search.setAttribute( 'aria-autocomplete', 'list' );
+			search.setAttribute( 'aria-expanded', 'true' );
+			search.setAttribute( 'aria-controls', select.id + '-list' );
+
+			list = document.createElement( 'ul' );
+			list.className = 'crc-inquiry-countries-list';
+			list.id = select.id + '-list';
+			list.setAttribute( 'role', 'listbox' );
+			list.setAttribute( 'aria-label', select.getAttribute( 'aria-label' ) || '' );
+
+			empty = document.createElement( 'p' );
+			empty.className = 'crc-inquiry-countries-empty';
+			empty.textContent = messages.country_none || '';
+			empty.hidden = true;
+
+			for ( i = 0; i < select.options.length; i++ ) {
+				details = country( select.options[ i ].value );
+
+				if ( ! details ) {
+					continue;
+				}
+
+				row = document.createElement( 'li' );
+				row.className = 'crc-inquiry-countries-item';
+				row.id = list.id + '-' + details.code.toLowerCase();
+				row.setAttribute( 'role', 'option' );
+				row.setAttribute( 'aria-selected', 'false' );
+				row.crcCode = details.code;
+				row.crcName = plain( details.name );
+				row.crcDial = details.dial;
+
+				img = document.createElement( 'img' );
+				img.className = 'crc-inquiry-countries-flag';
+				img.alt = '';
+				img.width = 20;
+				img.height = 15;
+				img.decoding = 'async';
+				img.setAttribute( 'data-src', config.flags ? config.flags + details.code.toLowerCase() + '.svg' : '' );
+
+				name = document.createElement( 'span' );
+				name.className = 'crc-inquiry-countries-name';
+				name.textContent = details.name;
+
+				dial = document.createElement( 'span' );
+				dial.className = 'crc-inquiry-countries-dial';
+				dial.textContent = '+' + details.dial;
+
+				row.appendChild( img );
+				row.appendChild( name );
+				row.appendChild( dial );
+				list.appendChild( row );
+				items.push( row );
+			}
+
+			panel.appendChild( search );
+			panel.appendChild( list );
+			panel.appendChild( empty );
+			phone.appendChild( panel );
+
+			// Flags load as their rows come into view.
+			if ( window.IntersectionObserver ) {
+				flags = new window.IntersectionObserver( function ( entries ) {
+					entries.forEach( function ( entry ) {
+						if ( entry.isIntersecting ) {
+							showFlag( entry.target );
+						}
+					} );
+				}, { root: list, rootMargin: '120px 0px' } );
+
+				items.forEach( function ( item ) {
+					flags.observe( item );
+				} );
+			}
+
+			search.addEventListener( 'input', filter );
+			search.addEventListener( 'keydown', keys );
+
+			list.addEventListener( 'mousemove', function ( event ) {
+				var hovered = rowOf( event.target );
+
+				if ( hovered && hovered !== current ) {
+					highlight( hovered, false );
+				}
+			} );
+
+			// A click on a row keeps the search box focused until the choice is made.
+			list.addEventListener( 'mousedown', function ( event ) {
+				event.preventDefault();
+			} );
+
+			list.addEventListener( 'click', function ( event ) {
+				choose( rowOf( event.target ) );
+			} );
+		}
+
+		// The list opens under the phone box; the page scrolls a little if it
+		// doesn't fit on the screen.
+		function keepInView() {
+			var over = panel.getBoundingClientRect().bottom - ( window.innerHeight || document.documentElement.clientHeight ) + 12;
+
+			if ( over <= 0 ) {
+				return;
+			}
+
+			try {
+				window.scrollBy( { top: over, behavior: still() ? 'auto' : 'smooth' } );
+			} catch ( error ) {
+				window.scrollBy( 0, over );
+			}
+		}
+
+		function outside( event ) {
+			if ( panel && ! panel.contains( event.target ) && ! box.contains( event.target ) ) {
+				close( false );
+			}
+		}
+
+		function open() {
+			var chosen;
+
+			if ( ! panel ) {
+				build();
+			}
+
+			search.value = '';
+			panel.hidden = false;
+			button.setAttribute( 'aria-expanded', 'true' );
+			filter( true );
+
+			items.forEach( function ( row ) {
+				row.setAttribute( 'aria-selected', row.crcCode === select.value ? 'true' : 'false' );
+
+				if ( row.crcCode === select.value ) {
+					chosen = row;
+				}
+			} );
+
+			// The chosen country, in the middle of the list.
+			if ( chosen ) {
+				highlight( chosen, false );
+				list.scrollTop = Math.max( 0, chosen.offsetTop - ( list.clientHeight - chosen.offsetHeight ) / 2 );
+			}
+
+			if ( flags ) {
+				flagsInView();
+			} else {
+				items.forEach( showFlag );
+			}
+
+			keepInView();
+
+			// Typing to search suits a keyboard; on phones it would cover the list.
+			if ( window.matchMedia && window.matchMedia( '(pointer: fine)' ).matches ) {
+				try {
+					search.focus( { preventScroll: true } );
+				} catch ( error ) {
+					search.focus();
+				}
+			}
+
+			document.addEventListener( 'mousedown', outside, true );
+			document.addEventListener( 'touchstart', outside, true );
+		}
+
+		function close( focusButton ) {
+			if ( ! panel || panel.hidden ) {
+				return;
+			}
+
+			panel.hidden = true;
+			button.setAttribute( 'aria-expanded', 'false' );
+			document.removeEventListener( 'mousedown', outside, true );
+			document.removeEventListener( 'touchstart', outside, true );
+
+			if ( focusButton ) {
+				button.focus();
+			}
+		}
+
+		button.addEventListener( 'click', function () {
+			if ( panel && ! panel.hidden ) {
+				close( false );
+			} else {
+				open();
+			}
+		} );
+
+		button.addEventListener( 'keydown', function ( event ) {
+			if ( 'ArrowDown' === event.key || 'ArrowUp' === event.key || 'Down' === event.key || 'Up' === event.key ) {
+				event.preventDefault();
+				open();
+			} else if ( ( 'Escape' === event.key || 'Esc' === event.key ) && panel && ! panel.hidden ) {
+				event.preventDefault();
+				close( true );
+			}
+		} );
+	}
+
 	function setUp( form ) {
 		var select = form.querySelector( '.crc-inquiry-country-select' );
 		var flag = form.querySelector( '.crc-inquiry-country-flag' );
@@ -840,6 +1241,8 @@
 				}
 			} );
 		}
+
+		countryList( form );
 
 		// The browser may bring back an earlier choice.
 		showCode( form );
