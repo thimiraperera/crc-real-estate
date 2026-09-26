@@ -10,12 +10,13 @@ namespace CRC\RealEstate\Admin;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Overview;
 use CRC\RealEstate\Sections\Price_Card;
+use CRC\RealEstate\Taxonomy;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Lets editors fill in the four main details, the ready-made details for the
- * See More popup (Size and price, Access and road), and groups of their own.
+ * See More popup, which depend on the category, and groups of their own.
  */
 final class Overview_Box {
 
@@ -64,6 +65,8 @@ final class Overview_Box {
 				'confirmRemove' => __( 'Remove this group and all its details?', 'crc-real-estate' ),
 				'currency'      => Price_Card::currency(),
 				'notSet'        => __( 'Not set', 'crc-real-estate' ),
+				/* translators: %s: amount, e.g. "Rs. 70,000". */
+				'perMonth'      => __( '%s per month', 'crc-real-estate' ),
 			)
 		);
 	}
@@ -74,8 +77,9 @@ final class Overview_Box {
 	 * @param \WP_Post $post Listing being edited.
 	 */
 	public function render( $post ) {
-		$groups  = Overview::groups( $post->ID );
-		$suggest = $this->suggestions();
+		$groups   = Overview::groups( $post->ID );
+		$suggest  = $this->suggestions();
+		$category = $this->category( $post );
 
 		wp_nonce_field( 'crc_overview_save', self::NONCE );
 		?>
@@ -97,21 +101,28 @@ final class Overview_Box {
 			</div>
 
 			<h4 class="crc-overview-box-title"><?php esc_html_e( 'See More popup', 'crc-real-estate' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. Fill in what applies to this listing: a detail left empty doesn\'t show on the site, and neither does a group with nothing filled in. See More shows on the listing page once there is something for the popup.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'These show only in the See More popup, below the four boxes, each with a check mark. The ready-made groups change with the category chosen in the Category box. Fill in what applies to this listing: a detail left empty doesn\'t show on the site, and neither does a group with nothing filled in. See More shows on the listing page once there is something for the popup.', 'crc-real-estate' ); ?></p>
+			<p class="description crc-overview-box-no-category"<?php echo $category ? ' hidden' : ''; ?>><?php esc_html_e( 'Choose a category in the Category box to see the details for it.', 'crc-real-estate' ); ?></p>
 
 			<?php foreach ( Overview::common_groups() as $key => $group ) : ?>
-				<h4 class="crc-overview-box-subtitle"><?php echo esc_html( $group['title'] ); ?></h4>
-				<div class="crc-fields crc-overview-box-common">
-					<?php
-					foreach ( $group['items'] as $name => $item ) {
-						$this->common_field( $post, $name, $item );
-					}
-					?>
+				<?php
+				$terms  = $this->term_ids( $group['categories'] );
+				$active = ! $group['categories'] || in_array( $category, $terms, true );
+				?>
+				<div class="crc-overview-box-section" data-categories="<?php echo esc_attr( $group['categories'] ? implode( ' ', $terms ) : 'all' ); ?>"<?php echo $active ? '' : ' hidden'; ?>>
+					<h4 class="crc-overview-box-subtitle"><?php echo esc_html( $group['title'] ); ?></h4>
+					<div class="crc-fields crc-overview-box-common">
+						<?php
+						foreach ( $group['items'] as $name => $item ) {
+							$this->common_field( $post, $key, $name, $item, ! $active );
+						}
+						?>
+					</div>
 				</div>
 			<?php endforeach; ?>
 
 			<h4 class="crc-overview-box-subtitle"><?php esc_html_e( 'Your own groups', 'crc-real-estate' ); ?></h4>
-			<p class="description"><?php esc_html_e( 'For anything else, add a group with a title and its details, for example "Utilities" with Water supply and Electricity. They show after the groups above. Drag the groups and details to change their order.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'For anything else, add a group with a title and its details, for example "Nearby places" with Nearest town and Nearest school. They show after the groups above. Drag the groups and details to change their order.', 'crc-real-estate' ); ?></p>
 
 			<div class="crc-overview-box-groups">
 				<?php
@@ -133,15 +144,49 @@ final class Overview_Box {
 	}
 
 	/**
+	 * The listing's category, as a term ID.
+	 *
+	 * @param \WP_Post $post Listing being edited.
+	 * @return int 0 when none is chosen.
+	 */
+	private function category( $post ) {
+		$terms = wp_get_object_terms( $post->ID, Taxonomy::NAME, array( 'fields' => 'ids' ) );
+
+		return ( ! is_wp_error( $terms ) && $terms ) ? (int) $terms[0] : 0;
+	}
+
+	/**
+	 * Term IDs for category slugs.
+	 *
+	 * @param string[] $slugs Category slugs.
+	 * @return int[]
+	 */
+	private function term_ids( array $slugs ) {
+		$ids = array();
+
+		foreach ( $slugs as $slug ) {
+			$term = get_term_by( 'slug', $slug, Taxonomy::NAME );
+
+			if ( $term && ! is_wp_error( $term ) ) {
+				$ids[] = (int) $term->term_id;
+			}
+		}
+
+		return $ids;
+	}
+
+	/**
 	 * Prints a ready-made detail's field. A linked detail shows its value,
 	 * which is changed where it comes from.
 	 *
-	 * @param \WP_Post $post Listing being edited.
-	 * @param string   $name Detail name.
-	 * @param array    $item Detail from Overview::common_groups().
+	 * @param \WP_Post $post     Listing being edited.
+	 * @param string   $group    Group name, which keeps field ids unique.
+	 * @param string   $name     Detail name.
+	 * @param array    $item     Detail from Overview::common_groups().
+	 * @param bool     $disabled Whether the group is for another category.
 	 */
-	private function common_field( $post, $name, array $item ) {
-		$id = 'crc-detail-' . str_replace( '_', '-', $name );
+	private function common_field( $post, $group, $name, array $item, $disabled ) {
+		$id = 'crc-detail-' . str_replace( '_', '-', $group . '-' . $name );
 		?>
 		<div class="crc-field-group">
 			<?php if ( 'linked' === $item['type'] ) : ?>
@@ -156,7 +201,7 @@ final class Overview_Box {
 			<?php else : ?>
 				<p class="crc-field">
 					<label for="<?php echo esc_attr( $id ); ?>"><?php echo esc_html( $item['label'] ); ?></label>
-					<?php $this->control( $post, $id, $name, $item ); ?>
+					<?php $this->control( $post, $id, $name, $item, $disabled ); ?>
 				</p>
 			<?php endif; ?>
 		</div>
@@ -164,20 +209,23 @@ final class Overview_Box {
 	}
 
 	/**
-	 * Prints the input for a ready-made detail: a number with its unit, a
-	 * list to choose from, or a text box.
+	 * Prints the input for a ready-made detail: a number with its unit, an
+	 * amount, a list to choose from, or a text box. Fields of groups for
+	 * another category are switched off, so they aren't saved.
 	 *
-	 * @param \WP_Post $post Listing being edited.
-	 * @param string   $id   Field id.
-	 * @param string   $name Detail name.
-	 * @param array    $item Detail from Overview::common_groups().
+	 * @param \WP_Post $post     Listing being edited.
+	 * @param string   $id       Field id.
+	 * @param string   $name     Detail name.
+	 * @param array    $item     Detail from Overview::common_groups().
+	 * @param bool     $disabled Whether the field is switched off.
 	 */
-	private function control( $post, $id, $name, array $item ) {
+	private function control( $post, $id, $name, array $item, $disabled ) {
 		$field = self::DETAILS . '[' . $name . ']';
 		$value = (string) get_post_meta( $post->ID, $item['meta'], true );
+		$off   = $disabled ? ' disabled' : '';
 
 		if ( 'select' === $item['type'] ) {
-			printf( '<select id="%1$s" name="%2$s" class="crc-select">', esc_attr( $id ), esc_attr( $field ) );
+			printf( '<select id="%1$s" name="%2$s" class="crc-select"%3$s>', esc_attr( $id ), esc_attr( $field ), $off ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute.
 			printf( '<option value="">%s</option>', esc_html__( '— Select —', 'crc-real-estate' ) );
 
 			foreach ( $item['options'] as $key => $label ) {
@@ -188,8 +236,24 @@ final class Overview_Box {
 			return;
 		}
 
+		if ( 'money' === $item['type'] ) {
+			$amount = Price_Card::sanitize_amount( $value );
+			$after  = trim( sprintf( $item['format'], '' ) );
+
+			echo '<span class="crc-measure">';
+			printf( '<span class="crc-money-currency">%s</span>', esc_html( Price_Card::currency() ) );
+			printf( '<input type="text" inputmode="numeric" id="%1$s" name="%2$s" value="%3$s" autocomplete="off"%4$s>', esc_attr( $id ), esc_attr( $field ), esc_attr( '' !== $amount ? number_format_i18n( (float) $amount ) : '' ), $off ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute.
+
+			if ( '' !== $after ) {
+				printf( '<span class="crc-measure-unit">%s</span>', esc_html( $after ) );
+			}
+
+			echo '</span>';
+			return;
+		}
+
 		if ( 'number' !== $item['type'] ) {
-			printf( '<input type="text" id="%1$s" name="%2$s" value="%3$s" class="regular-text" autocomplete="off">', esc_attr( $id ), esc_attr( $field ), esc_attr( $value ) );
+			printf( '<input type="text" id="%1$s" name="%2$s" value="%3$s" class="regular-text" autocomplete="off"%4$s>', esc_attr( $id ), esc_attr( $field ), esc_attr( $value ), $off ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute.
 			return;
 		}
 
@@ -197,18 +261,19 @@ final class Overview_Box {
 
 		echo '<span class="crc-measure">';
 		printf(
-			'<input type="text" inputmode="%1$s" id="%2$s" name="%3$s" value="%4$s" autocomplete="off">',
+			'<input type="text" inputmode="%1$s" id="%2$s" name="%3$s" value="%4$s" autocomplete="off"%5$s>',
 			$item['decimals'] ? 'decimal' : 'numeric',
 			esc_attr( $id ),
 			esc_attr( $field ),
-			esc_attr( '' !== $number ? Overview::format_number( $number, null ) : '' )
+			esc_attr( '' !== $number ? Overview::format_number( $number, null ) : '' ),
+			$off // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute.
 		);
 
 		if ( $item['units'] ) {
 			$unit = (string) get_post_meta( $post->ID, $item['meta'] . '_unit', true );
 
 			/* translators: %s: detail name, e.g. "Land extent". */
-			printf( '<select name="%1$s" aria-label="%2$s">', esc_attr( self::DETAILS . '[' . $name . '_unit]' ), esc_attr( sprintf( __( '%s unit', 'crc-real-estate' ), $item['label'] ) ) );
+			printf( '<select name="%1$s" aria-label="%2$s"%3$s>', esc_attr( self::DETAILS . '[' . $name . '_unit]' ), esc_attr( sprintf( __( '%s unit', 'crc-real-estate' ), $item['label'] ) ), $off ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Fixed attribute.
 
 			foreach ( $item['units'] as $key => $noop ) {
 				printf( '<option value="%1$s"%2$s>%3$s</option>', esc_attr( $key ), selected( $unit, (string) $key, false ), esc_html( Overview::unit_name( $noop ) ) );
@@ -386,32 +451,31 @@ final class Overview_Box {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each value is cleaned by Overview::sanitize_detail() and sanitize_unit().
 		$details = isset( $_POST[ self::DETAILS ] ) && is_array( $_POST[ self::DETAILS ] ) ? wp_unslash( $_POST[ self::DETAILS ] ) : array();
 
-		foreach ( Overview::common_groups() as $group ) {
-			foreach ( $group['items'] as $name => $item ) {
-				if ( 'linked' === $item['type'] ) {
-					continue;
-				}
+		foreach ( Overview::common_items() as $name => $item ) {
+			// Only details that were on the screen: groups for another category send nothing.
+			if ( 'linked' === $item['type'] || ! array_key_exists( $name, $details ) ) {
+				continue;
+			}
 
-				$value = Overview::sanitize_detail( $item, isset( $details[ $name ] ) ? $details[ $name ] : '' );
+			$value = Overview::sanitize_detail( $item, $details[ $name ] );
 
-				if ( '' !== $value ) {
-					update_post_meta( $post_id, $item['meta'], wp_slash( $value ) );
-				} else {
-					delete_post_meta( $post_id, $item['meta'] );
-				}
+			if ( '' !== $value ) {
+				update_post_meta( $post_id, $item['meta'], wp_slash( $value ) );
+			} else {
+				delete_post_meta( $post_id, $item['meta'] );
+			}
 
-				if ( ! $item['units'] ) {
-					continue;
-				}
+			if ( ! $item['units'] ) {
+				continue;
+			}
 
-				// The unit is kept only with a number.
-				$unit = '' !== $value ? Overview::sanitize_unit( $item, isset( $details[ $name . '_unit' ] ) ? $details[ $name . '_unit' ] : '' ) : '';
+			// The unit is kept only with a number.
+			$unit = '' !== $value ? Overview::sanitize_unit( $item, isset( $details[ $name . '_unit' ] ) ? $details[ $name . '_unit' ] : '' ) : '';
 
-				if ( '' !== $unit ) {
-					update_post_meta( $post_id, $item['meta'] . '_unit', $unit );
-				} else {
-					delete_post_meta( $post_id, $item['meta'] . '_unit' );
-				}
+			if ( '' !== $unit ) {
+				update_post_meta( $post_id, $item['meta'] . '_unit', $unit );
+			} else {
+				delete_post_meta( $post_id, $item['meta'] . '_unit' );
 			}
 		}
 

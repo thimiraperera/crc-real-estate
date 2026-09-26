@@ -22,6 +22,13 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.9.0 =
+* The See More popup's ready-made groups follow the listing's category: lands have Size and price; properties for sale have Size and layout and Price and terms; properties for rent have Size and layout and Rent and terms. Access and road and Utilities are there for every category.
+* New details: Bedrooms, Bathrooms, Ensuite bathrooms, Floor area (sq ft or sq m), Storeys, Parking, Furnishing, Maintenance fee, Bank loan, Advance payment, Minimum lease, Utility bills, Electricity and Water supply.
+* Price and Rent come from the Price box. For properties for sale, the price per perch is worked out from the price and the land extent.
+* On the listing screen, the groups change as soon as another category is chosen. Land extent, Price type and Maintenance fee are shared by the groups that have them, so they keep one value.
+* See More is font-weight 500.
+
 = 0.8.0 =
 * See More popup: two ready-made groups, Size and price and Access and road, filled in on the listing screen. Each detail has the right kind of field: a number with its unit (perches, Acres, Hectares, ft, m or km) or a list to choose from (price basis, price type, road type, access and facing direction). Price per perch comes from the Price box, so it is typed once.
 * Details and groups left empty don't show on the site.

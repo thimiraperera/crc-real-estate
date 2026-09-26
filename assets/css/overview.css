@@ -61,7 +61,7 @@
 	box-shadow: none;
 	color: var(--e-global-color-6e3d619);
 	font: inherit;
-	font-weight: normal;
+	font-weight: 500;
 	letter-spacing: normal;
 	text-decoration: none;
 	text-shadow: none;
@@ -83,7 +83,7 @@
 	background: transparent;
 	box-shadow: none;
 	color: var(--e-global-color-6e3d619);
-	font-weight: normal;
+	font-weight: 500;
 	letter-spacing: normal;
 	text-decoration: none;
 	text-shadow: none;

@@ -178,6 +178,13 @@
 	margin-top: 4px;
 }
 
+.crc-overview-box-no-category {
+	margin: 16px 0 0;
+	padding: 8px 12px;
+	border-left: 4px solid #72aee6;
+	background: #f0f6fc;
+}
+
 /* Number with its unit, e.g. 20 Acres */
 .crc-measure {
 	display: flex;
