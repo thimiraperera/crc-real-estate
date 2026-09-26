@@ -22,6 +22,9 @@ New versions are delivered from GitHub and install from the normal WordPress Upd
 
 == Changelog ==
 
+= 0.4.4 =
+* crc-card padding: 32px 32px 40px 32px, and 24px 24px 32px 24px on mobile. Works the same on Elementor containers.
+
 = 0.4.3 =
 * Info page shows only shortcodes.
 
