@@ -52,6 +52,11 @@
 	/* Your styles for frequently asked questions */
 }
 
+/* Hidden when the listing has no questions. */
+.crc-no-faq .crc-listing-faq {
+	display: none !important;
+}
+
 /* Price box */
 .crc-listing-price {
 	/* Your styles for the price box */

@@ -53,12 +53,14 @@ final class Plugin {
 		( new Sections\Features() )->hooks();
 		( new Sections\Location() )->hooks();
 		( new Sections\Inquiry() )->hooks();
+		( new Sections\Faq() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();
 		( new Admin\Overview_Box() )->hooks();
 		( new Admin\Features_Box() )->hooks();
 		( new Admin\Location_Box() )->hooks();
+		( new Admin\Faq_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Inquiries_Screen() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();

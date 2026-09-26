@@ -69,13 +69,14 @@
 	resize: vertical;
 }
 
-/* A field that isn't right yet gets a red ring. Written like Elementor's own field styles, so it shows over them. */
-.crc-inquiry .crc-inquiry-field.is-invalid .crc-inquiry-input:not([type="button"]):not([type="submit"]) {
-	box-shadow: inset 0 0 0 1px var(--crc-inquiry-error);
+/* No outline from the browser around a field while typing: only the site's own
+   Elementor field style shows. As the weakest rule, any outline the site sets wins. */
+:where(.crc-inquiry .crc-inquiry-input:focus) {
+	outline: none;
 }
 
-/* Phone number: the country code sits at the start of the box, before a thin line. The script
-   gives it the text style of the site's fields and makes room for it; these are the starting values. */
+/* Phone number: the round flag and the country code sit at the start of the box, before a thin line.
+   The script gives them the text style of the site's fields and makes room for them; these are the starting values. */
 .crc-inquiry .crc-inquiry-phone {
 	position: relative;
 }
@@ -106,6 +107,14 @@
 	opacity: 0.25;
 }
 
+.crc-inquiry .crc-inquiry-country-flag {
+	display: block;
+	flex: none;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+}
+
 .crc-inquiry .crc-inquiry-country-code {
 	white-space: nowrap;
 }
@@ -118,7 +127,7 @@
 .crc-inquiry .crc-inquiry-country-icon {
 	flex: none;
 	width: 12px;
-	height: 12px;
+	height: auto;
 	fill: currentColor;
 }
 
@@ -143,9 +152,9 @@
 	appearance: none;
 }
 
-/* Room for the country code before the number. */
+/* Room for the flag and the country code before the number. */
 .crc-inquiry .crc-inquiry-phone .crc-inquiry-number:not([type="button"]):not([type="submit"]) {
-	padding-left: 108px;
+	padding-left: 136px;
 }
 
 /* Messages under a field */

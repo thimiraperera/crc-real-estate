@@ -18,8 +18,11 @@ Real estate listing tools for WordPress.
 * Property features to tick, grouped by category, with a See More popup
 * Location map with the area around the property, while the exact place stays in the admin
 * Inquiry form that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
+* FAQs that open smoothly, set for each category and each listing, with FAQ structured data for search engines
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
+
+Round country flags: circle-flags by HatScripts (MIT license), https://github.com/HatScripts/circle-flags. Maps: Leaflet and OpenStreetMap.
 
 == Installation ==
 
@@ -27,6 +30,13 @@ Real estate listing tools for WordPress.
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.15.0 =
+* FAQs: [crc_listing_faq] shows questions in cards with a 1px var(--e-global-color-f5fd1b7) border and 16px corners. Questions are padded 12px 24px in var(--e-global-color-6e3d619), and answers are in var(--e-global-color-text), 24px under the question. Answers open and close smoothly with the given chevron arrows (16px wide), and the first one is open at the start. open="none" or open="all" change that.
+* Each listing category has its own questions, set on its Edit Listing Category screen and shown on every listing in it. Each listing can add its own in the new FAQs box, or leave the category's out. An answer can have an optional link under it, for example "Enquire about this land" going to the inquiry form (#crc-inquiry-1). The Listing Categories list shows how many questions each one has.
+* The questions are given to search engines as FAQ structured data (schema.org FAQPage), once per page. schema="no" leaves this to an SEO plugin.
+* A listing with no questions shows nothing, and the container with the class crc-listing-faq is hidden.
+* Inquiry form: the phone box shows the chosen country's round flag (circle-flags), which follows the country list. Fields no longer get the browser's black outline while typing, or a red ring when something isn't right: only the site's Elementor field style shows, and the message under the field still says what to fix. The phone box uses the given chevron.
 
 = 0.14.1 =
 * Inquiry form: the fields and labels take the site's own Elementor styles (Site Settings → Form Fields and Typography); the form only lays them out. Fields use the page's font unless those styles give one. The country code in the phone box takes the fields' text style and starts where the text starts in the other fields.

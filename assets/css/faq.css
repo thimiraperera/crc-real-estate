@@ -1,0 +1,132 @@
+/* FAQs: questions in bordered cards that open smoothly to show their answers. */
+.crc-faq {
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
+}
+
+.crc-faq .crc-faq-item {
+	margin: 0;
+	padding: 0;
+	border: 1px solid var(--e-global-color-f5fd1b7);
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+/* Question: the whole row opens and closes the answer. */
+.crc-faq .crc-faq-question {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin: 0;
+	padding: 12px 24px;
+	color: var(--e-global-color-6e3d619);
+	font-weight: 500;
+	line-height: 24px;
+	list-style: none;
+	cursor: pointer;
+}
+
+.crc-faq .crc-faq-question::-webkit-details-marker {
+	display: none;
+}
+
+.crc-faq .crc-faq-question::marker {
+	content: "";
+}
+
+.crc-faq .crc-faq-question:focus {
+	outline: none;
+}
+
+/* A ring for keyboard users only. */
+.crc-faq .crc-faq-question:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: -2px;
+	border-radius: 15px;
+}
+
+.crc-faq .crc-faq-question-text {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+/* Arrows: down when closed, up when open. */
+.crc-faq .crc-faq-icon {
+	display: block;
+	flex: none;
+	width: 16px;
+	height: auto;
+	fill: currentColor;
+}
+
+.crc-faq .crc-faq-icon-open,
+.crc-faq .crc-faq-item[open] .crc-faq-icon-closed {
+	display: none;
+}
+
+.crc-faq .crc-faq-item[open] .crc-faq-icon-open {
+	display: block;
+}
+
+/* While an answer closes, the arrow already points down. */
+.crc-faq .crc-faq-item[open].is-closing .crc-faq-icon-open {
+	display: none;
+}
+
+.crc-faq .crc-faq-item[open].is-closing .crc-faq-icon-closed {
+	display: block;
+}
+
+/* Answer: 24px under the question (the question's 12px padding and 12px here). */
+.crc-faq .crc-faq-answer {
+	overflow: hidden;
+}
+
+.crc-faq .crc-faq-answer-inner {
+	padding: 12px 24px 24px;
+	color: var(--e-global-color-text);
+}
+
+.crc-faq .crc-faq-answer-inner > * {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.crc-faq .crc-faq-answer-inner > * + * {
+	margin-top: 8px;
+}
+
+/* A link under an answer, such as "Enquire about this land" */
+.crc-faq .crc-faq-link {
+	color: var(--e-global-color-text);
+	text-decoration: none;
+}
+
+.crc-faq .crc-faq-link:hover,
+.crc-faq .crc-faq-link:focus {
+	color: var(--e-global-color-6e3d619);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+}
+
+/* Desktop: 1367px and up */
+@media (min-width: 1367px) {
+	/* Your styles for desktop */
+}
+
+/* Laptop: 1366px to 1025px */
+@media (max-width: 1366px) and (min-width: 1025px) {
+	/* Your styles for laptops */
+}
+
+/* Tablet: 1024px to 768px */
+@media (max-width: 1024px) and (min-width: 768px) {
+	/* Your styles for tablets */
+}
+
+/* Mobile: 767px and below */
+@media (max-width: 767px) {
+	/* Your styles for mobile */
+}

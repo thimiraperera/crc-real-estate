@@ -369,14 +369,24 @@
 		number.style.paddingLeft = Math.ceil( country.getBoundingClientRect().width + NUMBER_GAP - ( parseFloat( window.getComputedStyle( number ).borderLeftWidth ) || 0 ) ) + 'px';
 	}
 
-	// Shows the chosen country's code, and its example number in the empty box.
+	// Shows the chosen country's flag and code, and its example number in the empty box.
 	function showCode( form ) {
 		var select = form.querySelector( '.crc-inquiry-country-select' );
+		var flag = form.querySelector( '.crc-inquiry-country-flag' );
 		var code = form.querySelector( '.crc-inquiry-country-code' );
 		var number = controlOf( fieldOf( form, 'phone' ) );
 		var details = select ? country( select.value ) : null;
 		var examples = config.placeholders || {};
 		var example;
+		var src;
+
+		if ( flag && details && config.flags ) {
+			src = config.flags + details.code.toLowerCase() + '.svg';
+
+			if ( flag.getAttribute( 'src' ) !== src ) {
+				flag.setAttribute( 'src', src );
+			}
+		}
 
 		if ( code && details ) {
 			code.textContent = '+' + details.dial;
@@ -756,6 +766,7 @@
 
 	function setUp( form ) {
 		var select = form.querySelector( '.crc-inquiry-country-select' );
+		var flag = form.querySelector( '.crc-inquiry-country-flag' );
 
 		if ( form.crcInquiry ) {
 			return;
@@ -799,6 +810,24 @@
 				}
 			} );
 		} );
+
+		// A flag that can't load is left out, and the code moves over.
+		if ( flag ) {
+			flag.addEventListener( 'error', function () {
+				flag.hidden = true;
+				fitCountry( form );
+			} );
+			flag.addEventListener( 'load', function () {
+				if ( flag.hidden ) {
+					flag.hidden = false;
+					fitCountry( form );
+				}
+			} );
+
+			if ( flag.complete && ! flag.naturalWidth && flag.getAttribute( 'src' ) ) {
+				flag.hidden = true;
+			}
+		}
 
 		if ( select ) {
 			select.addEventListener( 'change', function () {

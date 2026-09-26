@@ -38,6 +38,7 @@ final class Inquiry {
 	const CAPTCHA_SCRIPT = 'https://js.hcaptcha.com/1/api.js';
 	const CAPTCHA_CHECK  = 'https://api.hcaptcha.com/siteverify';
 	const CAPTCHA_ISSUE  = 'crc_re_captcha_issue';
+	const FLAGS          = 'https://cdn.jsdelivr.net/gh/HatScripts/circle-flags@2.8.0/flags/';
 
 	/**
 	 * Replies from hCaptcha that mean its keys in Settings aren't right.
@@ -439,7 +440,8 @@ final class Inquiry {
 		}
 
 		return sprintf(
-			'<div class="crc-inquiry-phone"><div class="crc-inquiry-country"><span class="crc-inquiry-country-code" aria-hidden="true">+%1$s</span>%2$s<select class="crc-inquiry-country-select" id="%3$s-country" name="crc_country" aria-label="%4$s">%5$s</select></div>%6$s</div>',
+			'<div class="crc-inquiry-phone"><div class="crc-inquiry-country"><img class="crc-inquiry-country-flag" src="%1$s" alt="" width="20" height="20" loading="lazy" decoding="async"><span class="crc-inquiry-country-code" aria-hidden="true">+%2$s</span>%3$s<select class="crc-inquiry-country-select" id="%4$s-country" name="crc_country" aria-label="%5$s">%6$s</select></div>%7$s</div>',
+			esc_url( self::flag( $country ) ),
 			esc_html( $countries[ $country ]['dial'] ),
 			Icons::svg( 'chevron-down', 'crc-inquiry-country-icon' ),
 			esc_attr( $id ),
@@ -447,6 +449,31 @@ final class Inquiry {
 			$options,
 			self::input( $id, 'phone', 'tel', self::phone_placeholder( $country ), ' autocomplete="tel" inputmode="tel" maxlength="24" required' )
 		);
+	}
+
+	/**
+	 * Where the round country flags load from: circle-flags (MIT license) on
+	 * jsDelivr, one small picture per country, named by its two-letter code.
+	 *
+	 * @return string Folder address ending in a slash.
+	 */
+	public static function flags_url() {
+		/**
+		 * Filters where the round country flags load from, e.g. to load them from the site itself.
+		 *
+		 * @param string $url Folder with lk.svg, gb.svg and so on, ending in a slash.
+		 */
+		return (string) apply_filters( 'crc_re_flags_url', self::FLAGS );
+	}
+
+	/**
+	 * A country's round flag.
+	 *
+	 * @param string $country Country code, e.g. "LK".
+	 * @return string
+	 */
+	public static function flag( $country ) {
+		return self::flags_url() . strtolower( preg_replace( '/[^A-Za-z]/', '', (string) $country ) ) . '.svg';
 	}
 
 	/**
@@ -520,6 +547,7 @@ final class Inquiry {
 				'main'         => Phone::MAIN,
 				'examples'     => self::examples(),
 				'placeholders' => self::placeholders(),
+				'flags'        => self::flags_url(),
 				'domains'      => self::email_domains(),
 				'labels'       => self::labels(),
 				'messages'     => self::messages(),

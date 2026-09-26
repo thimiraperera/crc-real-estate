@@ -11,8 +11,13 @@ Real estate listing tools for WordPress.
 - **Property features** to tick, grouped by category, with a See More popup
 - **Location** map with the area around the property, while the exact place stays in the admin
 - **Inquiry form** that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
+- **FAQs** that open smoothly, set for each category and each listing, with FAQ structured data for search engines
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
+
+## Credits
+
+Round country flags: [circle-flags](https://github.com/HatScripts/circle-flags) by HatScripts (MIT license). Maps: [Leaflet](https://leafletjs.com/) and [OpenStreetMap](https://www.openstreetmap.org/copyright).
 
 ## Requirements
 
