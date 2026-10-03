@@ -23,6 +23,7 @@ Real estate listing tools for WordPress.
 * Download listing: a zip file with a page of all the listing's details, its photos in full size and the inquiries about it
 * Owner details kept privately with each listing, never shown on the website
 * Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
+* Keyword ticker: a full-width row of keywords that moves on its own, stops under the mouse, and can be dragged and thrown; keywords import and export as JSON
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -34,6 +35,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.17.0 =
+* Keyword ticker: [crc_ticker] shows a row of keywords, such as Houses · Villas · Apartments, over the full width of the window. Each keyword is an H3 with no top or bottom margin, in var(--e-global-color-6e3d619), at the site's own H3 size, with a middle dot between them, centred with the words.
+* It moves on its own and loops without a seam. It slows down gently and stops while the mouse is over it, or while it has keyboard focus. It can be dragged; let go while moving and it glides on, slowing down, before it carries on at its own speed. People who ask their device for less motion get a row that only moves when they drag it.
+* Listings → Settings → Keyword ticker: the keywords (one a line), the speed in pixels a second, and the direction. Import from a JSON file and Export as a JSON file, with a sample file of 40 keywords. A page can have its own speed, direction and width with speed="…", direction="…" and width="container".
 
 = 0.16.0 =
 * FAQs: only one question is open at a time. The first one is open when the page loads, and opening another question closes the one that was open. Questions are padded 16px at the top and bottom (16px 24px).

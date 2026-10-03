@@ -57,6 +57,7 @@ final class Plugin {
 		( new Sections\Location() )->hooks();
 		( new Sections\Inquiry() )->hooks();
 		( new Sections\Faq() )->hooks();
+		( new Ticker() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();

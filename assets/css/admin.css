@@ -521,6 +521,19 @@
 	gap: 8px 12px;
 }
 
+/* Settings page: Keyword ticker */
+.crc-ticker-tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin: 8px 0 0;
+}
+
+.crc-ticker-note:empty {
+	display: none;
+}
+
 /* Something to put right */
 .crc-warning {
 	color: #b32d2e;

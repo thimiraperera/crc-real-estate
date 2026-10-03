@@ -62,6 +62,69 @@
 	/* Your styles for the price box */
 }
 
+/* Keyword ticker: [crc_ticker] */
+.crc-ticker {
+	--crc-ticker-gap: 0.75em;
+	position: relative;
+	width: 100%;
+	overflow: hidden;
+	cursor: grab;
+	touch-action: pan-y;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-touch-callout: none;
+	outline: none;
+}
+
+/* The whole width of the window, even inside a narrower container. The
+   script sets --crc-ticker-vw to the window's width without its scroll bar. */
+.crc-ticker.crc-ticker-full {
+	width: var(--crc-ticker-vw, 100vw);
+	max-width: none;
+	margin-left: calc(50% - var(--crc-ticker-vw, 100vw) / 2);
+	margin-right: calc(50% - var(--crc-ticker-vw, 100vw) / 2);
+}
+
+.crc-ticker.is-dragging {
+	cursor: grabbing;
+}
+
+.crc-ticker:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 2px;
+}
+
+.crc-ticker-track {
+	display: flex;
+	align-items: center;
+	width: max-content;
+	will-change: transform;
+}
+
+.crc-ticker-group {
+	display: flex;
+	flex: none;
+	align-items: center;
+}
+
+.crc-ticker .crc-ticker-item {
+	display: flex;
+	flex: none;
+	align-items: center;
+	gap: var(--crc-ticker-gap);
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding-right: var(--crc-ticker-gap);
+	color: var(--e-global-color-6e3d619);
+	white-space: nowrap;
+}
+
+.crc-ticker .crc-ticker-dot,
+.crc-ticker .crc-ticker-text {
+	display: block;
+	color: inherit;
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	/* Your styles for desktop */

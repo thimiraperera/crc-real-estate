@@ -16,6 +16,7 @@ Real estate listing tools for WordPress.
 - **Download listing** as a zip file with a page of all its details, its photos in full size and the inquiries about it
 - **Owner details** kept privately with each listing, never shown on the website
 - **Photo privacy**: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
+- **Keyword ticker**: a full-width row of keywords that moves on its own, stops under the mouse, and can be dragged and thrown; keywords import and export as JSON
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

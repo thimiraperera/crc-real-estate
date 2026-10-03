@@ -11,14 +11,16 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * The default contact numbers and button texts from Listings → Settings, and
- * each listing's own ones when it has them; the map settings; and the
- * inquiry form settings.
+ * each listing's own ones when it has them; the map settings; the inquiry
+ * form settings; and the keyword ticker's words and speed.
  */
 final class Settings {
 
 	const OPTION            = 'crc_re_contact';
 	const MAP_OPTION        = 'crc_re_map';
 	const INQUIRY_OPTION    = 'crc_re_inquiry';
+	const TICKER_OPTION     = 'crc_re_ticker';
+	const TICKER_MAX        = 200;
 	const DEFAULT_NUMBER    = '+94777643264';
 	const PHONE_META        = '_crc_phone';
 	const WHATSAPP_META     = '_crc_whatsapp';
@@ -275,6 +277,86 @@ final class Settings {
 			'captcha'    => ! empty( $input['captcha'] ),
 			'site_key'   => self::sanitize_captcha_key( isset( $input['site_key'] ) ? $input['site_key'] : '' ),
 			'secret_key' => $secret,
+		);
+	}
+
+	/**
+	 * Keyword ticker settings used until they are saved: no words yet, a
+	 * calm speed, moving from right to left.
+	 *
+	 * @return array
+	 */
+	public static function ticker_defaults() {
+		return array(
+			'keywords'  => array(),
+			'speed'     => 50,
+			'direction' => 'left',
+		);
+	}
+
+	/**
+	 * A saved keyword ticker setting.
+	 *
+	 * @param string $key "keywords", "speed" or "direction".
+	 * @return mixed
+	 */
+	public static function ticker( $key ) {
+		$saved = get_option( self::TICKER_OPTION, array() );
+		$saved = array_merge( self::ticker_defaults(), is_array( $saved ) ? $saved : array() );
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Cleans a list of keywords: one per line in a text box, or a list.
+	 * Each is plain text of up to 100 characters; empty ones are dropped.
+	 *
+	 * @param mixed $value Text with a keyword on each line, or a list of keywords.
+	 * @return string[]
+	 */
+	public static function sanitize_keywords( $value ) {
+		$list     = is_array( $value ) ? $value : preg_split( '/\r\n|\r|\n/', is_scalar( $value ) ? (string) $value : '' );
+		$keywords = array();
+
+		foreach ( $list as $keyword ) {
+			$keyword = is_scalar( $keyword ) ? trim( sanitize_text_field( (string) $keyword ) ) : '';
+
+			if ( '' !== $keyword ) {
+				$keywords[] = function_exists( 'mb_substr' ) ? mb_substr( $keyword, 0, 100 ) : substr( $keyword, 0, 100 );
+			}
+		}
+
+		return array_slice( $keywords, 0, self::TICKER_MAX );
+	}
+
+	/**
+	 * A ticker speed: pixels a second, from 5 to 400.
+	 *
+	 * @param mixed $value Typed speed.
+	 * @param int   $empty Speed for an empty value.
+	 * @return int
+	 */
+	public static function sanitize_speed( $value, $empty = 50 ) {
+		if ( ! is_scalar( $value ) || '' === trim( (string) $value ) || ! is_numeric( $value ) ) {
+			return (int) $empty;
+		}
+
+		return (int) max( 5, min( 400, round( (float) $value ) ) );
+	}
+
+	/**
+	 * Cleans the keyword ticker settings.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_ticker( $input ) {
+		$input = is_array( $input ) ? $input : array();
+
+		return array(
+			'keywords'  => self::sanitize_keywords( isset( $input['keywords'] ) ? $input['keywords'] : '' ),
+			'speed'     => self::sanitize_speed( isset( $input['speed'] ) ? $input['speed'] : '' ),
+			'direction' => isset( $input['direction'] ) && 'right' === $input['direction'] ? 'right' : 'left',
 		);
 	}
 
