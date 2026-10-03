@@ -58,6 +58,7 @@ final class Plugin {
 		( new Sections\Inquiry() )->hooks();
 		( new Sections\Faq() )->hooks();
 		( new Ticker() )->hooks();
+		( new Category_Carousel() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();
@@ -71,6 +72,7 @@ final class Plugin {
 		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Listing_Export() )->hooks();
 		( new Admin\Import_Page() )->hooks();
+		( new Admin\Widgets_Page() )->hooks();
 		( new Admin\Shortcodes_Page() )->hooks();
 		( new Admin\Settings_Page() )->hooks();
 

@@ -24,6 +24,7 @@ Real estate listing tools for WordPress.
 * Owner details kept privately with each listing, never shown on the website
 * Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
 * Keyword ticker: a full-width row of keywords that moves on its own, stops under the mouse, and can be dragged and thrown; keywords import and export as JSON
+* Category carousel: square picture cards with a title and a button, moved with arrows, swiping or dragging, running on to the edge of the window
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -35,6 +36,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.18.0 =
+* Category carousel: [crc_category_carousel] shows a row of square cards, each with a picture, an H6 title and a View Properties button with an arrow (custom-btn-2-lite), with 16px between them. The cards have 16px corners, a 1px see-through border and 32px padding on computers, and the bottom of each is shaded so the words are easy to read. The picture zooms in slowly under the mouse.
+* The cards line up with the container on the left and run on to the edge of the window on the right. The arrows sit over the container's edges and fade when there is nothing more that way. People can also swipe on phones or drag with the mouse; a thrown carousel lines up with the nearest card. Three cards across on computers, two on tablets, one and a bit on phones.
+* Listings → Widgets: a new page with the carousel's shortcode and its cards: a picture from the Media Library, a title, the button text and the button link (the listing categories are offered). Cards can be added, removed and put in order by dragging or with Move up and Move down. Saving clears the LiteSpeed cache.
 
 = 0.17.1 =
 * Keyword ticker: stays exactly from edge to edge of the window when a scroll bar comes or goes, when its column is off to one side or has uneven padding, during Elementor's zoom-in animations, and on right-to-left language sites. Until its script runs it fills its container, so the page never scrolls sideways.

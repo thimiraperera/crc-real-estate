@@ -140,6 +140,227 @@
 	color: inherit;
 }
 
+/* Category carousel: [crc_category_carousel] */
+.crc-carousel {
+	--crc-carousel-per-view: 3;
+	--crc-carousel-gap: 24px;
+	--crc-carousel-padding: 32px;
+	--crc-carousel-arrow: 56px;
+	position: relative;
+	width: 100%;
+}
+
+.crc-carousel .crc-carousel-viewport {
+	position: relative;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scroll-snap-type: x mandatory;
+	scroll-behavior: auto;
+	overscroll-behavior-x: contain;
+	scrollbar-width: none;
+	-webkit-overflow-scrolling: touch;
+}
+
+.crc-carousel .crc-carousel-viewport::-webkit-scrollbar {
+	display: none;
+}
+
+/* Runs on to the window's edge after the cards (the script measures how far),
+   while the cards keep the container's width. */
+.crc-carousel.crc-carousel-bleed .crc-carousel-viewport {
+	margin-inline-end: calc(-1 * var(--crc-carousel-bleed, 0px));
+}
+
+.crc-carousel:not(.is-static) .crc-carousel-viewport {
+	cursor: grab;
+}
+
+.crc-carousel.is-dragging .crc-carousel-viewport {
+	scroll-snap-type: none;
+	cursor: grabbing;
+}
+
+.crc-carousel .crc-carousel-track {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--crc-carousel-gap);
+	width: calc(100% - var(--crc-carousel-bleed, 0px));
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Room after the last card, so it can line up with the container's edge. */
+.crc-carousel .crc-carousel-track::after {
+	content: "";
+	flex: 0 0 var(--crc-carousel-bleed, 0px);
+	align-self: stretch;
+	margin-inline-start: calc(-1 * var(--crc-carousel-gap));
+}
+
+.crc-carousel .crc-carousel-card {
+	position: relative;
+	display: flex;
+	flex: 0 0 calc((100% - (var(--crc-carousel-per-view) - 1) * var(--crc-carousel-gap)) / var(--crc-carousel-per-view));
+	flex-direction: column;
+	justify-content: flex-end;
+	box-sizing: border-box;
+	aspect-ratio: 1 / 1;
+	margin: 0;
+	padding: var(--crc-carousel-padding);
+	overflow: hidden;
+	border: 1px solid transparent;
+	border-radius: 16px;
+	background-color: var(--e-global-color-1ead78b);
+	background-clip: padding-box;
+	isolation: isolate;
+	scroll-snap-align: start;
+}
+
+.crc-carousel .crc-carousel-card::before {
+	content: "";
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	height: 60%;
+	background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--e-global-color-1ead78b) 60%, transparent) 30.93%, var(--e-global-color-1ead78b) 100%);
+	pointer-events: none;
+}
+
+.crc-carousel .crc-carousel-image {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 0;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	margin: 0;
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
+	object-fit: cover;
+	transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+	-webkit-user-drag: none;
+}
+
+.crc-carousel .crc-carousel-card:hover .crc-carousel-image,
+.crc-carousel .crc-carousel-card:focus-within .crc-carousel-image {
+	transform: scale(1.06);
+}
+
+.crc-carousel .crc-carousel-content {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 16px;
+}
+
+.crc-carousel .crc-carousel-title {
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: #fff;
+}
+
+.crc-carousel .elementor-button-content-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.crc-carousel .elementor-button-icon {
+	display: flex;
+	align-items: center;
+}
+
+.crc-carousel .elementor-button-icon svg {
+	width: 1em;
+	height: 1em;
+	fill: currentColor;
+}
+
+.crc-carousel .crc-carousel-arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 3;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: var(--crc-carousel-arrow);
+	height: var(--crc-carousel-arrow);
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: #fff;
+	color: var(--e-global-color-1ead78b);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+	cursor: pointer;
+	transform: translateY(-50%);
+	transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Over the container's edges, as far as the window allows. */
+.crc-carousel .crc-carousel-prev {
+	inset-inline-start: calc(-1 * min(var(--crc-carousel-arrow) / 2, var(--crc-carousel-room-start, 0px)));
+}
+
+.crc-carousel .crc-carousel-next {
+	inset-inline-end: calc(-1 * min(var(--crc-carousel-arrow) / 2, var(--crc-carousel-room-end, 0px)));
+}
+
+.crc-carousel .crc-carousel-arrow:hover,
+.crc-carousel .crc-carousel-arrow:focus {
+	background: #fff;
+	color: var(--e-global-color-1ead78b);
+}
+
+.crc-carousel .crc-carousel-arrow:hover {
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+	transform: translateY(-50%) scale(1.06);
+}
+
+.crc-carousel .crc-carousel-arrow:focus-visible {
+	outline: 2px solid var(--e-global-color-1ead78b);
+	outline-offset: 2px;
+}
+
+.crc-carousel .crc-carousel-arrow[aria-disabled="true"] {
+	opacity: 0.5;
+	box-shadow: none;
+	cursor: default;
+	transform: translateY(-50%);
+}
+
+.crc-carousel .crc-carousel-arrow svg {
+	display: block;
+	width: 18px;
+	height: 18px;
+	fill: currentColor;
+}
+
+[dir="rtl"] .crc-carousel .crc-carousel-arrow svg {
+	transform: scaleX(-1);
+}
+
+/* Every card already shows: no arrows. */
+.crc-carousel.is-static .crc-carousel-arrow {
+	display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-carousel .crc-carousel-image,
+	.crc-carousel .crc-carousel-arrow {
+		transition: none;
+	}
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	/* Your styles for desktop */
@@ -152,12 +373,29 @@
 
 /* Tablet: 1024px to 768px */
 @media (max-width: 1024px) and (min-width: 768px) {
-	/* Your styles for tablets */
+	.crc-carousel {
+		--crc-carousel-per-view: 2;
+		--crc-carousel-gap: 20px;
+		--crc-carousel-padding: 24px;
+		--crc-carousel-arrow: 48px;
+	}
 }
 
 /* Mobile: 767px and below */
 @media (max-width: 767px) {
 	.crc-card {
 		padding: 24px 24px 32px 24px;
+	}
+
+	.crc-carousel {
+		--crc-carousel-per-view: 1.15;
+		--crc-carousel-gap: 16px;
+		--crc-carousel-padding: 24px;
+		--crc-carousel-arrow: 44px;
+	}
+
+	.crc-carousel .crc-carousel-arrow svg {
+		width: 16px;
+		height: 16px;
 	}
 }
