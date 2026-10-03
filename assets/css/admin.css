@@ -530,8 +530,9 @@
 	margin: 8px 0 0;
 }
 
+/* Kept for screen readers while empty, so its first message is read out. */
 .crc-ticker-note:empty {
-	display: none;
+	margin: 0;
 }
 
 /* Something to put right */

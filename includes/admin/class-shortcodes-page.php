@@ -74,7 +74,7 @@ final class Shortcodes_Page {
 		<div class="wrap crc-info">
 			<h1><?php esc_html_e( 'Shortcodes', 'crc-real-estate' ); ?></h1>
 			<p class="crc-info-intro">
-				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. On a listing page, it shows that listing automatically. Anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings.', 'crc-real-estate' ); ?>
+				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. The listing shortcodes show the listing being viewed on a listing page; anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings. The keyword ticker works on any page and needs no ID.', 'crc-real-estate' ); ?>
 			</p>
 
 			<?php foreach ( Shortcodes::all() as $tag => $info ) : ?>

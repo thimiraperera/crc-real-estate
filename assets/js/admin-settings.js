@@ -82,22 +82,35 @@
 			return;
 		}
 
+		if ( chosen.size > ( parseInt( text.size, 10 ) || 1048576 ) ) {
+			file.value = '';
+			say( text.tooBig, true );
+			return;
+		}
+
 		reader = new window.FileReader();
 
 		reader.onload = function () {
+			var max = parseInt( text.max, 10 ) || 200;
+			var length = parseInt( text.chars, 10 ) || 100;
 			var data;
 			var keywords;
+			var found;
 
 			file.value = '';
 
 			try {
-				data = JSON.parse( String( reader.result ).replace( /^﻿/, '' ) );
+				data = JSON.parse( String( reader.result ).replace( /^\uFEFF/, '' ) );
 			} catch ( error ) {
 				say( text.notJson, true );
 				return;
 			}
 
 			keywords = keywordsFrom( data );
+			found = keywords.length;
+			keywords = keywords.slice( 0, max ).map( function ( keyword ) {
+				return keyword.slice( 0, length );
+			} );
 
 			if ( ! keywords.length ) {
 				say( text.noWords, true );
@@ -109,7 +122,7 @@
 			}
 
 			box.value = keywords.join( '\n' );
-			say( format( text.imported, keywords.length ) );
+			say( found > max ? text.cut.replace( '%1$s', String( found ) ).split( '%2$s' ).join( String( max ) ) : format( text.imported, keywords.length ) );
 		};
 
 		reader.onerror = function () {

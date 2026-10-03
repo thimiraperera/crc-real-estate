@@ -48,6 +48,11 @@
 		var visible = true;
 		var frame = 0;
 		var last = 0;
+		var groupWidth = 0;
+		var screenWidth = 0;
+		var follow = null;
+		var io = null;
+		var ro = null;
 		var api = {};
 
 		if ( ! group || root.crcTicker ) {
@@ -70,17 +75,68 @@
 			track.style.transform = 'translate3d(' + offset.toFixed( 2 ) + 'px, 0, 0)';
 		}
 
+		// Where the ticker's column is: how far its left edge is from the left of the
+		// window, and how wide it is. Taken from the layout itself, so a column off to
+		// one side, uneven padding or an animation moving the column doesn't put it out of line.
+		function column() {
+			var parent = root.parentNode;
+			var style;
+			var x;
+			var el;
+
+			if ( ! parent || 1 !== parent.nodeType ) {
+				return { left: 0, width: screenWidth };
+			}
+
+			style = window.getComputedStyle( parent );
+			x = ( parseFloat( style.paddingLeft ) || 0 ) + ( parseFloat( style.borderLeftWidth ) || 0 );
+
+			for ( el = parent; el && el !== document.body && el !== document.documentElement; el = el.offsetParent ) {
+				x += el.offsetLeft + ( el !== parent ? el.clientLeft : 0 );
+			}
+
+			return {
+				left: x,
+				width: parent.clientWidth - ( parseFloat( style.paddingLeft ) || 0 ) - ( parseFloat( style.paddingRight ) || 0 )
+			};
+		}
+
 		// Measures the words and adds copies until they fill the width twice over.
 		function measure() {
 			var copies = track.children.length - 1;
+			var spot;
+			var drift;
+			var scale;
 			var need;
 			var copy;
 
-			if ( root.classList.contains( 'crc-ticker-full' ) ) {
-				root.style.setProperty( '--crc-ticker-vw', document.documentElement.clientWidth + 'px' );
+			if ( ! root.isConnected ) {
+				stop();
+				return;
 			}
 
-			width = group.getBoundingClientRect().width;
+			screenWidth = document.documentElement.clientWidth;
+
+			// Both margins are set, so right-to-left pages place it the same way.
+			if ( root.classList.contains( 'crc-ticker-full' ) ) {
+				spot = column();
+				root.style.setProperty( '--crc-ticker-vw', screenWidth + 'px' );
+				root.style.setProperty( '--crc-ticker-left', -spot.left + 'px' );
+				root.style.setProperty( '--crc-ticker-right', ( spot.left + spot.width - screenWidth ) + 'px' );
+
+				// Layout positions are whole pixels; a column at half a pixel is put right here.
+				drift = root.getBoundingClientRect().left;
+
+				if ( 0 !== drift && Math.abs( drift ) < 2 ) {
+					spot.left += drift;
+					root.style.setProperty( '--crc-ticker-left', -spot.left + 'px' );
+					root.style.setProperty( '--crc-ticker-right', ( spot.left + spot.width - screenWidth ) + 'px' );
+				}
+			}
+
+			// The width the words take up, without any zoom an animation adds.
+			scale = root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1;
+			width = groupWidth || group.getBoundingClientRect().width / ( scale || 1 );
 			need = width > 0 ? Math.ceil( root.clientWidth / width ) + 1 : 0;
 
 			while ( copies < need ) {
@@ -119,6 +175,34 @@
 			place();
 		}
 
+		// The ticker left the page, e.g. when Elementor's editor redraws it.
+		function stop() {
+			window.removeEventListener( 'resize', measure );
+
+			if ( motion && follow ) {
+				if ( motion.removeEventListener ) {
+					motion.removeEventListener( 'change', follow );
+				} else if ( motion.removeListener ) {
+					motion.removeListener( follow );
+				}
+			}
+
+			if ( io ) {
+				io.disconnect();
+			}
+
+			if ( ro ) {
+				ro.disconnect();
+			}
+
+			if ( frame ) {
+				window.cancelAnimationFrame( frame );
+				frame = 0;
+			}
+
+			delete root.crcTicker;
+		}
+
 		function moving() {
 			return !! drag || 0 !== velocity || 0 !== target();
 		}
@@ -127,6 +211,7 @@
 			frame = 0;
 
 			if ( ! root.isConnected ) {
+				stop();
 				return;
 			}
 
@@ -195,7 +280,7 @@
 			place();
 		} );
 
-		function letGo( event ) {
+		function letGo( event, cancelled ) {
 			var time = now();
 			var moves;
 			var first;
@@ -211,9 +296,9 @@
 			end = moves[ moves.length - 1 ];
 			span = ( end.time - first.time ) / 1000;
 
-			// Held still before letting go: no throw.
-			velocity = span > 0 && time - end.time < SAMPLE ? clamp( ( end.x - first.x ) / span, -THROW, THROW ) : 0;
-			thrown = true;
+			// Held still before letting go, or the page was scrolled instead: no throw.
+			velocity = ! cancelled && span > 0 && time - end.time < SAMPLE ? clamp( ( end.x - first.x ) / span, -THROW, THROW ) : 0;
+			thrown = 0 !== velocity;
 			drag = null;
 			root.classList.remove( 'is-dragging' );
 
@@ -226,8 +311,12 @@
 			wake();
 		}
 
-		root.addEventListener( 'pointerup', letGo );
-		root.addEventListener( 'pointercancel', letGo );
+		root.addEventListener( 'pointerup', function ( event ) {
+			letGo( event, false );
+		} );
+		root.addEventListener( 'pointercancel', function ( event ) {
+			letGo( event, true );
+		} );
 
 		// Slows down and stops under the mouse; carries on when it leaves.
 		root.addEventListener( 'pointerenter', function ( event ) {
@@ -264,7 +353,7 @@
 		} );
 
 		if ( motion ) {
-			var follow = function () {
+			follow = function () {
 				auto = ! motion.matches;
 				wake();
 			};
@@ -278,7 +367,7 @@
 
 		// Rests while it is off the screen.
 		if ( window.IntersectionObserver ) {
-			new window.IntersectionObserver( function ( entries ) {
+			io = new window.IntersectionObserver( function ( entries ) {
 				visible = entries[ entries.length - 1 ].isIntersecting;
 
 				if ( visible ) {
@@ -288,11 +377,33 @@
 					frame = 0;
 					last = 0;
 				}
-			} ).observe( root );
+			} );
+			io.observe( root );
 		}
 
+		// Measured again when the words, the ticker or the window's width change; the
+		// window's width also changes when a scroll bar comes or goes.
 		if ( window.ResizeObserver ) {
-			new window.ResizeObserver( measure ).observe( group );
+			ro = new window.ResizeObserver( function ( entries ) {
+				var again = false;
+				var i;
+
+				for ( i = 0; i < entries.length; i++ ) {
+					if ( entries[ i ].target === group ) {
+						groupWidth = entries[ i ].contentRect.width;
+						again = true;
+					} else if ( entries[ i ].target === root || document.documentElement.clientWidth !== screenWidth ) {
+						again = true;
+					}
+				}
+
+				if ( again ) {
+					measure();
+				}
+			} );
+			ro.observe( group );
+			ro.observe( root );
+			ro.observe( document.documentElement );
 		}
 
 		window.addEventListener( 'resize', measure );

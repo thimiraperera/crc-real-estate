@@ -36,6 +36,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.17.1 =
+* Keyword ticker: stays exactly from edge to edge of the window when a scroll bar comes or goes, when its column is off to one side or has uneven padding, during Elementor's zoom-in animations, and on right-to-left language sites. Until its script runs it fills its container, so the page never scrolls sideways.
+* Letters that reach below the line (g, p, y) are no longer cut off. Scrolling the page with a finger on the ticker no longer jerks it sideways, and pinch-zoom works over it.
+* Saving the ticker settings clears the LiteSpeed page cache, so visitors see new keywords straight away, and its script isn't held back by page speed settings.
+* Import keeps to 200 keywords of up to 100 letters and says so when a file has more; Settings says so too. A keyword with < & or quotes stays as typed.
+
 = 0.17.0 =
 * Keyword ticker: [crc_ticker] shows a row of keywords, such as Houses · Villas · Apartments, over the full width of the window. Each keyword is an H3 with no top or bottom margin, in var(--e-global-color-6e3d619), at the site's own H3 size, with a middle dot between them, centred with the words.
 * It moves on its own and loops without a seam. It slows down gently and stops while the mouse is over it, or while it has keyboard focus. It can be dragged; let go while moving and it glides on, slowing down, before it carries on at its own speed. People who ask their device for less motion get a row that only moves when they drag it.

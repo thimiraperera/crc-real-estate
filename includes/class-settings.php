@@ -21,6 +21,7 @@ final class Settings {
 	const INQUIRY_OPTION    = 'crc_re_inquiry';
 	const TICKER_OPTION     = 'crc_re_ticker';
 	const TICKER_MAX        = 200;
+	const KEYWORD_MAX       = 100;
 	const DEFAULT_NUMBER    = '+94777643264';
 	const PHONE_META        = '_crc_phone';
 	const WHATSAPP_META     = '_crc_whatsapp';
@@ -319,14 +320,42 @@ final class Settings {
 		$keywords = array();
 
 		foreach ( $list as $keyword ) {
-			$keyword = is_scalar( $keyword ) ? trim( sanitize_text_field( (string) $keyword ) ) : '';
+			// Plain text: the "&lt;" sanitize_text_field writes for a "<" is turned back, as the
+			// keyword is escaped wherever it is shown.
+			$keyword = is_scalar( $keyword ) ? trim( wp_specialchars_decode( sanitize_text_field( (string) $keyword ), ENT_QUOTES ) ) : '';
 
 			if ( '' !== $keyword ) {
-				$keywords[] = function_exists( 'mb_substr' ) ? mb_substr( $keyword, 0, 100 ) : substr( $keyword, 0, 100 );
+				$keywords[] = function_exists( 'mb_substr' ) ? mb_substr( $keyword, 0, self::KEYWORD_MAX ) : substr( $keyword, 0, self::KEYWORD_MAX );
 			}
 		}
 
 		return array_slice( $keywords, 0, self::TICKER_MAX );
+	}
+
+	/**
+	 * How many keywords were given, and whether any was longer than a keyword can be.
+	 *
+	 * @param mixed $value Text with a keyword on each line, or a list of keywords.
+	 * @return array 'count' and 'long'.
+	 */
+	private static function keyword_counts( $value ) {
+		$list  = is_array( $value ) ? $value : preg_split( '/\r\n|\r|\n/', is_scalar( $value ) ? (string) $value : '' );
+		$count = 0;
+		$long  = false;
+
+		foreach ( $list as $keyword ) {
+			$keyword = is_scalar( $keyword ) ? trim( (string) $keyword ) : '';
+
+			if ( '' !== $keyword ) {
+				$count++;
+				$long = $long || ( function_exists( 'mb_strlen' ) ? mb_strlen( $keyword ) : strlen( $keyword ) ) > self::KEYWORD_MAX;
+			}
+		}
+
+		return array(
+			'count' => $count,
+			'long'  => $long,
+		);
 	}
 
 	/**
@@ -351,10 +380,27 @@ final class Settings {
 	 * @return array
 	 */
 	public static function sanitize_ticker( $input ) {
-		$input = is_array( $input ) ? $input : array();
+		$input  = is_array( $input ) ? $input : array();
+		$given  = isset( $input['keywords'] ) ? $input['keywords'] : '';
+		$counts = self::keyword_counts( $given );
+
+		// Says so when keywords had to be left out or shortened.
+		if ( function_exists( 'add_settings_error' ) && ( $counts['count'] > self::TICKER_MAX || $counts['long'] ) ) {
+			add_settings_error(
+				self::TICKER_OPTION,
+				'crc_ticker_cut',
+				sprintf(
+					/* translators: 1: most keywords, 2: most characters in a keyword. */
+					__( 'Keyword ticker: it can show up to %1$s keywords of up to %2$s letters each, so the ones after that were left out and longer ones were shortened.', 'crc-real-estate' ),
+					number_format_i18n( self::TICKER_MAX ),
+					number_format_i18n( self::KEYWORD_MAX )
+				),
+				'warning'
+			);
+		}
 
 		return array(
-			'keywords'  => self::sanitize_keywords( isset( $input['keywords'] ) ? $input['keywords'] : '' ),
+			'keywords'  => self::sanitize_keywords( $given ),
 			'speed'     => self::sanitize_speed( isset( $input['speed'] ) ? $input['speed'] : '' ),
 			'direction' => isset( $input['direction'] ) && 'right' === $input['direction'] ? 'right' : 'left',
 		);

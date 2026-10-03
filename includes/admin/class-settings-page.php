@@ -76,6 +76,12 @@ final class Settings_Page {
 			'crcSettings',
 			array(
 				'file'     => 'ticker-keywords.json',
+				'max'      => Settings::TICKER_MAX,
+				'chars'    => Settings::KEYWORD_MAX,
+				'size'     => 1048576,
+				'tooBig'   => __( 'This file is too big for a list of keywords. Please choose a keywords file like the sample file.', 'crc-real-estate' ),
+				/* translators: 1: keywords in the file, 2: most keywords. */
+				'cut'      => __( 'The file has %1$s keywords, but the ticker can show up to %2$s, so the first %2$s were put in the box. Press Save Changes to keep them.', 'crc-real-estate' ),
 				'notJson'  => __( 'This file isn\'t a JSON file that can be read. Please choose a keywords file like the sample file.', 'crc-real-estate' ),
 				'noWords'  => __( 'This file has no keywords in it. A keywords file looks like the sample file: {"keywords": ["Houses", "Villas"]}.', 'crc-real-estate' ),
 				/* translators: %s: number of keywords. */
@@ -212,6 +218,7 @@ final class Settings_Page {
 	 */
 	public function ticker_guide() {
 		echo '<p>' . esc_html__( 'A row of keywords, such as Houses · Villas · Apartments, that moves across the page on its own, over the full width of the window. It slows down and stops while the mouse is over it, and people can drag it and throw it. To show it, put the shortcode [crc_ticker] in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes.', 'crc-real-estate' ) . '</p>';
+		echo '<p>' . esc_html__( 'Saving clears the LiteSpeed page cache, so visitors see the changes straight away. If the site also uses a Cloudflare page cache, clear that too.', 'crc-real-estate' ) . '</p>';
 	}
 
 	/**

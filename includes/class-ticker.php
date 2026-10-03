@@ -28,6 +28,34 @@ final class Ticker {
 		add_action( 'init', array( $this, 'register' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ), 6 );
 		add_action( 'elementor/preview/enqueue_scripts', array( $this, 'enqueue_script' ) );
+		add_filter( 'script_loader_tag', array( $this, 'script_tag' ), 10, 2 );
+		add_action( 'add_option_' . Settings::TICKER_OPTION, array( $this, 'clear_cache' ) );
+		add_action( 'update_option_' . Settings::TICKER_OPTION, array( $this, 'clear_cache' ) );
+	}
+
+	/**
+	 * Asks page speed plugins (LiteSpeed Cache, Cloudflare Rocket Loader) not to
+	 * hold the script back until the visitor touches the page, so the ticker
+	 * moves as soon as the page shows.
+	 *
+	 * @param string $tag    Script tag.
+	 * @param string $handle Script handle.
+	 * @return string
+	 */
+	public function script_tag( $tag, $handle ) {
+		if ( 'crc-re-ticker' !== $handle || false !== strpos( $tag, 'data-no-optimize' ) ) {
+			return $tag;
+		}
+
+		return str_replace( '<script ', '<script data-no-optimize="1" data-no-defer="1" data-cfasync="false" ', $tag );
+	}
+
+	/**
+	 * Clears the LiteSpeed page cache when the ticker's settings change, so
+	 * visitors see the new keywords straight away. Does nothing without LiteSpeed Cache.
+	 */
+	public function clear_cache() {
+		do_action( 'litespeed_purge_all' );
 	}
 
 	/**

@@ -68,21 +68,36 @@
 	position: relative;
 	width: 100%;
 	overflow: hidden;
+	direction: ltr;
 	cursor: grab;
-	touch-action: pan-y;
+	touch-action: pan-y pinch-zoom;
 	user-select: none;
 	-webkit-user-select: none;
 	-webkit-touch-callout: none;
 	outline: none;
 }
 
+/* Sideways only, so letters that reach below the line (g, p, y) aren't cut. */
+@supports (overflow-x: clip) {
+	.crc-ticker {
+		overflow: visible;
+		overflow-x: clip;
+	}
+}
+
 /* The whole width of the window, even inside a narrower container. The
-   script sets --crc-ticker-vw to the window's width without its scroll bar. */
+   script sets the window's width without its scroll bar, and how far the
+   container is from the window's left edge; until then it fills the container. */
 .crc-ticker.crc-ticker-full {
-	width: var(--crc-ticker-vw, 100vw);
+	width: var(--crc-ticker-vw, 100%);
 	max-width: none;
-	margin-left: calc(50% - var(--crc-ticker-vw, 100vw) / 2);
-	margin-right: calc(50% - var(--crc-ticker-vw, 100vw) / 2);
+	margin-left: var(--crc-ticker-left, 0px);
+	margin-right: var(--crc-ticker-right, 0px);
+}
+
+/* Right-to-left languages: the words read right to left inside each group. */
+[dir="rtl"] .crc-ticker-group {
+	direction: rtl;
 }
 
 .crc-ticker.is-dragging {
