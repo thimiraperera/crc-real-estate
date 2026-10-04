@@ -11,7 +11,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * [crc_category_carousel]: a row of square cards, each with a picture, a title
- * and a button, that people move through with the arrows, by swiping, or by
+ * and a View Properties button, that people move through with the arrows, by swiping, or by
  * dragging with the mouse. The cards line up with the container on the left
  * and run on to the edge of the window on the right.
  *
@@ -71,7 +71,7 @@ final class Category_Carousel {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Category carousel', 'crc-real-estate' ),
-				'description' => __( 'A row of square cards, each with a picture, a title and a button, that people move through with the arrows, by swiping on a phone, or by dragging with the mouse. The cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. The cards are set in Listings → Widgets.', 'crc-real-estate' ),
+				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows, by swiping on a phone, or by dragging with the mouse. The cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. The cards are set in Listings → Widgets.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'width' => array(
 						'default'     => 'bleed',
@@ -122,10 +122,9 @@ final class Category_Carousel {
 
 			$image = isset( $row['image'] ) && is_scalar( $row['image'] ) ? absint( $row['image'] ) : 0;
 			$card  = array(
-				'image'  => $image && wp_attachment_is_image( $image ) ? $image : 0,
-				'title'  => $text( 'title' ),
-				'button' => $text( 'button' ),
-				'link'   => esc_url_raw( $text( 'link' ) ),
+				'image' => $image && wp_attachment_is_image( $image ) ? $image : 0,
+				'title' => $text( 'title' ),
+				'link'  => esc_url_raw( $text( 'link' ) ),
 			);
 
 			if ( $card['image'] || '' !== $card['title'] || '' !== $card['link'] ) {
@@ -149,7 +148,7 @@ final class Category_Carousel {
 			array_filter(
 				array_map(
 					function ( $card ) {
-						return is_array( $card ) ? wp_parse_args( $card, array( 'image' => 0, 'title' => '', 'button' => '', 'link' => '' ) ) : null;
+						return is_array( $card ) ? wp_parse_args( $card, array( 'image' => 0, 'title' => '', 'link' => '' ) ) : null;
 					},
 					$cards
 				)
@@ -192,7 +191,7 @@ final class Category_Carousel {
 				$button = sprintf(
 					'<div class="crc-carousel-button custom-btn-2-lite"><a class="elementor-button elementor-button-link" href="%1$s"><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%2$s</span><span class="elementor-button-icon">%3$s</span></span></a></div>',
 					esc_url( $card['link'] ),
-					esc_html( '' !== $card['button'] ? $card['button'] : __( 'View Properties', 'crc-real-estate' ) ),
+					esc_html__( 'View Properties', 'crc-real-estate' ),
 					self::ARROW_RIGHT
 				);
 			}

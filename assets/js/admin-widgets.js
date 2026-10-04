@@ -9,6 +9,7 @@ jQuery( function ( $ ) {
 	var $list = $( '.crc-cards-list' );
 	var template = document.getElementById( 'crc-cards-template' );
 	var $note = $( '.crc-cards-note' );
+	var max = parseInt( text.max, 10 ) || 50;
 	var frame;
 	var $target;
 
@@ -16,11 +17,7 @@ jQuery( function ( $ ) {
 		return;
 	}
 
-	function format( value, number ) {
-		return String( value || '' ).replace( '%s', String( number ) );
-	}
-
-	// Gives every card's fields names and labels that follow the order on the page.
+	// Gives every card's fields names that follow the order on the page.
 	function renumber() {
 		var $rows = $list.children( '.crc-cards-row' );
 
@@ -38,22 +35,22 @@ jQuery( function ( $ ) {
 				}
 			} );
 
-			$row.find( '.crc-cards-row-number' ).text( format( text.card || 'Card %s', index + 1 ) );
 			$row.find( '.crc-cards-row-up' ).prop( 'disabled', 0 === index );
 			$row.find( '.crc-cards-row-down' ).prop( 'disabled', index === $rows.length - 1 );
 		} );
 
 		$( '.crc-cards-empty' ).prop( 'hidden', $rows.length > 0 );
-		$( '.crc-cards-add' ).prop( 'disabled', $rows.length >= ( parseInt( text.max, 10 ) || 50 ) );
-		$note.text( $rows.length >= ( parseInt( text.max, 10 ) || 50 ) ? format( text.full, text.max ) : '' );
+		$( '.crc-cards-add' ).prop( 'disabled', $rows.length >= max );
+		$note.text( $rows.length >= max ? String( text.full || '' ).replace( '%s', String( max ) ) : '' );
 	}
 
 	function setPicture( $row, id, url ) {
+		var label = url ? text.change : text.choose;
+
 		$row.find( '.crc-cards-row-image' ).val( id ? String( id ) : '' );
-		$row.find( '.crc-cards-row-preview img' ).attr( 'src', url || '' ).prop( 'hidden', ! url );
-		$row.find( '.crc-cards-row-nopicture' ).prop( 'hidden', !! url );
-		$row.find( '.crc-cards-row-clear' ).prop( 'hidden', ! url );
-		$row.find( '.crc-cards-row-choose' ).text( url ? text.change : text.choose );
+		$row.find( '.crc-cards-row-choose img' ).attr( 'src', url || '' ).prop( 'hidden', ! url );
+		$row.find( '.crc-cards-row-choose .dashicons' ).prop( 'hidden', !! url );
+		$row.find( '.crc-cards-row-choose' ).attr( { 'aria-label': label, title: label } );
 	}
 
 	function isEmpty( $row ) {
@@ -68,20 +65,23 @@ jQuery( function ( $ ) {
 		cursor: 'move',
 		axis: 'y',
 		placeholder: 'crc-cards-placeholder',
-		forcePlaceholderSize: true,
+		// The gap left behind is as tall as the card, which is taller on phones.
+		start: function ( event, ui ) {
+			ui.placeholder.outerHeight( ui.item.outerHeight() );
+		},
 		update: renumber
 	} );
 
 	$( '.crc-cards-add' ).on( 'click', function () {
 		var $row = $( template.content.cloneNode( true ).querySelector( '.crc-cards-row' ) );
 
-		if ( $list.children( '.crc-cards-row' ).length >= ( parseInt( text.max, 10 ) || 50 ) ) {
+		if ( $list.children( '.crc-cards-row' ).length >= max ) {
 			return;
 		}
 
 		$list.append( $row );
 		renumber();
-		$row.find( 'input[data-name="title"]' ).trigger( 'focus' );
+		$row.find( '.crc-cards-row-title' ).trigger( 'focus' );
 	} );
 
 	$list.on( 'click', '.crc-cards-row-remove', function () {
@@ -113,19 +113,9 @@ jQuery( function ( $ ) {
 		}
 
 		renumber();
-		$button.trigger( 'focus' );
 
 		// At the top or bottom the button turns off, so keep the keyboard on the card.
-		if ( $button.prop( 'disabled' ) ) {
-			$row.find( up ? '.crc-cards-row-down' : '.crc-cards-row-up' ).trigger( 'focus' );
-		}
-	} );
-
-	$list.on( 'click', '.crc-cards-row-clear', function () {
-		var $row = $( this ).closest( '.crc-cards-row' );
-
-		setPicture( $row, 0, '' );
-		$row.find( '.crc-cards-row-choose' ).trigger( 'focus' );
+		$( $button.prop( 'disabled' ) ? $row.find( up ? '.crc-cards-row-down' : '.crc-cards-row-up' ) : $button ).trigger( 'focus' );
 	} );
 
 	$list.on( 'click', '.crc-cards-row-choose', function () {
@@ -143,12 +133,25 @@ jQuery( function ( $ ) {
 				multiple: false
 			} );
 
+			// Opens on the card's own picture, or with nothing picked.
+			frame.on( 'open', function () {
+				var selection = frame.state().get( 'selection' );
+				var id = $target ? parseInt( $target.find( '.crc-cards-row-image' ).val(), 10 ) : 0;
+				var attachment = id ? window.wp.media.attachment( id ) : null;
+
+				if ( attachment ) {
+					attachment.fetch();
+				}
+
+				selection.reset( attachment ? [ attachment ] : [] );
+			} );
+
 			frame.on( 'select', function () {
 				var data = frame.state().get( 'selection' ).first().toJSON();
 				var sizes = data.sizes || {};
 
 				if ( $target ) {
-					setPicture( $target, data.id, ( sizes.medium || sizes.thumbnail || data ).url );
+					setPicture( $target, data.id, ( sizes.thumbnail || sizes.medium || data ).url );
 					$target.find( '.crc-cards-row-choose' ).trigger( 'focus' );
 				}
 			} );

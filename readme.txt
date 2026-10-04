@@ -37,6 +37,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.18.1 =
+* Category carousel: the button always says View Properties.
+* Listings → Widgets is smaller and simpler: each card is one line with its picture (click it to choose or change), the title and the link, plus small icons to move or remove it.
+
 = 0.18.0 =
 * Category carousel: [crc_category_carousel] shows a row of square cards, each with a picture, an H6 title and a View Properties button with an arrow (custom-btn-2-lite), with 16px between them. The cards have 16px corners, a 1px see-through border and 32px padding on computers, and the bottom of each is shaded so the words are easy to read. The picture zooms in slowly under the mouse.
 * The cards line up with the container on the left and run on to the edge of the window on the right. The arrows sit over the container's edges and fade when there is nothing more that way. People can also swipe on phones or drag with the mouse; a thrown carousel lines up with the nearest card. Three cards across on computers, two on tablets, one and a bit on phones.

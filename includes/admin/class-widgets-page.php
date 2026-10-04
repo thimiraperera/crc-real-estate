@@ -88,8 +88,6 @@ final class Widgets_Page {
 			array(
 				'option'      => Category_Carousel::OPTION,
 				'max'         => Category_Carousel::CARDS_MAX,
-				/* translators: %s: card number. */
-				'card'        => __( 'Card %s', 'crc-real-estate' ),
 				'frameTitle'  => __( 'Choose a picture for this card', 'crc-real-estate' ),
 				'frameButton' => __( 'Use this picture', 'crc-real-estate' ),
 				'choose'      => __( 'Choose picture', 'crc-real-estate' ),
@@ -111,9 +109,6 @@ final class Widgets_Page {
 		<div class="wrap crc-info crc-widgets">
 			<h1><?php esc_html_e( 'Widgets', 'crc-real-estate' ); ?></h1>
 			<?php settings_errors(); ?>
-			<p class="crc-info-intro">
-				<?php esc_html_e( 'Ready-made pieces you can place on any page. Copy a widget\'s shortcode, add a Shortcode widget in Elementor where you want it, and paste the shortcode in. What the widget shows is set here.', 'crc-real-estate' ); ?>
-			</p>
 
 			<section class="crc-info-card" id="<?php echo esc_attr( Category_Carousel::SHORTCODE ); ?>">
 				<h2 class="crc-info-title"><?php esc_html_e( 'Category carousel', 'crc-real-estate' ); ?></h2>
@@ -121,13 +116,10 @@ final class Widgets_Page {
 					<code><?php echo esc_html( $tag ); ?></code>
 					<button type="button" class="button button-small crc-copy" data-copy="<?php echo esc_attr( $tag ); ?>" data-copied="<?php esc_attr_e( 'Copied', 'crc-real-estate' ); ?>"><?php esc_html_e( 'Copy', 'crc-real-estate' ); ?></button>
 				</p>
-				<p><?php esc_html_e( 'A row of square cards, each with a picture, a title and a button. People move through them with the arrows, by swiping on a phone, or by dragging with the mouse. The cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. The picture zooms in a little when the mouse is over a card, and the bottom of each card is shaded so the title and button are easy to read.', 'crc-real-estate' ); ?></p>
-				<p><?php esc_html_e( 'Computers show three cards across, tablets two, and phones one with the next one peeking in. Add the cards below in the order they should show; drag a card by its handle, or use Move up and Move down, to change the order. Press Save Changes when you are done.', 'crc-real-estate' ); ?></p>
+				<p class="description"><?php esc_html_e( 'Paste the shortcode into an Elementor Shortcode widget. Click a picture to change it. Drag a card by its handle, or use the arrows, to change the order.', 'crc-real-estate' ); ?></p>
 
 				<form action="options.php" method="post">
 					<?php settings_fields( self::GROUP ); ?>
-
-					<p class="crc-cards-empty"<?php echo $cards ? ' hidden' : ''; ?>><?php esc_html_e( 'No cards yet. Press Add a card to make the first one. Until there are cards, the carousel shows nothing on the website.', 'crc-real-estate' ); ?></p>
 
 					<ol class="crc-cards-list">
 						<?php
@@ -137,8 +129,10 @@ final class Widgets_Page {
 						?>
 					</ol>
 
+					<p class="crc-cards-empty"<?php echo $cards ? ' hidden' : ''; ?>><?php esc_html_e( 'No cards yet.', 'crc-real-estate' ); ?></p>
+
 					<p class="crc-cards-tools">
-						<button type="button" class="button crc-cards-add"><?php esc_html_e( 'Add a card', 'crc-real-estate' ); ?></button>
+						<button type="button" class="button crc-cards-add"><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add a card', 'crc-real-estate' ); ?></button>
 						<span class="crc-cards-note" role="status"></span>
 					</p>
 
@@ -160,64 +154,33 @@ final class Widgets_Page {
 	}
 
 	/**
-	 * Prints one card's fields.
+	 * Prints one card: its picture, title and link on one line.
 	 *
 	 * @param int   $index Card number, from 0.
 	 * @param array $card  Saved card.
 	 */
 	private function row( $index, array $card ) {
-		$card    = wp_parse_args( $card, array( 'image' => 0, 'title' => '', 'button' => '', 'link' => '' ) );
+		$card    = wp_parse_args( $card, array( 'image' => 0, 'title' => '', 'link' => '' ) );
 		$name    = Category_Carousel::OPTION . '[cards][' . (int) $index . ']';
-		$preview = $card['image'] ? wp_get_attachment_image_url( (int) $card['image'], 'medium' ) : '';
+		$preview = $card['image'] ? wp_get_attachment_image_url( (int) $card['image'], 'thumbnail' ) : '';
 		$id      = 'crc-card-' . (int) $index;
 		?>
 		<li class="crc-cards-row">
-			<div class="crc-cards-row-side">
-				<span class="crc-cards-row-handle" title="<?php esc_attr_e( 'Drag to change the order', 'crc-real-estate' ); ?>" aria-hidden="true"><span class="dashicons dashicons-move"></span></span>
-				<strong class="crc-cards-row-number">
-					<?php
-					/* translators: %s: card number. */
-					echo esc_html( sprintf( __( 'Card %s', 'crc-real-estate' ), $index + 1 ) );
-					?>
-				</strong>
-			</div>
-
-			<div class="crc-cards-row-picture">
-				<div class="crc-cards-row-preview">
-					<img src="<?php echo esc_url( (string) $preview ); ?>" alt=""<?php echo $preview ? '' : ' hidden'; ?>>
-					<span class="crc-cards-row-nopicture"<?php echo $preview ? ' hidden' : ''; ?>><?php esc_html_e( 'No picture yet', 'crc-real-estate' ); ?></span>
-				</div>
-				<input type="hidden" class="crc-cards-row-image" data-name="image" name="<?php echo esc_attr( $name ); ?>[image]" value="<?php echo esc_attr( $card['image'] ? (string) (int) $card['image'] : '' ); ?>">
-				<p class="crc-cards-row-picture-tools">
-					<button type="button" class="button crc-cards-row-choose"><?php echo $preview ? esc_html__( 'Change picture', 'crc-real-estate' ) : esc_html__( 'Choose picture', 'crc-real-estate' ); ?></button>
-					<button type="button" class="button-link button-link-delete crc-cards-row-clear"<?php echo $preview ? '' : ' hidden'; ?>><?php esc_html_e( 'Remove picture', 'crc-real-estate' ); ?></button>
-				</p>
-				<p class="description"><?php esc_html_e( 'The picture fills the whole card. Square pictures work best, at least 800 × 800 pixels; other shapes are trimmed to a square from the middle.', 'crc-real-estate' ); ?></p>
-			</div>
-
-			<div class="crc-cards-row-fields">
-				<p>
-					<label for="<?php echo esc_attr( $id ); ?>-title"><?php esc_html_e( 'Title', 'crc-real-estate' ); ?></label>
-					<input type="text" class="widefat" id="<?php echo esc_attr( $id ); ?>-title" data-name="title" name="<?php echo esc_attr( $name ); ?>[title]" value="<?php echo esc_attr( $card['title'] ); ?>">
-					<span class="description"><?php esc_html_e( 'Shown at the bottom of the card, over the shading, for example Beachfront Properties.', 'crc-real-estate' ); ?></span>
-				</p>
-				<p>
-					<label for="<?php echo esc_attr( $id ); ?>-button"><?php esc_html_e( 'Button text', 'crc-real-estate' ); ?></label>
-					<input type="text" class="widefat" id="<?php echo esc_attr( $id ); ?>-button" data-name="button" name="<?php echo esc_attr( $name ); ?>[button]" value="<?php echo esc_attr( $card['button'] ); ?>" placeholder="<?php esc_attr_e( 'View Properties', 'crc-real-estate' ); ?>">
-					<span class="description"><?php esc_html_e( 'The words on the button, under the title. Leave it empty to use View Properties.', 'crc-real-estate' ); ?></span>
-				</p>
-				<p>
-					<label for="<?php echo esc_attr( $id ); ?>-link"><?php esc_html_e( 'Button link', 'crc-real-estate' ); ?></label>
-					<input type="text" class="widefat" id="<?php echo esc_attr( $id ); ?>-link" data-name="link" name="<?php echo esc_attr( $name ); ?>[link]" value="<?php echo esc_attr( $card['link'] ); ?>" list="crc-cards-links" inputmode="url" spellcheck="false" placeholder="https://">
-					<span class="description"><?php esc_html_e( 'The page the button opens, such as one of your listing categories: click in the box to pick one, or paste any web address. Leave it empty to show the card without a button.', 'crc-real-estate' ); ?></span>
-				</p>
-			</div>
-
-			<div class="crc-cards-row-actions">
-				<button type="button" class="button-link crc-cards-row-up"><?php esc_html_e( 'Move up', 'crc-real-estate' ); ?></button>
-				<button type="button" class="button-link crc-cards-row-down"><?php esc_html_e( 'Move down', 'crc-real-estate' ); ?></button>
-				<button type="button" class="button-link button-link-delete crc-cards-row-remove"><?php esc_html_e( 'Remove card', 'crc-real-estate' ); ?></button>
-			</div>
+			<span class="crc-cards-row-handle dashicons dashicons-menu" title="<?php esc_attr_e( 'Drag to change the order', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
+			<button type="button" class="crc-cards-row-choose" aria-label="<?php echo $preview ? esc_attr__( 'Change picture', 'crc-real-estate' ) : esc_attr__( 'Choose picture', 'crc-real-estate' ); ?>" title="<?php echo $preview ? esc_attr__( 'Change picture', 'crc-real-estate' ) : esc_attr__( 'Choose picture', 'crc-real-estate' ); ?>">
+				<img src="<?php echo esc_url( (string) $preview ); ?>" alt=""<?php echo $preview ? '' : ' hidden'; ?>>
+				<span class="dashicons dashicons-format-image" aria-hidden="true"<?php echo $preview ? ' hidden' : ''; ?>></span>
+			</button>
+			<input type="hidden" class="crc-cards-row-image" data-name="image" name="<?php echo esc_attr( $name ); ?>[image]" value="<?php echo esc_attr( $card['image'] ? (string) (int) $card['image'] : '' ); ?>">
+			<label class="screen-reader-text" for="<?php echo esc_attr( $id ); ?>-title"><?php esc_html_e( 'Title', 'crc-real-estate' ); ?></label>
+			<input type="text" class="crc-cards-row-title" id="<?php echo esc_attr( $id ); ?>-title" data-name="title" name="<?php echo esc_attr( $name ); ?>[title]" value="<?php echo esc_attr( $card['title'] ); ?>" placeholder="<?php esc_attr_e( 'Title', 'crc-real-estate' ); ?>">
+			<label class="screen-reader-text" for="<?php echo esc_attr( $id ); ?>-link"><?php esc_html_e( 'Link', 'crc-real-estate' ); ?></label>
+			<input type="text" class="crc-cards-row-link" id="<?php echo esc_attr( $id ); ?>-link" data-name="link" name="<?php echo esc_attr( $name ); ?>[link]" value="<?php echo esc_attr( $card['link'] ); ?>" list="crc-cards-links" inputmode="url" spellcheck="false" placeholder="<?php esc_attr_e( 'Link', 'crc-real-estate' ); ?>">
+			<span class="crc-cards-row-actions">
+				<button type="button" class="crc-cards-row-up" aria-label="<?php esc_attr_e( 'Move up', 'crc-real-estate' ); ?>" title="<?php esc_attr_e( 'Move up', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-arrow-up-alt2" aria-hidden="true"></span></button>
+				<button type="button" class="crc-cards-row-down" aria-label="<?php esc_attr_e( 'Move down', 'crc-real-estate' ); ?>" title="<?php esc_attr_e( 'Move down', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span></button>
+				<button type="button" class="crc-cards-row-remove" aria-label="<?php esc_attr_e( 'Remove card', 'crc-real-estate' ); ?>" title="<?php esc_attr_e( 'Remove card', 'crc-real-estate' ); ?>"><span class="dashicons dashicons-trash" aria-hidden="true"></span></button>
+			</span>
 		</li>
 		<?php
 	}
