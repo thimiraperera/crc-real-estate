@@ -24,7 +24,7 @@ Real estate listing tools for WordPress.
 * Owner details kept privately with each listing, never shown on the website
 * Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
 * Keyword ticker: a full-width row of keywords that moves on its own, stops under the mouse, and can be dragged and thrown; keywords import and export as JSON
-* Category carousel: square picture cards with a title and a button, moved with arrows, swiping or dragging, running on to the edge of the window
+* Category carousel: square picture cards with a title and a View Properties button, moved with arrows or dragging, running on to the edge of the window; one card with dots on phones
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -36,6 +36,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.19.0 =
+* Category carousel on phones: one card at a time inside the container, with dots under it to show which card is on and to jump to a card. No arrows and no cards running off the edge on phones.
+* Round arrows: no longer buttons, so Elementor's button styles can't change them. Background var(--e-global-color-3581a59), arrow var(--e-global-color-6e3d619), hover background var(--e-global-color-f5fd1b7), a little smaller while pressed, a focus ring for the keyboard (Enter and Space work), and faded when there is nothing more that way. They are shared, ready for other parts of the site.
+* Cards have a 1px border of 20% white over the picture's edge, and the titles use var(--e-global-color-3581a59).
 
 = 0.18.1 =
 * Category carousel: the button always says View Properties.

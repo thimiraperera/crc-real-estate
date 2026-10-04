@@ -11,9 +11,10 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * [crc_category_carousel]: a row of square cards, each with a picture, a title
- * and a View Properties button, that people move through with the arrows, by swiping, or by
- * dragging with the mouse. The cards line up with the container on the left
- * and run on to the edge of the window on the right.
+ * and a View Properties button, that people move through with the arrows or
+ * by dragging with the mouse. On computers and tablets the cards line up with
+ * the container on the left and run on to the edge of the window on the right;
+ * phones show one card at a time, with dots under it instead of arrows.
  *
  * The cards are set in Listings → Widgets.
  */
@@ -22,9 +23,6 @@ final class Category_Carousel {
 	const SHORTCODE = 'crc_category_carousel';
 	const OPTION    = 'crc_re_carousel';
 	const CARDS_MAX = 50;
-
-	const ARROW_LEFT  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 350" aria-hidden="true" focusable="false"><path d="M175,350l32.11-32.11L86.92,197.71H350V152.29H86.92L207.11,32.11,175,0,0,175Z"/></svg>';
-	const ARROW_RIGHT = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 350 350" aria-hidden="true" focusable="false"><path d="m175 0-32.11 32.11 120.19 120.18H0v45.42h263.08L142.89 317.89 175 350l175-175Z"/></svg>';
 
 	/**
 	 * Registers hooks.
@@ -71,11 +69,11 @@ final class Category_Carousel {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Category carousel', 'crc-real-estate' ),
-				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows, by swiping on a phone, or by dragging with the mouse. The cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. The cards are set in Listings → Widgets.', 'crc-real-estate' ),
+				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows or by dragging with the mouse. On computers and tablets the cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. Phones show one card at a time: people swipe, or tap the dots under it. The cards are set in Listings → Widgets.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'width' => array(
 						'default'     => 'bleed',
-						'description' => __( 'bleed to let the cards run on to the right edge of the window, or container to keep them inside the container.', 'crc-real-estate' ),
+						'description' => __( 'bleed to let the cards run on to the right edge of the window on computers and tablets, or container to keep them inside the container.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(
@@ -171,6 +169,7 @@ final class Category_Carousel {
 		}
 
 		$items = '';
+		$dots  = '';
 		$count = count( $cards );
 
 		foreach ( $cards as $index => $card ) {
@@ -181,7 +180,7 @@ final class Category_Carousel {
 				array(
 					'class'     => 'crc-carousel-image',
 					'alt'       => '',
-					'sizes'     => '(max-width: 767px) 90vw, (max-width: 1024px) 50vw, 33vw',
+					'sizes'     => '(max-width: 767px) 100vw, (max-width: 1024px) 50vw, 33vw',
 					'draggable' => 'false',
 				)
 			) : '';
@@ -192,7 +191,7 @@ final class Category_Carousel {
 					'<div class="crc-carousel-button custom-btn-2-lite"><a class="elementor-button elementor-button-link" href="%1$s"><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%2$s</span><span class="elementor-button-icon">%3$s</span></span></a></div>',
 					esc_url( $card['link'] ),
 					esc_html__( 'View Properties', 'crc-real-estate' ),
-					self::ARROW_RIGHT
+					Icons::svg( 'arrow-right' )
 				);
 			}
 
@@ -205,20 +204,27 @@ final class Category_Carousel {
 				'' !== $card['title'] ? '<h6 class="crc-carousel-title">' . esc_html( $card['title'] ) . '</h6>' : '',
 				$button
 			);
+
+			$dots .= $count < 2 ? '' : sprintf(
+				'<span class="crc-carousel-dot%1$s" role="button" tabindex="0" aria-label="%2$s"%3$s></span>',
+				0 === $index ? ' is-active' : '',
+				/* translators: 1: card number, 2: number of cards. */
+				esc_attr( sprintf( __( 'Show card %1$s of %2$s', 'crc-real-estate' ), $index + 1, $count ) ),
+				0 === $index ? ' aria-current="true"' : ''
+			);
 		}
 
 		wp_enqueue_script( 'crc-re-carousel' );
 
 		return sprintf(
-			'<div class="crc-carousel%1$s" data-crc-carousel role="region" aria-roledescription="%2$s" aria-label="%3$s"><div class="crc-carousel-viewport"><ul class="crc-carousel-track">%4$s</ul></div><button type="button" class="crc-carousel-arrow crc-carousel-prev" aria-label="%5$s">%6$s</button><button type="button" class="crc-carousel-arrow crc-carousel-next" aria-label="%7$s">%8$s</button></div>',
+			'<div class="crc-carousel%1$s" data-crc-carousel role="region" aria-roledescription="%2$s" aria-label="%3$s"><div class="crc-carousel-stage"><div class="crc-carousel-viewport"><ul class="crc-carousel-track">%4$s</ul></div>%5$s%6$s</div>%7$s</div>',
 			'container' === strtolower( trim( (string) $atts['width'] ) ) ? '' : ' crc-carousel-bleed',
 			esc_attr__( 'carousel', 'crc-real-estate' ),
 			esc_attr__( 'Property categories', 'crc-real-estate' ),
 			$items, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
-			esc_attr__( 'Previous', 'crc-real-estate' ),
-			self::ARROW_LEFT,
-			esc_attr__( 'Next', 'crc-real-estate' ),
-			self::ARROW_RIGHT
+			Arrow::html( 'prev', __( 'Previous', 'crc-real-estate' ), 'crc-carousel-arrow crc-carousel-prev', true ),
+			Arrow::html( 'next', __( 'Next', 'crc-real-estate' ), 'crc-carousel-arrow crc-carousel-next' ),
+			'' !== $dots ? '<div class="crc-carousel-dots">' . $dots . '</div>' : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 		);
 	}
 }

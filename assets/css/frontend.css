@@ -140,14 +140,88 @@
 	color: inherit;
 }
 
+/*
+ * Round arrows: .crc-arrow with .crc-arrow-prev or .crc-arrow-next, used by the
+ * category carousel and anything else that moves through things. They are not
+ * buttons, so Elementor's button styles never change them. aria-disabled="true"
+ * fades one when there is nothing more that way. Place them with top/left or
+ * margins, not transform, so they shrink in place when pressed.
+ */
+.crc-arrow {
+	--crc-arrow-size: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: var(--crc-arrow-size);
+	height: var(--crc-arrow-size);
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background-color: var(--e-global-color-3581a59);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+	cursor: pointer;
+	opacity: 1;
+	scale: 1;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	transition: background-color 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease, scale 0.2s ease;
+}
+
+.crc-arrow .crc-arrow-icon {
+	display: block;
+	width: 18px;
+	height: 18px;
+	fill: var(--e-global-color-6e3d619);
+	pointer-events: none;
+}
+
+[dir="rtl"] .crc-arrow .crc-arrow-icon {
+	transform: scaleX(-1);
+}
+
+/* Hover only where there is a mouse, so it doesn't stick after a tap. */
+@media (hover: hover) {
+	.crc-arrow:not([aria-disabled="true"]):hover {
+		background-color: var(--e-global-color-f5fd1b7);
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+	}
+}
+
+.crc-arrow:not([aria-disabled="true"]):active {
+	background-color: var(--e-global-color-f5fd1b7);
+	scale: 0.94;
+}
+
+.crc-arrow:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.crc-arrow:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 2px;
+}
+
+.crc-arrow[aria-disabled="true"] {
+	opacity: 0.5;
+	box-shadow: none;
+	cursor: default;
+}
+
 /* Category carousel: [crc_category_carousel] */
 .crc-carousel {
 	--crc-carousel-per-view: 3;
 	--crc-carousel-gap: 24px;
 	--crc-carousel-padding: 32px;
-	--crc-carousel-arrow: 56px;
 	position: relative;
 	width: 100%;
+}
+
+/* The cards and the arrows, which sit half-way down the cards. */
+.crc-carousel .crc-carousel-stage {
+	position: relative;
 }
 
 .crc-carousel .crc-carousel-viewport {
@@ -209,10 +283,9 @@
 	margin: 0;
 	padding: var(--crc-carousel-padding);
 	overflow: hidden;
-	border: 1px solid transparent;
+	border: 0;
 	border-radius: 16px;
 	background-color: var(--e-global-color-1ead78b);
-	background-clip: padding-box;
 	isolation: isolate;
 	scroll-snap-align: start;
 }
@@ -226,6 +299,21 @@
 	z-index: 1;
 	height: 60%;
 	background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--e-global-color-1ead78b) 60%, transparent) 30.93%, var(--e-global-color-1ead78b) 100%);
+	pointer-events: none;
+}
+
+/* A 1px border of 20% white, drawn over the picture's edge. */
+.crc-carousel .crc-carousel-card::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+	box-sizing: border-box;
+	border: 1px solid color-mix(in srgb, var(--e-global-color-3581a59) 20%, transparent);
+	border-radius: inherit;
 	pointer-events: none;
 }
 
@@ -263,7 +351,7 @@
 .crc-carousel .crc-carousel-title {
 	margin-top: 0px;
 	margin-bottom: 0px;
-	color: #fff;
+	color: var(--e-global-color-3581a59);
 }
 
 .crc-carousel .elementor-button-content-wrapper {
@@ -285,78 +373,75 @@
 
 .crc-carousel .crc-carousel-arrow {
 	position: absolute;
-	top: 50%;
+	top: calc(50% - var(--crc-arrow-size) / 2);
 	z-index: 3;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	box-sizing: border-box;
-	width: var(--crc-carousel-arrow);
-	height: var(--crc-carousel-arrow);
-	min-height: 0;
-	margin: 0;
-	padding: 0;
-	border: 0;
-	border-radius: 50%;
-	background: #fff;
-	color: var(--e-global-color-1ead78b);
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-	cursor: pointer;
-	transform: translateY(-50%);
-	transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* Over the container's edges, as far as the window allows. */
 .crc-carousel .crc-carousel-prev {
-	inset-inline-start: calc(-1 * min(var(--crc-carousel-arrow) / 2, var(--crc-carousel-room-start, 0px)));
+	inset-inline-start: calc(-1 * min(var(--crc-arrow-size) / 2, var(--crc-carousel-room-start, 0px)));
 }
 
 .crc-carousel .crc-carousel-next {
-	inset-inline-end: calc(-1 * min(var(--crc-carousel-arrow) / 2, var(--crc-carousel-room-end, 0px)));
+	inset-inline-end: calc(-1 * min(var(--crc-arrow-size) / 2, var(--crc-carousel-room-end, 0px)));
 }
 
-.crc-carousel .crc-carousel-arrow:hover,
-.crc-carousel .crc-carousel-arrow:focus {
-	background: #fff;
-	color: var(--e-global-color-1ead78b);
+/* Dots under the card, for phones. */
+.crc-carousel .crc-carousel-dots {
+	display: none;
+	flex-wrap: wrap;
+	justify-content: center;
+	margin-top: 12px;
 }
 
-.crc-carousel .crc-carousel-arrow:hover {
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-	transform: translateY(-50%) scale(1.06);
+/* Every dot has the same 32px square to tap, so the row never shifts. */
+.crc-carousel .crc-carousel-dot {
+	display: flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	cursor: pointer;
+	-webkit-tap-highlight-color: transparent;
 }
 
-.crc-carousel .crc-carousel-arrow:focus-visible {
-	outline: 2px solid var(--e-global-color-1ead78b);
-	outline-offset: 2px;
-}
-
-.crc-carousel .crc-carousel-arrow[aria-disabled="true"] {
-	opacity: 0.5;
-	box-shadow: none;
-	cursor: default;
-	transform: translateY(-50%);
-}
-
-.crc-carousel .crc-carousel-arrow svg {
+.crc-carousel .crc-carousel-dot::before {
+	content: "";
 	display: block;
-	width: 18px;
-	height: 18px;
-	fill: currentColor;
+	width: 8px;
+	height: 8px;
+	border-radius: 8px;
+	background-color: color-mix(in srgb, var(--e-global-color-6e3d619) 25%, transparent);
+	transition: width 0.3s ease, background-color 0.3s ease;
 }
 
-[dir="rtl"] .crc-carousel .crc-carousel-arrow svg {
-	transform: scaleX(-1);
+.crc-carousel .crc-carousel-dot.is-active::before {
+	width: 24px;
+	background-color: var(--e-global-color-6e3d619);
 }
 
-/* Every card already shows: no arrows. */
-.crc-carousel.is-static .crc-carousel-arrow {
+.crc-carousel .crc-carousel-dot:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.crc-carousel .crc-carousel-dot:focus-visible {
+	border-radius: 16px;
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: -2px;
+}
+
+/* Every card already shows: no arrows or dots. */
+.crc-carousel.is-static .crc-carousel-arrow,
+.crc-carousel.is-static .crc-carousel-dots {
 	display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
+	.crc-arrow,
 	.crc-carousel .crc-carousel-image,
-	.crc-carousel .crc-carousel-arrow {
+	.crc-carousel .crc-carousel-dot::before {
 		transition: none;
 	}
 }
@@ -377,7 +462,10 @@
 		--crc-carousel-per-view: 2;
 		--crc-carousel-gap: 20px;
 		--crc-carousel-padding: 24px;
-		--crc-carousel-arrow: 48px;
+	}
+
+	.crc-carousel .crc-arrow {
+		--crc-arrow-size: 48px;
 	}
 }
 
@@ -387,15 +475,30 @@
 		padding: 24px 24px 32px 24px;
 	}
 
+	/* One card at a time inside the container, with dots instead of arrows. */
 	.crc-carousel {
-		--crc-carousel-per-view: 1.15;
+		--crc-carousel-per-view: 1;
 		--crc-carousel-gap: 16px;
 		--crc-carousel-padding: 24px;
-		--crc-carousel-arrow: 44px;
 	}
 
-	.crc-carousel .crc-carousel-arrow svg {
-		width: 16px;
-		height: 16px;
+	.crc-carousel.crc-carousel-bleed .crc-carousel-viewport {
+		margin-inline-end: 0;
+	}
+
+	.crc-carousel .crc-carousel-track {
+		width: 100%;
+	}
+
+	.crc-carousel .crc-carousel-track::after {
+		display: none;
+	}
+
+	.crc-carousel .crc-carousel-arrow {
+		display: none;
+	}
+
+	.crc-carousel:not(.is-static) .crc-carousel-dots {
+		display: flex;
 	}
 }

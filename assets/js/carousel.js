@@ -1,7 +1,7 @@
 /**
- * Category carousel: the arrows, dragging with the mouse, and the cards
- * running on to the edge of the window. Swiping on phones and touch pads is
- * the browser's own scrolling.
+ * Category carousel: the arrows, the dots on phones, dragging with the mouse,
+ * and the cards running on to the edge of the window. Swiping on phones and
+ * touch pads is the browser's own scrolling.
  */
 ( function () {
 	'use strict';
@@ -13,6 +13,7 @@
 		var track = root.querySelector( '.crc-carousel-track' );
 		var prev = root.querySelector( '.crc-carousel-prev' );
 		var next = root.querySelector( '.crc-carousel-next' );
+		var dots = root.querySelectorAll( '.crc-carousel-dot' );
 		var drag = null;
 		var dragged = false;
 		var aim = null;
@@ -116,14 +117,46 @@
 			}
 		}
 
+		// The card the carousel is on: the one lined up nearest to the start.
+		function current() {
+			var list = stops();
+			var at = position();
+			var best = 0;
+			var i;
+
+			for ( i = 1; i < track.children.length; i++ ) {
+				if ( Math.abs( list[ i ] - at ) < Math.abs( list[ best ] - at ) ) {
+					best = i;
+				}
+			}
+
+			return best;
+		}
+
 		function update() {
 			var at = position();
 			var end = furthest();
+			var on;
+			var i;
 
 			frame = 0;
 			setOff( prev, at <= 1 );
 			setOff( next, at >= end - 1 );
 			root.classList.toggle( 'is-static', end <= 1 );
+
+			if ( dots.length ) {
+				on = current();
+
+				for ( i = 0; i < dots.length; i++ ) {
+					dots[ i ].classList.toggle( 'is-active', i === on );
+
+					if ( i === on ) {
+						dots[ i ].setAttribute( 'aria-current', 'true' );
+					} else {
+						dots[ i ].removeAttribute( 'aria-current' );
+					}
+				}
+			}
 		}
 
 		function schedule() {
@@ -301,14 +334,57 @@
 			}
 		}
 
-		function onArrow( event ) {
-			var forward = event.currentTarget === next;
+		// The arrows and dots aren't buttons, so Enter and Space are handled here.
+		function pressed( event ) {
+			if ( 'keydown' !== event.type ) {
+				return true;
+			}
 
-			if ( 'true' === event.currentTarget.getAttribute( 'aria-disabled' ) ) {
+			if ( 'Enter' === event.key || ' ' === event.key || 'Spacebar' === event.key ) {
+				event.preventDefault();
+				return true;
+			}
+
+			return false;
+		}
+
+		function onArrow( event ) {
+			if ( ! pressed( event ) || 'true' === event.currentTarget.getAttribute( 'aria-disabled' ) ) {
 				return;
 			}
 
-			step( forward );
+			step( event.currentTarget === next );
+		}
+
+		function onDot( event ) {
+			var index = Array.prototype.indexOf.call( dots, event.currentTarget );
+
+			if ( ! pressed( event ) || index < 0 ) {
+				return;
+			}
+
+			go( stops()[ index ] );
+		}
+
+		// Safari on iPhones and iPads only shows the pressed look with a touch listener.
+		function touched() {}
+
+		function listen( add ) {
+			var method = add ? 'addEventListener' : 'removeEventListener';
+			var i;
+
+			[ prev, next ].forEach( function ( arrow ) {
+				if ( arrow ) {
+					arrow[ method ]( 'click', onArrow );
+					arrow[ method ]( 'keydown', onArrow );
+					arrow[ method ]( 'touchstart', touched, { passive: true } );
+				}
+			} );
+
+			for ( i = 0; i < dots.length; i++ ) {
+				dots[ i ][ method ]( 'click', onDot );
+				dots[ i ][ method ]( 'keydown', onDot );
+			}
 		}
 
 		function stop() {
@@ -321,14 +397,7 @@
 			window.removeEventListener( 'resize', scheduleMeasure );
 			window.removeEventListener( 'load', scheduleMeasure );
 			document.removeEventListener( 'animationend', scheduleMeasure, true );
-
-			if ( prev ) {
-				prev.removeEventListener( 'click', onArrow );
-			}
-
-			if ( next ) {
-				next.removeEventListener( 'click', onArrow );
-			}
+			listen( false );
 
 			if ( observer ) {
 				observer.disconnect();
@@ -346,14 +415,7 @@
 		window.addEventListener( 'load', scheduleMeasure );
 		// Elementor's entrance animations move the column; measured again when they end.
 		document.addEventListener( 'animationend', scheduleMeasure, true );
-
-		if ( prev ) {
-			prev.addEventListener( 'click', onArrow );
-		}
-
-		if ( next ) {
-			next.addEventListener( 'click', onArrow );
-		}
+		listen( true );
 
 		if ( window.ResizeObserver ) {
 			observer = new window.ResizeObserver( scheduleMeasure );
@@ -361,7 +423,7 @@
 			observer.observe( document.documentElement );
 		}
 
-		root.crcCarousel = { measure: measure, step: step, stops: stops, stop: stop };
+		root.crcCarousel = { measure: measure, step: step, stops: stops, current: current, stop: stop };
 		measure();
 	}
 
