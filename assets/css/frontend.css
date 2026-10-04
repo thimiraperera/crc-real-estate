@@ -215,6 +215,7 @@
 	--crc-carousel-per-view: 3;
 	--crc-carousel-gap: 24px;
 	--crc-carousel-padding: 32px;
+	--crc-carousel-ratio: 1 / 1;
 	position: relative;
 	width: 100%;
 }
@@ -279,7 +280,7 @@
 	flex-direction: column;
 	justify-content: flex-end;
 	box-sizing: border-box;
-	aspect-ratio: 1 / 1;
+	aspect-ratio: var(--crc-carousel-ratio);
 	margin: 0;
 	padding: var(--crc-carousel-padding);
 	overflow: hidden;
@@ -386,7 +387,7 @@
 	inset-inline-end: calc(-1 * min(var(--crc-arrow-size) / 2, var(--crc-carousel-room-end, 0px)));
 }
 
-/* Dots under the card, for phones. */
+/* Dots under the card, for phones, in white for the dark section behind it. */
 .crc-carousel .crc-carousel-dots {
 	display: none;
 	flex-wrap: wrap;
@@ -413,13 +414,13 @@
 	width: 8px;
 	height: 8px;
 	border-radius: 8px;
-	background-color: color-mix(in srgb, var(--e-global-color-6e3d619) 25%, transparent);
+	background-color: color-mix(in srgb, var(--e-global-color-3581a59) 40%, transparent);
 	transition: width 0.3s ease, background-color 0.3s ease;
 }
 
 .crc-carousel .crc-carousel-dot.is-active::before {
 	width: 24px;
-	background-color: var(--e-global-color-6e3d619);
+	background-color: var(--e-global-color-3581a59);
 }
 
 .crc-carousel .crc-carousel-dot:focus:not(:focus-visible) {
@@ -428,7 +429,7 @@
 
 .crc-carousel .crc-carousel-dot:focus-visible {
 	border-radius: 16px;
-	outline: 2px solid var(--e-global-color-6e3d619);
+	outline: 2px solid var(--e-global-color-3581a59);
 	outline-offset: -2px;
 }
 
@@ -479,7 +480,8 @@
 	.crc-carousel {
 		--crc-carousel-per-view: 1;
 		--crc-carousel-gap: 16px;
-		--crc-carousel-padding: 24px;
+		--crc-carousel-padding: 24px 16px;
+		--crc-carousel-ratio: 5 / 6;
 	}
 
 	.crc-carousel.crc-carousel-bleed .crc-carousel-viewport {

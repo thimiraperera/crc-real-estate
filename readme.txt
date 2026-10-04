@@ -37,6 +37,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.19.1 =
+* Category carousel on phones: cards are 5:6 (a little taller than wide) with 24px padding at the top and bottom and 16px at the sides, and the dots are white for the dark section behind them.
+
 = 0.19.0 =
 * Category carousel on phones: one card at a time inside the container, with dots under it to show which card is on and to jump to a card. No arrows and no cards running off the edge on phones.
 * Round arrows: no longer buttons, so Elementor's button styles can't change them. Background var(--e-global-color-3581a59), arrow var(--e-global-color-6e3d619), hover background var(--e-global-color-f5fd1b7), a little smaller while pressed, a focus ring for the keyboard (Enter and Space work), and faded when there is nothing more that way. They are shared, ready for other parts of the site.
