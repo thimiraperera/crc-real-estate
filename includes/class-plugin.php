@@ -62,6 +62,7 @@ final class Plugin {
 		( new Sections\Faq() )->hooks();
 		( new Ticker() )->hooks();
 		( new Category_Carousel() )->hooks();
+		( new Testimonials() )->hooks();
 		( new Admin\Name_Help() )->hooks();
 		( new Admin\District_Box() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
@@ -78,6 +79,8 @@ final class Plugin {
 		( new Admin\Listing_Export() )->hooks();
 		( new Admin\Import_Page() )->hooks();
 		( new Admin\Widgets_Page() )->hooks();
+		( new Admin\Testimonial_Box() )->hooks();
+		( new Admin\Testimonials_Settings() )->hooks();
 		( new Admin\Shortcodes_Page() )->hooks();
 		( new Admin\Settings_Page() )->hooks();
 

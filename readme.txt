@@ -29,6 +29,7 @@ Real estate listing tools for WordPress.
 * Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
+* Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -40,6 +41,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.22.0 =
+* Testimonials: a Testimonials menu of its own (not under Listings) with All Testimonials, Add New Testimonial and Settings. Each testimonial has a name (where a title usually goes), a star rating from 0.5 to 5 that goes up in halves, and what they said. The list shows each one's stars and the start of its words.
+* [crc_testimonials]: the testimonials in cards (32px padding, 16px corners, var(--e-global-color-3581a59), a 1px border of 10% var(--e-global-color-1ead78b); 24px 16px padding on phones), 24px apart. The name is an H6 with no margins in var(--e-global-color-6e3d619), then 20px SVG stars 12px under it, then the words 16px under the stars in var(--e-global-color-text), with no margin under the last paragraph.
+* The carousel goes round and round: three at a time on desktops and laptops, two on tablets and one on phones. It can be dragged or swiped, and a throw glides on and settles on a card; the arrow keys move it too. It moves on by itself and waits while the mouse or the keyboard is on it, off screen, or for people who ask for less motion.
+* A new random choice of testimonials on each visit, even when the page comes from the cache. Testimonials → Settings sets how many (10 to start with) and how often it moves on (every 5 seconds; 0 keeps it still); count="…" and delay="…" change them on one page. Saving clears the LiteSpeed cache.
 
 = 0.21.0 =
 * FAQs for any page: [crc_faqs] shows the site's own questions as white cards (16px corners, a 1px border of 3% black in white, a soft shadow), 24px apart and up to 800px wide. Questions have 16px 24px padding, weight 500 and var(--e-global-color-6e3d619); answers use var(--e-global-color-text); the text keeps the site's size. Each question opens smoothly with the chevron arrows on the right, the first is open at the start, and only one is open at a time. open="none" starts with all closed.

@@ -535,6 +535,24 @@
 	margin: 0;
 }
 
+/* Testimonials list: stars in the Rating column */
+.crc-testimonial-rating {
+	display: inline-flex;
+	color: #dba617;
+	vertical-align: middle;
+}
+
+.crc-testimonial-rating .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.crc-testimonial-rating-number {
+	display: block;
+	color: #646970;
+}
+
 /* Widgets page: tabs */
 .crc-widgets .crc-widgets-tabs {
 	margin-bottom: 4px;

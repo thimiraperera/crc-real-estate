@@ -490,6 +490,115 @@
 	}
 }
 
+/* Testimonials: [crc_testimonials] */
+.crc-testimonials {
+	--crc-testimonials-per-view: 3;
+	--crc-testimonials-gap: 24px;
+	--crc-testimonials-padding: 32px;
+	--crc-star-color: #f5b400;
+	--crc-star-empty: color-mix(in srgb, var(--e-global-color-1ead78b) 12%, transparent);
+	position: relative;
+	width: 100%;
+	outline: none;
+}
+
+.crc-testimonials:focus-visible {
+	outline: 2px solid var(--e-global-color-6e3d619);
+	outline-offset: 4px;
+	border-radius: 16px;
+}
+
+.crc-testimonials .crc-testimonials-viewport {
+	overflow: hidden;
+	touch-action: pan-y pinch-zoom;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.crc-testimonials:not(.is-static) .crc-testimonials-viewport {
+	cursor: grab;
+}
+
+.crc-testimonials.is-dragging .crc-testimonials-viewport {
+	cursor: grabbing;
+}
+
+/* Left to right on every site, so it moves the right way; the text keeps the site's direction. */
+.crc-testimonials .crc-testimonials-track {
+	display: flex;
+	align-items: stretch;
+	gap: var(--crc-testimonials-gap);
+	direction: ltr;
+	will-change: transform;
+}
+
+.crc-testimonials .crc-testimonial {
+	display: flex;
+	flex: 0 0 calc((100% - (var(--crc-testimonials-per-view) - 1) * var(--crc-testimonials-gap)) / var(--crc-testimonials-per-view));
+	flex-direction: column;
+	box-sizing: border-box;
+	min-width: 0;
+	margin: 0;
+	padding: var(--crc-testimonials-padding);
+	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 10%, transparent);
+	border-radius: 16px;
+	background: var(--e-global-color-3581a59);
+}
+
+.crc-testimonials .crc-testimonial[hidden] {
+	display: none;
+}
+
+[dir="rtl"] .crc-testimonials .crc-testimonial {
+	direction: rtl;
+}
+
+.crc-testimonials .crc-testimonial-name {
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: var(--e-global-color-6e3d619);
+}
+
+/* Stars: 12px under the name, 20px each. Each is an SVG star shape in the star
+   colour; a half star is coloured halfway, and an empty one is faint. */
+.crc-testimonials .crc-testimonial-stars {
+	display: flex;
+	gap: 4px;
+	margin-top: 12px;
+}
+
+.crc-testimonials .crc-star {
+	display: block;
+	flex: none;
+	width: 20px;
+	height: 20px;
+	background: var(--crc-star-empty);
+	-webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.05 15.23 8.6l7.23 1.05-5.23 5.1 1.24 7.2L12 18.55l-6.47 3.4 1.24-7.2-5.23-5.1 7.23-1.05Z' stroke='%23000' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+	mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.05 15.23 8.6l7.23 1.05-5.23 5.1 1.24 7.2L12 18.55l-6.47 3.4 1.24-7.2-5.23-5.1 7.23-1.05Z' stroke='%23000' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.crc-testimonials .crc-star.is-full {
+	background: var(--crc-star-color);
+}
+
+.crc-testimonials .crc-star.is-half {
+	background: linear-gradient(90deg, var(--crc-star-color) 50%, var(--crc-star-empty) 50%);
+}
+
+[dir="rtl"] .crc-testimonials .crc-star.is-half {
+	background: linear-gradient(270deg, var(--crc-star-color) 50%, var(--crc-star-empty) 50%);
+}
+
+/* What they said: 16px under the stars, the site's text size. */
+.crc-testimonials .crc-testimonial-text {
+	margin-top: 16px;
+	color: var(--e-global-color-text);
+}
+
+.crc-testimonials .crc-testimonial-text p:last-child {
+	margin-bottom: 0px;
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	/* Your styles for desktop */
@@ -510,6 +619,10 @@
 
 	.crc-carousel .crc-arrow {
 		--crc-arrow-size: 48px;
+	}
+
+	.crc-testimonials {
+		--crc-testimonials-per-view: 2;
 	}
 }
 
@@ -545,5 +658,10 @@
 
 	.crc-carousel:not(.is-static) .crc-carousel-dots {
 		display: flex;
+	}
+
+	.crc-testimonials {
+		--crc-testimonials-per-view: 1;
+		--crc-testimonials-padding: 24px 16px;
 	}
 }
