@@ -1,5 +1,5 @@
 /**
- * Listings → Settings: imports the ticker's keywords from a JSON file into
+ * Listings → Widgets, Keyword ticker tab: imports the ticker's keywords from a JSON file into
  * the box, and exports the keywords in the box as a JSON file.
  */
 ( function () {

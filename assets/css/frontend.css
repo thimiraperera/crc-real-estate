@@ -203,7 +203,7 @@
 	border: 0;
 	border-radius: 50%;
 	background-color: var(--e-global-color-3581a59);
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+	box-shadow: 0 6px 20px color-mix(in srgb, var(--e-global-color-1ead78b) 12%, var(--e-global-color-bb33687));
 	cursor: pointer;
 	opacity: 1;
 	scale: 1;
@@ -229,7 +229,7 @@
 @media (hover: hover) {
 	.crc-arrow:not([aria-disabled="true"]):hover {
 		background-color: var(--e-global-color-f5fd1b7);
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+		box-shadow: 0 8px 24px color-mix(in srgb, var(--e-global-color-1ead78b) 16%, var(--e-global-color-bb33687));
 	}
 }
 
@@ -599,6 +599,216 @@
 	margin-bottom: 0px;
 }
 
+/* Listing carousel: [crc_listing_carousel]. Each tab is a carousel like the
+   category carousel (carousel.js); only the cards and the tabs are its own. */
+.crc-listings {
+	width: 100%;
+}
+
+/* Tabs: one for each category, the open one underlined. */
+.crc-listings .crc-listing-tabs {
+	display: flex;
+	margin: 0 0 48px;
+}
+
+.crc-listings .crc-listing-tab {
+	display: block;
+	flex: none;
+	padding: 0 20px 8px;
+	border-bottom: 2px solid var(--e-global-color-bb33687);
+	color: var(--e-global-color-6e3d619);
+	white-space: nowrap;
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	transition: border-color 0.25s ease;
+}
+
+@media (hover: hover) {
+	.crc-listings .crc-listing-tab:hover {
+		border-bottom-color: color-mix(in srgb, var(--e-global-color-primary) 35%, var(--e-global-color-bb33687));
+	}
+}
+
+.crc-listings .crc-listing-tab[aria-selected="true"] {
+	border-bottom-color: var(--e-global-color-primary);
+}
+
+.crc-listings .crc-listing-tab:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.crc-listings .crc-listing-tab:focus-visible {
+	border-radius: 4px;
+	outline: 2px solid var(--e-global-color-primary);
+	outline-offset: 2px;
+}
+
+.crc-listings .crc-listing-panel[hidden] {
+	display: none;
+}
+
+/* Cards: as tall as each other, with the button at the bottom. */
+.crc-carousel.crc-carousel-listings .crc-carousel-track {
+	align-items: stretch;
+}
+
+.crc-carousel .crc-listing-card {
+	position: relative;
+	display: flex;
+	flex: 0 0 calc((100% - (var(--crc-carousel-per-view) - 1) * var(--crc-carousel-gap)) / var(--crc-carousel-per-view));
+	flex-direction: column;
+	box-sizing: border-box;
+	margin: 0;
+	overflow: hidden;
+	border: 1px solid color-mix(in srgb, var(--e-global-color-primary) 15%, var(--e-global-color-f5fd1b7));
+	border-radius: 16px;
+	background: var(--e-global-color-3581a59);
+	isolation: isolate;
+	scroll-snap-align: start;
+}
+
+.crc-carousel .crc-listing-card-media {
+	position: relative;
+	aspect-ratio: 1.72;
+	overflow: hidden;
+	background: var(--e-global-color-f5fd1b7);
+}
+
+.crc-carousel .crc-listing-card-photo {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.crc-carousel .crc-listing-card-img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	margin: 0;
+	border: 0;
+	border-radius: 0;
+	object-fit: cover;
+	transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+	-webkit-user-drag: none;
+}
+
+.crc-carousel .crc-listing-card:hover .crc-listing-card-img,
+.crc-carousel .crc-listing-card:focus-within .crc-listing-card-img {
+	transform: scale(1.06);
+}
+
+/* The district on the photo. */
+.crc-carousel .crc-listing-card-place {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	z-index: 1;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 16px;
+	border-radius: 100px;
+	background: var(--e-global-color-3581a59);
+	color: var(--e-global-color-6e3d619);
+	line-height: 1.25;
+	pointer-events: none;
+}
+
+.crc-carousel .crc-listing-card-place-icon {
+	display: block;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+}
+
+.crc-carousel .crc-listing-card-body {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 24px 24px 32px;
+}
+
+/* Tags: a little smaller than under a listing's title. */
+.crc-carousel .crc-listing-card .crc-tags {
+	gap: 8px;
+	margin-bottom: 24px;
+}
+
+.crc-carousel .crc-listing-card .crc-tag {
+	gap: 10px;
+	padding: 7px 16px;
+}
+
+.crc-carousel .crc-listing-card-title {
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: var(--e-global-color-6e3d619);
+}
+
+.crc-carousel .crc-listing-card-title a {
+	color: inherit;
+	text-decoration: none;
+}
+
+/* Price: the amount (H3) and the price per perch (H6), 9px apart. */
+.crc-carousel .crc-listing-card-price {
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	margin-top: 24px;
+}
+
+.crc-carousel .crc-listing-card-amount,
+.crc-carousel .crc-listing-card-per {
+	margin-top: 0px;
+	margin-bottom: 0px;
+	color: var(--e-global-color-primary);
+}
+
+.crc-carousel .crc-listing-card-period {
+	font-size: 0.5em;
+}
+
+.crc-carousel .crc-listing-card-button {
+	margin-top: auto;
+	padding-top: 40px;
+}
+
+.crc-carousel .crc-listing-card .elementor-button-content-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.crc-carousel .crc-listing-card .elementor-button-icon {
+	display: flex;
+	align-items: center;
+}
+
+.crc-carousel .crc-listing-card .elementor-button-icon svg {
+	width: 1em;
+	height: 1em;
+	fill: currentColor;
+}
+
+/* Dots on phones, for a light section. */
+.crc-carousel.crc-carousel-listings .crc-carousel-dot::before {
+	background-color: color-mix(in srgb, var(--e-global-color-6e3d619) 20%, var(--e-global-color-bb33687));
+}
+
+.crc-carousel.crc-carousel-listings .crc-carousel-dot.is-active::before {
+	background-color: var(--e-global-color-primary);
+}
+
+.crc-carousel.crc-carousel-listings .crc-carousel-dot:focus-visible {
+	outline-color: var(--e-global-color-primary);
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	/* Your styles for desktop */
@@ -663,5 +873,24 @@
 	.crc-testimonials {
 		--crc-testimonials-per-view: 1;
 		--crc-testimonials-padding: 24px 16px;
+	}
+
+	/* Listing tabs side by side, swiped when they don't fit. */
+	.crc-listings .crc-listing-tabs {
+		margin-bottom: 32px;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.crc-listings .crc-listing-tabs::-webkit-scrollbar {
+		display: none;
+	}
+
+	.crc-listings .crc-listing-tab {
+		padding: 0 14px 8px;
+	}
+
+	.crc-carousel .crc-listing-card-body {
+		padding: 24px 16px;
 	}
 }

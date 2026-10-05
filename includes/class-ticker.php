@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  * that moves across the page on its own, over the full width. It slows down
  * and stops while the mouse is over it, and can be dragged and thrown.
  *
- * The keywords, the speed and the direction are set in Listings → Settings,
+ * The keywords, the speed and the direction are set in Listings → Widgets,
  * where the keywords can also be imported and exported as a JSON file.
  */
 final class Ticker {
@@ -67,15 +67,15 @@ final class Ticker {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Keyword ticker', 'crc-real-estate' ),
-				'description' => __( 'A row of keywords, such as Houses · Villas · Apartments, that moves across the page on its own, over the full width of the window. It slows down and stops while the mouse is over it, and people can drag it and throw it. The keywords, the speed and the direction are set in Listings → Settings, where they can also be imported from a JSON file. The words use the site\'s H3 style.', 'crc-real-estate' ),
+				'description' => __( 'A row of keywords, such as Houses · Villas · Apartments, that moves across the page on its own, over the full width of the window. It slows down and stops while the mouse is over it, and people can drag it and throw it. The keywords, the speed and the direction are set in Listings → Widgets, on the Keyword ticker tab, where they can also be imported from a JSON file. The words use the site\'s H3 style.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'speed'     => array(
 						'default'     => '',
-						'description' => __( 'How fast it moves here, in pixels a second, from 5 to 400. Leave it out to use the speed from Settings.', 'crc-real-estate' ),
+						'description' => __( 'How fast it moves here, in pixels a second, from 5 to 400. Leave it out to use the speed from the Keyword ticker tab in Listings → Widgets.', 'crc-real-estate' ),
 					),
 					'direction' => array(
 						'default'     => '',
-						'description' => __( 'Which way it moves here: left (right to left) or right (left to right). Leave it out to use the direction from Settings.', 'crc-real-estate' ),
+						'description' => __( 'Which way it moves here: left (right to left) or right (left to right). Leave it out to use the direction from the Keyword ticker tab in Listings → Widgets.', 'crc-real-estate' ),
 					),
 					'width'     => array(
 						'default'     => 'full',
@@ -119,7 +119,7 @@ final class Ticker {
 		$keywords = Settings::sanitize_keywords( Settings::ticker( 'keywords' ) );
 
 		if ( ! $keywords ) {
-			return Shortcodes::placeholder( self::SHORTCODE, __( 'Add the keywords in Listings → Settings, under Keyword ticker.', 'crc-real-estate' ) );
+			return Shortcodes::placeholder( self::SHORTCODE, __( 'Add the keywords in Listings → Widgets, on the Keyword ticker tab.', 'crc-real-estate' ) );
 		}
 
 		$speed     = Settings::sanitize_speed( $atts['speed'], Settings::sanitize_speed( Settings::ticker( 'speed' ) ) );

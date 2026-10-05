@@ -23,6 +23,7 @@ Real estate listing tools for WordPress.
 - **Suggested names and short links**, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 - **FAQs for any page**: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 - **Testimonials**: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
+- **Listing carousel**: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

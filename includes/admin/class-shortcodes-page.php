@@ -74,7 +74,7 @@ final class Shortcodes_Page {
 		<div class="wrap crc-info">
 			<h1><?php esc_html_e( 'Shortcodes', 'crc-real-estate' ); ?></h1>
 			<p class="crc-info-intro">
-				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. The listing shortcodes show the listing being viewed on a listing page; anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings. The keyword ticker, the category carousel, the FAQs for any page and the testimonials work on any page and need no ID.', 'crc-real-estate' ); ?>
+				<?php esc_html_e( 'Place a shortcode in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes. The listing shortcodes show the listing being viewed on a listing page; anywhere else, add id="…" with the listing ID, which you can see by hovering over a listing in All Listings. The keyword ticker, the category carousel, the listing carousel, the FAQs for any page and the testimonials work on any page and need no ID.', 'crc-real-estate' ); ?>
 			</p>
 
 			<?php foreach ( Shortcodes::all() as $tag => $info ) : ?>

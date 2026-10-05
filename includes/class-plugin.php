@@ -62,6 +62,7 @@ final class Plugin {
 		( new Sections\Faq() )->hooks();
 		( new Ticker() )->hooks();
 		( new Category_Carousel() )->hooks();
+		( new Listing_Carousel() )->hooks();
 		( new Testimonials() )->hooks();
 		( new Admin\Name_Help() )->hooks();
 		( new Admin\District_Box() )->hooks();

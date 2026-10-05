@@ -16,7 +16,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Widgets: ready-made pieces for any page, each on a tab with its
- * shortcode and what goes in it: the category carousel's cards, and FAQs.
+ * shortcode and what goes in it: the category carousel's cards, FAQs, and the
+ * keyword ticker.
  */
 final class Widgets_Page {
 
@@ -30,6 +31,26 @@ final class Widgets_Page {
 	 * @var string
 	 */
 	private $hook = '';
+
+	/**
+	 * The Keyword ticker tab.
+	 *
+	 * @var Ticker_Tab|null
+	 */
+	private $ticker = null;
+
+	/**
+	 * The Keyword ticker tab.
+	 *
+	 * @return Ticker_Tab
+	 */
+	private function ticker() {
+		if ( ! $this->ticker ) {
+			$this->ticker = new Ticker_Tab();
+		}
+
+		return $this->ticker;
+	}
 
 	/**
 	 * Registers hooks.
@@ -79,6 +100,8 @@ final class Widgets_Page {
 				'default'           => array( 'items' => array() ),
 			)
 		);
+
+		$this->ticker()->register();
 	}
 
 	/**
@@ -90,6 +113,7 @@ final class Widgets_Page {
 		return array(
 			'carousel' => __( 'Category carousel', 'crc-real-estate' ),
 			'faqs'     => __( 'FAQs', 'crc-real-estate' ),
+			'ticker'   => __( 'Keyword ticker', 'crc-real-estate' ),
 		);
 	}
 
@@ -129,6 +153,8 @@ final class Widgets_Page {
 				'change'      => __( 'Change picture', 'crc-real-estate' ),
 			)
 		);
+
+		$this->ticker()->enqueue();
 	}
 
 	/**
@@ -150,6 +176,8 @@ final class Widgets_Page {
 			<?php
 			if ( 'faqs' === $current ) {
 				$this->faqs_tab();
+			} elseif ( 'ticker' === $current ) {
+				$this->ticker()->render();
 			} else {
 				$this->carousel_tab();
 			}

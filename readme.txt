@@ -30,6 +30,7 @@ Real estate listing tools for WordPress.
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
+* Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -41,6 +42,13 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.23.0 =
+* Listing carousel: [crc_listing_carousel] shows listings in cards with a tab for each category (named as the categories are), 10 a tab. show="latest" has the newest listings, for Latest Verified Listings, and show="popular" the most viewed, for Popular Listings; count="…" and categories="…" change it. A tab without listings doesn't show.
+* Each card: the main photo (it zooms a little under the mouse) with the district on a white pill, the land extent or bedrooms and the property type as tags, the title as an H6 in var(--e-global-color-6e3d619), the price as an H3 and the price per perch as an H6, both in var(--e-global-color-primary), 9px apart, and View Details with the arrow in custom-btn-1-lite. Every colour is one of the site's, with color-mix for shades.
+* It works like the category carousel, with its round arrows and its script: it can be dragged, the cards run on to the right edge of the window, the arrows fade at the ends, and phones show one card at a time with dots. It doesn't go round and round. The tabs work with the mouse and the keyboard.
+* The keyword ticker's settings moved from Listings → Settings to a Keyword ticker tab in Listings → Widgets. The keywords stay as they were.
+* The round arrows' shadows use the site's colours.
 
 = 0.22.0 =
 * Testimonials: a Testimonials menu of its own (not under Listings) with All Testimonials, Add New Testimonial and Settings. Each testimonial has a name (where a title usually goes), a star rating from 0.5 to 5 that goes up in halves, and what they said. The list shows each one's stars and the start of its words.

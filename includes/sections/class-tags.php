@@ -204,14 +204,26 @@ final class Tags {
 		}
 
 		$category = Taxonomy::listing_category( $post->ID );
-		$kinds    = self::kinds();
 		$names    = '' !== trim( (string) $atts['show'] ) ? self::parse_show( $atts['show'] ) : self::defaults( $category ? $category['slug'] : '' );
-		$tags     = self::values( $post->ID, array_values( array_intersect( $names, array_keys( $kinds ) ) ) );
+		$html     = self::list_html( $post->ID, $names );
 
-		if ( ! $tags ) {
+		if ( '' === $html ) {
 			return Shortcodes::placeholder( self::SHORTCODE, __( 'This listing has nothing for its tags yet. Fill in its district, property type and size on the listing screen.', 'crc-real-estate' ) );
 		}
 
+		return $html;
+	}
+
+	/**
+	 * A listing's tags as a list, for this shortcode and for listing cards.
+	 *
+	 * @param int      $post_id Listing ID.
+	 * @param string[] $names   Tag names, in order.
+	 * @return string An empty string when none has a value.
+	 */
+	public static function list_html( $post_id, array $names ) {
+		$kinds = self::kinds();
+		$tags  = self::values( $post_id, array_values( array_intersect( $names, array_keys( $kinds ) ) ) );
 		$items = '';
 
 		foreach ( $tags as $name => $text ) {
@@ -224,6 +236,6 @@ final class Tags {
 			);
 		}
 
-		return '<ul class="crc-tags">' . $items . '</ul>';
+		return '' !== $items ? '<ul class="crc-tags">' . $items . '</ul>' : '';
 	}
 }
