@@ -133,4 +133,13 @@
 	} else {
 		start();
 	}
+
+	// Questions added later in Elementor's editor.
+	if ( window.jQuery ) {
+		window.jQuery( window ).on( 'elementor/frontend/init', function () {
+			if ( window.elementorFrontend && window.elementorFrontend.hooks ) {
+				window.elementorFrontend.hooks.addAction( 'frontend/element_ready/global', start );
+			}
+		} );
+	}
 }() );

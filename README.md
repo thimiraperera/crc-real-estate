@@ -21,6 +21,7 @@ Real estate listing tools for WordPress.
 - **Tags under the title**: the district, land extent, bedrooms, bathrooms, floor area and property type as rounded tags with icons
 - **Districts**: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 - **Suggested names and short links**, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
+- **FAQs for any page**: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

@@ -535,6 +535,58 @@
 	margin: 0;
 }
 
+/* Widgets page: tabs */
+.crc-widgets .crc-widgets-tabs {
+	margin-bottom: 4px;
+}
+
+/* Widgets page: FAQs, each question with its answer under it */
+.crc-faqs-list {
+	margin: 12px 0 0;
+	list-style: none;
+}
+
+.crc-faqs-row {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0 0 6px;
+	padding: 8px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.crc-faqs-row .crc-cards-row-handle {
+	margin-top: 6px;
+}
+
+.crc-faqs-row-fields {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	gap: 6px;
+	min-width: 0;
+}
+
+.crc-faqs-row .crc-faqs-row-question,
+.crc-faqs-row .crc-faqs-row-answer {
+	width: 100%;
+	margin: 0;
+}
+
+.crc-faqs-row .crc-faqs-row-question {
+	font-weight: 600;
+}
+
+.crc-faqs-row .crc-faqs-row-answer {
+	resize: vertical;
+}
+
+.crc-faqs-row .crc-cards-row-actions {
+	margin-top: 2px;
+}
+
 /* Widgets page: category carousel cards, one line each */
 .crc-cards-list {
 	margin: 12px 0 0;
@@ -1052,6 +1104,7 @@
 	.crc-import-columns td:first-child {
 		width: 40%;
 	}
+
 	.crc-cards-row {
 		flex-wrap: wrap;
 	}
@@ -1063,5 +1116,18 @@
 
 	.crc-cards-row-link {
 		flex: 1 1 140px;
+	}
+
+	/* The question and answer beside the handle, then the icons under them. */
+	.crc-faqs-row {
+		flex-wrap: wrap;
+	}
+
+	.crc-faqs-row-fields {
+		flex-basis: calc(100% - 36px);
+	}
+
+	.crc-faqs-row .crc-cards-row-actions {
+		margin-left: auto;
 	}
 }

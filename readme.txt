@@ -28,6 +28,7 @@ Real estate listing tools for WordPress.
 * Tags under the title: the district, land extent, bedrooms, bathrooms, floor area and property type as rounded tags with icons
 * Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
+* FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -39,6 +40,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.21.0 =
+* FAQs for any page: [crc_faqs] shows the site's own questions as white cards (16px corners, a 1px border of 3% black in white, a soft shadow), 24px apart and up to 800px wide. Questions have 16px 24px padding, weight 500 and var(--e-global-color-6e3d619); answers use var(--e-global-color-text); the text keeps the site's size. Each question opens smoothly with the chevron arrows on the right, the first is open at the start, and only one is open at a time. open="none" starts with all closed.
+* FAQ schema: the questions are given to search engines as FAQPage structured data, once a page, together with a listing's questions when both are on the page. schema="no" leaves it out for pages where an SEO plugin does it.
+* Listings → Widgets has tabs: Category carousel and FAQs. On the FAQs tab, add questions with their answers (an empty line starts a new paragraph), and drag them or use the arrows to change the order. Each tab saves on its own. Saving clears the LiteSpeed cache.
 
 = 0.20.0 =
 * Tags under the title: [crc_listing_tags] shows the listing's key details as rounded tags with icons, like Galle, 20 Acres and Bare Land. Lands show the district, land extent and property type; properties for sale and for rent show the district, bedrooms, bathrooms, floor area and property type. They come from what is already filled in, a tag without a value doesn't show, and show="…" picks other ones. The pin is your icon; the ruler, area, bed and bath icons are new, and the property type uses the floor plan icon.

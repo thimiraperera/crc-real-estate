@@ -18,9 +18,10 @@ defined( 'ABSPATH' ) || exit;
  * Frequently asked questions, each opening smoothly to show its answer.
  *
  * Each listing category has questions of its own, shown on every listing in
- * it; a listing adds its own after them, or leaves the category's out. All
- * the questions on a page are also given to search engines as FAQ
- * structured data (schema.org FAQPage).
+ * it; a listing adds its own after them, or leaves the category's out. The
+ * site also has questions of its own for any page, [crc_faqs], set in
+ * Listings → Widgets. All the questions on a page are also given to search
+ * engines as FAQ structured data (schema.org FAQPage), once.
  */
 final class Faq {
 
@@ -29,6 +30,9 @@ final class Faq {
 	const HIDE_META  = '_crc_faqs_no_category';
 	const BODY_CLASS = 'crc-no-faq';
 	const MAX        = 50;
+
+	const GENERAL_SHORTCODE = 'crc_faqs';
+	const GENERAL_OPTION    = 'crc_re_faqs';
 
 	/**
 	 * Questions for search engines on this page: question => answer HTML.
@@ -51,8 +55,13 @@ final class Faq {
 		add_action( 'init', array( $this, 'register' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'register_assets' ), 6 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_on_listing' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_for_general' ) );
+		add_action( 'elementor/preview/enqueue_styles', array( $this, 'enqueue_style' ) );
+		add_action( 'elementor/preview/enqueue_scripts', array( $this, 'enqueue_script' ) );
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 		add_action( 'wp_footer', array( $this, 'print_schema' ) );
+		add_action( 'add_option_' . self::GENERAL_OPTION, array( $this, 'clear_cache' ) );
+		add_action( 'update_option_' . self::GENERAL_OPTION, array( $this, 'clear_cache' ) );
 	}
 
 	/**
@@ -90,6 +99,29 @@ final class Faq {
 				),
 			)
 		);
+
+		Shortcodes::add(
+			self::GENERAL_SHORTCODE,
+			array( $this, 'render_general' ),
+			array(
+				'title'       => __( 'FAQs for any page', 'crc-real-estate' ),
+				'description' => __( 'The site\'s own frequently asked questions, for any page, such as the home page or a contact page. Add them in Listings → Widgets, on the FAQs tab. They show as white cards with a soft shadow, up to 800px wide; each question opens smoothly to show its answer, the first one is open at the start, and only one is open at a time. The questions are also given to search engines as FAQ structured data.', 'crc-real-estate' ),
+				'attributes'  => array(
+					'open'   => array(
+						'default'     => 'first',
+						'description' => __( 'Whether the first question is open at the start: first, or none to start with all of them closed.', 'crc-real-estate' ),
+					),
+					'schema' => array(
+						'default'     => 'yes',
+						'description' => __( 'Gives the questions to search engines as FAQ structured data. Use no when an SEO plugin already does this for the page.', 'crc-real-estate' ),
+					),
+				),
+				'examples'    => array(
+					'[' . self::GENERAL_SHORTCODE . ']',
+					'[' . self::GENERAL_SHORTCODE . ' open="none"]',
+				),
+			)
+		);
 	}
 
 	/**
@@ -107,6 +139,67 @@ final class Faq {
 		if ( is_singular( Post_Type::NAME ) ) {
 			wp_enqueue_style( 'crc-re-faq' );
 		}
+	}
+
+	/**
+	 * Loads the FAQ styles in the page head on every page once the site has
+	 * questions of its own, so [crc_faqs] never shows unstyled while a page loads.
+	 */
+	public function enqueue_for_general() {
+		if ( self::with_answers( self::general_items() ) ) {
+			wp_enqueue_style( 'crc-re-faq' );
+		}
+	}
+
+	/**
+	 * Loads the FAQ styles, e.g. in Elementor's editor.
+	 */
+	public function enqueue_style() {
+		if ( ! wp_style_is( 'crc-re-faq', 'registered' ) ) {
+			$this->register_assets();
+		}
+
+		wp_enqueue_style( 'crc-re-faq' );
+	}
+
+	/**
+	 * Loads the FAQ script in Elementor's editor, so questions added there open smoothly.
+	 */
+	public function enqueue_script() {
+		if ( ! wp_script_is( 'crc-re-faq', 'registered' ) ) {
+			$this->register_assets();
+		}
+
+		wp_enqueue_script( 'crc-re-faq' );
+	}
+
+	/**
+	 * Clears the LiteSpeed page cache when the site's questions change, so
+	 * visitors see them straight away. Does nothing without LiteSpeed Cache.
+	 */
+	public function clear_cache() {
+		do_action( 'litespeed_purge_all' );
+	}
+
+	/**
+	 * The site's own questions, from Listings → Widgets.
+	 *
+	 * @return array[] Items with 'question', 'answer', 'link_text' and 'link_url'.
+	 */
+	public static function general_items() {
+		$saved = get_option( self::GENERAL_OPTION, array() );
+
+		return self::sanitize_items( is_array( $saved ) && isset( $saved['items'] ) ? $saved['items'] : array() );
+	}
+
+	/**
+	 * Cleans the site's questions sent from Listings → Widgets.
+	 *
+	 * @param mixed $input Submitted value.
+	 * @return array
+	 */
+	public static function sanitize_general( $input ) {
+		return array( 'items' => self::sanitize_items( is_array( $input ) && isset( $input['items'] ) ? $input['items'] : array() ) );
 	}
 
 	/**
@@ -283,6 +376,35 @@ final class Faq {
 			return '';
 		}
 
+		return $this->list_html( $items, $atts, '' );
+	}
+
+	/**
+	 * Renders [crc_faqs]: the site's own questions.
+	 *
+	 * @param array|string $atts Shortcode attributes.
+	 * @return string
+	 */
+	public function render_general( $atts ) {
+		$atts  = Shortcodes::atts( self::GENERAL_SHORTCODE, $atts );
+		$items = self::with_answers( self::general_items() );
+
+		if ( ! $items ) {
+			return Shortcodes::placeholder( self::GENERAL_SHORTCODE, __( 'Add questions in Listings → Widgets, on the FAQs tab.', 'crc-real-estate' ) );
+		}
+
+		return $this->list_html( $items, $atts, 'crc-faqs' );
+	}
+
+	/**
+	 * A list of questions, and their place in the page's FAQ structured data.
+	 *
+	 * @param array[] $items Questions with something to show.
+	 * @param array   $atts  Shortcode attributes, with 'open' and 'schema'.
+	 * @param string  $class More CSS classes for the list.
+	 * @return string
+	 */
+	private function list_html( array $items, array $atts, $class ) {
 		if ( ! wp_style_is( 'crc-re-faq', 'registered' ) ) {
 			$this->register_assets();
 		}
@@ -293,7 +415,7 @@ final class Faq {
 		// Only the first question may start open; one is open at a time.
 		$first = ! in_array( strtolower( trim( (string) $atts['open'] ) ), array( 'none', 'no', '0' ), true );
 		$group = 'crc-faq-' . ( ++self::$count );
-		$html  = '<div class="crc-faq" data-crc-faq>';
+		$html  = '<div class="crc-faq' . ( '' !== $class ? ' ' . esc_attr( $class ) : '' ) . '" data-crc-faq>';
 
 		foreach ( $items as $i => $item ) {
 			// The shared name lets browsers keep one question open even without the script.

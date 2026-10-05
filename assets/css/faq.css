@@ -111,6 +111,20 @@
 	text-underline-offset: 3px;
 }
 
+/* FAQs for any page: [crc_faqs]. White cards with a soft shadow, up to 800px wide. */
+.crc-faq.crc-faqs {
+	max-width: 800px;
+	margin-right: auto;
+	margin-left: auto;
+}
+
+.crc-faq.crc-faqs .crc-faq-item {
+	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 3%, var(--e-global-color-3581a59));
+	border-radius: 16px;
+	background: var(--e-global-color-3581a59);
+	box-shadow: 0 11px 20px 0 rgba(0, 0, 0, 0.10);
+}
+
 /* Desktop: 1367px and up */
 @media (min-width: 1367px) {
 	/* Your styles for desktop */
