@@ -42,6 +42,8 @@ final class Plugin {
 		( new Assets() )->hooks();
 		( new Post_Type() )->hooks();
 		( new Taxonomy() )->hooks();
+		( new District() )->hooks();
+		( new Listing_Name() )->hooks();
 		( new Views() )->hooks();
 		( new Popup() )->hooks();
 		( new Inquiries() )->hooks();
@@ -49,6 +51,7 @@ final class Plugin {
 		( new Photo_Privacy() )->hooks();
 		( new Importer() )->hooks();
 		( new Sections\Title() )->hooks();
+		( new Sections\Tags() )->hooks();
 		( new Sections\Gallery() )->hooks();
 		( new Sections\Description() )->hooks();
 		( new Sections\Price_Card() )->hooks();
@@ -59,6 +62,8 @@ final class Plugin {
 		( new Sections\Faq() )->hooks();
 		( new Ticker() )->hooks();
 		( new Category_Carousel() )->hooks();
+		( new Admin\Name_Help() )->hooks();
+		( new Admin\District_Box() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();
 		( new Admin\Price_Box() )->hooks();
 		( new Admin\Contact_Box() )->hooks();

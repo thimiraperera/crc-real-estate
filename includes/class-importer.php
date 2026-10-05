@@ -880,6 +880,7 @@ final class Importer {
 		$title  = trim( wp_strip_all_tags( $cell( 'title' ) ) );
 		$id     = absint( $cell( 'id' ) );
 		$post   = null;
+		$named  = false;
 		$report = array(
 			'line'     => (int) $row['line'],
 			'title'    => $title,
@@ -920,7 +921,12 @@ final class Importer {
 
 			$report['title'] = '' !== $title ? $title : (string) $post->post_title;
 		} elseif ( '' === $title ) {
-			return $fail( __( 'A new listing needs a title.', 'crc-real-estate' ) );
+			// Named the way the listing screen suggests, e.g. "Bare land for sale in Galle".
+			$title           = Listing_Name::suggest( Listing_Name::parts_from_cells( $cells ) );
+			$named           = true;
+			$report['title'] = $title;
+			/* translators: %s: the name the listing was given. */
+			$report['warnings'][] = sprintf( __( 'The title was empty, so the listing was named "%s".', 'crc-real-estate' ), $title );
 		}
 
 		// "future" (scheduled), as the export writes it, leaves the status as it is.
@@ -942,6 +948,10 @@ final class Importer {
 
 		if ( '' !== $title ) {
 			$fields['post_title'] = $title;
+		}
+
+		if ( $named ) {
+			$fields['post_name'] = Listing_Name::slug( $title );
 		}
 
 		// WordPress removes code that the person importing isn't allowed to add, as on the listing screen.

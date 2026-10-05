@@ -41,6 +41,17 @@
 		lngField.value = place.lng.toFixed( 6 );
 	}
 
+	// Tells the other boxes, e.g. District, about a place someone marked or chose.
+	function announce( name, detail ) {
+		if ( window.CustomEvent && document.dispatchEvent ) {
+			document.dispatchEvent( new window.CustomEvent( name, { detail: detail } ) );
+		}
+	}
+
+	function marked( place ) {
+		announce( 'crc:pin', { lat: place.lat, lng: place.lng } );
+	}
+
 	function mark( place, zoom ) {
 		if ( pin ) {
 			pin.setLatLng( place );
@@ -48,6 +59,7 @@
 			pin = L.marker( place, { draggable: true, autoPan: true } ).addTo( map );
 			pin.on( 'dragend', function () {
 				fill( pin.getLatLng() );
+				marked( pin.getLatLng() );
 			} );
 		}
 
@@ -77,6 +89,7 @@
 
 	map.on( 'click', function ( event ) {
 		mark( event.latlng );
+		marked( event.latlng );
 	} );
 
 	// Typed or pasted numbers, including both in Latitude: "6.0535, 80.2210".
@@ -93,6 +106,7 @@
 
 		if ( place ) {
 			mark( place, Math.max( map.getZoom(), 15 ) );
+			marked( place );
 		}
 	}
 
@@ -132,6 +146,7 @@
 			button.textContent = items[ i ].display_name;
 			button.setAttribute( 'data-lat', items[ i ].lat );
 			button.setAttribute( 'data-lng', items[ i ].lon );
+			button.crcPlace = items[ i ];
 			li.appendChild( button );
 			results.appendChild( li );
 		}
@@ -156,7 +171,7 @@
 		findButton.disabled = true;
 		show( [], text.searching );
 
-		url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5' +
+		url = 'https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1' +
 			'&q=' + encodeURIComponent( query ) +
 			'&viewbox=' + [ bounds.getWest(), bounds.getNorth(), bounds.getEast(), bounds.getSouth() ].join( ',' ) +
 			'&accept-language=' + encodeURIComponent( document.documentElement.lang || 'en' );
@@ -198,6 +213,7 @@
 
 		event.preventDefault();
 		mark( L.latLng( parseFloat( button.getAttribute( 'data-lat' ) ), parseFloat( button.getAttribute( 'data-lng' ) ) ), 16 );
+		announce( 'crc:place', button.crcPlace || {} );
 		show( [], '' );
 	} );
 

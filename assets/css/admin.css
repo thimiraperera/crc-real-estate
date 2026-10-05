@@ -678,6 +678,145 @@
 	display: none !important;
 }
 
+/* Listing screen: suggested name and short link, under the title */
+.crc-name-help {
+	margin: 12px 0 0;
+	padding: 8px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.crc-name-help-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 10px;
+	margin: 0 0 6px;
+}
+
+.crc-name-help-label {
+	min-width: 110px;
+	color: #646970;
+}
+
+.crc-name-help-link {
+	padding: 2px 6px;
+	word-break: break-all;
+}
+
+.crc-name-help-note {
+	margin: 0;
+	color: #007017;
+}
+
+/* Kept for screen readers while empty, so its first message is read out. */
+.crc-name-help-note:empty {
+	margin: 0;
+}
+
+.crc-name-help .description {
+	margin: 2px 0 0;
+}
+
+.crc-name-help [hidden] {
+	display: none !important;
+}
+
+/* Listing screen: District box */
+.crc-combo {
+	position: relative;
+}
+
+.crc-combo .crc-combo-input {
+	width: 100%;
+	padding-right: 32px;
+}
+
+.crc-combo-toggle {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: 32px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	background: none;
+	color: #50575e;
+	cursor: pointer;
+}
+
+.crc-combo-toggle .dashicons {
+	vertical-align: middle;
+}
+
+.crc-combo-list {
+	position: absolute;
+	z-index: 1000;
+	top: calc(100% + 2px);
+	right: 0;
+	left: 0;
+	max-height: 260px;
+	margin: 0;
+	padding: 4px 0;
+	overflow-y: auto;
+	list-style: none;
+	border: 1px solid #8c8f94;
+	border-radius: 4px;
+	background: #fff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.crc-combo-list[hidden] {
+	display: none;
+}
+
+.crc-combo-option {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0 8px;
+	margin: 0;
+	padding: 6px 10px;
+	cursor: pointer;
+}
+
+.crc-combo-option.is-chosen .crc-combo-name {
+	font-weight: 600;
+}
+
+.crc-combo-option.is-active {
+	background: #2271b1;
+	color: #fff;
+}
+
+.crc-combo-hint {
+	color: #646970;
+	font-size: 12px;
+}
+
+.crc-combo-option.is-active .crc-combo-hint {
+	color: #fff;
+}
+
+.crc-combo-empty {
+	margin: 0;
+	padding: 6px 10px;
+	color: #646970;
+}
+
+.crc-district-note {
+	margin: 6px 0 0;
+	color: #007017;
+}
+
+/* Kept for screen readers while empty, so its first message is read out. */
+.crc-district-note:empty {
+	margin: 0;
+}
+
 /* Something to put right */
 .crc-warning {
 	color: #b32d2e;

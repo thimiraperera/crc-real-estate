@@ -25,6 +25,9 @@ Real estate listing tools for WordPress.
 * Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
 * Keyword ticker: a full-width row of keywords that moves on its own, stops under the mouse, and can be dragged and thrown; keywords import and export as JSON
 * Category carousel: square picture cards with a title and a View Properties button, moved with arrows or dragging, running on to the edge of the window; one card with dots on phones
+* Tags under the title: the district, land extent, bedrooms, bathrooms, floor area and property type as rounded tags with icons
+* Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
+* Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -36,6 +39,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.20.0 =
+* Tags under the title: [crc_listing_tags] shows the listing's key details as rounded tags with icons, like Galle, 20 Acres and Bare Land. Lands show the district, land extent and property type; properties for sale and for rent show the district, bedrooms, bathrooms, floor area and property type. They come from what is already filled in, a tag without a value doesn't show, and show="…" picks other ones. The pin is your icon; the ruler, area, bed and bath icons are new, and the property type uses the floor plan icon.
+* Districts: Sri Lanka's 25 districts with their provinces, as a fixed list (Listings → Districts) with pages at /district/galle/, a District column and filter in All Listings, and a District column in Import & Export.
+* District box on the listing screen: a search box that asks the site for matching districts as you type (other spellings such as Moneragala and Mahanuwara work too), or shows all 25 with the arrow, and works with the keyboard. Choosing a place in the Location box, or marking the map, fills it in while it is empty.
+* Suggested name and short link under the title, made from the category, property type, bedrooms and district, for example "Bare land for sale in Galle" and /listing/bare-land-for-sale-galle/, with buttons to use them. A listing saved with an empty title gets them by itself, and so does an imported row without a title.
 
 = 0.19.1 =
 * Category carousel on phones: cards are 5:6 (a little taller than wide) with 24px padding at the top and bottom and 16px at the sides, and the dots are white for the dark section behind them.

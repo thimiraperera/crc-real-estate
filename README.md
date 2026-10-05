@@ -18,6 +18,9 @@ Real estate listing tools for WordPress.
 - **Photo privacy**: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
 - **Keyword ticker**: a full-width row of keywords that moves on its own, stops under the mouse, and can be dragged and thrown; keywords import and export as JSON
 - **Category carousel**: square picture cards with a title and a View Properties button, moved with arrows or dragging, running on to the edge of the window; one card with dots on phones
+- **Tags under the title**: the district, land extent, bedrooms, bathrooms, floor area and property type as rounded tags with icons
+- **Districts**: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
+- **Suggested names and short links**, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

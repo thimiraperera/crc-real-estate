@@ -10,8 +10,8 @@ namespace CRC\RealEstate;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Creates the listing categories and keeps permalinks in step with the
- * plugin's post types.
+ * Creates the listing categories and districts, and keeps permalinks in step
+ * with the plugin's post types.
  */
 final class Installer {
 
@@ -23,7 +23,9 @@ final class Installer {
 	public static function activate() {
 		( new Post_Type() )->register();
 		( new Taxonomy() )->register();
+		( new District() )->register();
 		Taxonomy::create_terms();
+		District::create_terms();
 		flush_rewrite_rules();
 		update_option( self::OPTION, CRC_RE_VERSION );
 	}
@@ -39,7 +41,7 @@ final class Installer {
 
 	/**
 	 * Runs once after each update, because updates from GitHub don't run the
-	 * activation hook: adds any new categories and refreshes permalinks.
+	 * activation hook: adds any new categories and districts and refreshes permalinks.
 	 */
 	public static function maybe_upgrade() {
 		if ( get_option( self::OPTION ) === CRC_RE_VERSION ) {
@@ -47,6 +49,7 @@ final class Installer {
 		}
 
 		Taxonomy::create_terms();
+		District::create_terms();
 		flush_rewrite_rules();
 		update_option( self::OPTION, CRC_RE_VERSION );
 	}

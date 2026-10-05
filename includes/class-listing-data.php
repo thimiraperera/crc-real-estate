@@ -57,10 +57,11 @@ final class Listing_Data {
 		$owner    = __( 'Owner (private)', 'crc-real-estate' );
 
 		$add( 'id', $listing, __( 'Leave it empty to add a new listing. To change a listing that is already on the site, put its ID here (hover over the listing in All Listings to see it). When a row has an ID, empty cells leave that part of the listing as it is.', 'crc-real-estate' ) );
-		$add( 'title', $listing, __( 'The listing\'s title, for example Bare land for sale in Galle. A new listing needs one.', 'crc-real-estate' ) );
+		$add( 'title', $listing, __( 'The listing\'s title, for example Bare land for sale in Galle. Leave it empty for a new listing to name it from its category, property type, bedrooms and district, the way the listing screen suggests.', 'crc-real-estate' ) );
 		$add( 'status', $listing, __( 'draft (the default), publish, pending or private. A listing is only published when it has a main photo and a category; otherwise it stays a draft.', 'crc-real-estate' ) );
 		/* translators: %s: category slugs, e.g. "lands, properties-for-sale". */
 		$add( 'category', $listing, sprintf( __( 'One of: %s. The category\'s name works too.', 'crc-real-estate' ), implode( ', ', array_keys( Taxonomy::terms() ) ) ) );
+		$add( 'district', $listing, __( 'One of Sri Lanka\'s 25 districts, for example Galle or Nuwara Eliya. It shows under the title and goes into the suggested name.', 'crc-real-estate' ) );
 		$add( 'description', $listing, __( 'The description shown on the listing page. Leave an empty line between paragraphs.', 'crc-real-estate' ) );
 
 		$add( 'main_photo', $photos, __( 'A link to the main photo, starting with https://. The photo is downloaded into the Media Library. Google Drive and Dropbox share links work when the file is shared with anyone who has the link.', 'crc-real-estate' ) );
@@ -181,7 +182,7 @@ final class Listing_Data {
 	 * @return string[]
 	 */
 	private static function fixed_columns() {
-		return array( 'id', 'title', 'status', 'category', 'description', 'main_photo', 'more_photos', 'price', 'price_per_perch', 'phone', 'whatsapp', 'call_text', 'message_text', 'more_details', 'own_detail_groups', 'features', 'more_features', 'own_feature_groups', 'latitude', 'longitude', 'show_map', 'google_maps_link', 'show_category_faqs' );
+		return array( 'id', 'title', 'status', 'category', 'district', 'description', 'main_photo', 'more_photos', 'price', 'price_per_perch', 'phone', 'whatsapp', 'call_text', 'message_text', 'more_details', 'own_detail_groups', 'features', 'more_features', 'own_feature_groups', 'latitude', 'longitude', 'show_map', 'google_maps_link', 'show_category_faqs' );
 	}
 
 	/**
@@ -243,11 +244,13 @@ final class Listing_Data {
 	public static function row( $post_id ) {
 		$post     = get_post( $post_id );
 		$category = Taxonomy::listing_category( $post_id );
+		$district = District::of( $post_id );
 		$row      = array(
 			'id'          => (string) $post->ID,
 			'title'       => (string) $post->post_title,
 			'status'      => (string) $post->post_status,
 			'category'    => $category ? $category['slug'] : '',
+			'district'    => $district ? $district['name'] : '',
 			'description' => (string) $post->post_content,
 		);
 
@@ -400,6 +403,17 @@ final class Listing_Data {
 			} else {
 				/* translators: 1: what was written, 2: category slugs. */
 				$warnings[] = sprintf( __( 'Category "%1$s" isn\'t one of the categories (%2$s).', 'crc-real-estate' ), $cell( 'category' ), implode( ', ', array_keys( Taxonomy::terms() ) ) );
+			}
+		}
+
+		if ( $filled( 'district' ) ) {
+			$term = District::term( District::find( $cell( 'district' ) ) );
+
+			if ( $term ) {
+				wp_set_object_terms( $post_id, array( (int) $term->term_id ), District::NAME );
+			} else {
+				/* translators: %s: what was written. */
+				$warnings[] = sprintf( __( 'District "%s" isn\'t one of Sri Lanka\'s 25 districts, so it was left out. Write it like Galle or Nuwara Eliya.', 'crc-real-estate' ), $cell( 'district' ) );
 			}
 		}
 
@@ -949,6 +963,7 @@ final class Listing_Data {
 	public static function full( $post_id ) {
 		$post     = get_post( $post_id );
 		$category = Taxonomy::listing_category( $post_id );
+		$district = District::of( $post_id );
 		$photos   = self::photo_ids( $post_id );
 		$photo    = function ( $id ) {
 			return array(
@@ -993,6 +1008,11 @@ final class Listing_Data {
 				'slug'    => $category['slug'],
 				'name'    => $category['term']->name,
 				'caption' => $category['label'],
+			) : null,
+			'district'    => $district ? array(
+				'slug'     => $district['slug'],
+				'name'     => $district['name'],
+				'province' => $district['province'],
 			) : null,
 			'description' => (string) $post->post_content,
 			'photos'      => array(

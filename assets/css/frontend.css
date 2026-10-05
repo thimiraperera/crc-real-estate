@@ -6,6 +6,49 @@
 	box-shadow: 0 13px 20px 0 rgba(0, 0, 0, 0.05);
 }
 
+/* Read by screen readers only. */
+.crc-sr {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Tags under the title: [crc_listing_tags] */
+.crc-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 20px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.crc-tags .crc-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 12px;
+	margin: 0;
+	padding: 9px 20px;
+	border-radius: 100px;
+	background-color: var(--e-global-color-f5fd1b7);
+	color: var(--e-global-color-6e3d619);
+	line-height: 1.4;
+}
+
+.crc-tags .crc-tag-icon {
+	display: block;
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+}
+
 /* Description */
 .crc-description p:last-child {
 	margin-bottom: 0;
