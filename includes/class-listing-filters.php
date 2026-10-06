@@ -10,13 +10,13 @@ namespace CRC\RealEstate;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * [crc_listing_filters]: the filters for the listings page, beside or above
- * the results. What people are looking for (a category, or every listing),
+ * [crc_listing_filters]: the filters for the listing archives, beside or
+ * above the results. What people are looking for (a category, or every listing),
  * the place with the same suggestions as the search box, and the chosen
  * category's own choices: price, price per perch and land size for land;
  * price or rent, bedrooms, bathrooms and furnishing for homes; and the
- * property type. Show listings opens the category's page with the choices
- * made. On phones the filters fold away behind a Filters bar.
+ * property type. Show listings opens the category's archive with the
+ * choices made. On phones the filters fold away behind a Filters bar.
  *
  * The fields and their labels take the site's form styles from Elementor;
  * the filters only lay them out.
@@ -48,7 +48,7 @@ final class Listing_Filters {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search filters', 'crc-real-estate' ),
-				'description' => __( 'The filters for your listings page, beside or above the results: what people are looking for (a category, or every listing), the place, with the same suggestions as the search box, and the chosen category\'s own choices. Land has the price, the price per perch and the land size; homes have the price or rent, bedrooms, bathrooms and furnishing; every category has the property type. Show listings opens the category\'s page with the choices made, and Clear all takes them off. On phones the filters fold away behind a Filters bar. The fields and labels take your form styles from Elementor\'s Site Settings.', 'crc-real-estate' ),
+				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results: what people are looking for (a category, or every listing), the place, with the same suggestions as the search box, and the chosen category\'s own choices. Land has the price, the price per perch and the land size; homes have the price or rent, bedrooms, bathrooms and furnishing; every category has the property type. Show listings opens the category\'s archive with the choices made, and Clear all takes them off. On phones the filters fold away behind a Filters bar. The fields and labels take your form styles from Elementor\'s Site Settings.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories' => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',

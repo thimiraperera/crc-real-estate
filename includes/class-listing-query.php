@@ -454,8 +454,8 @@ final class Listing_Query {
 			if ( $place['clause'] ) {
 				$tax[] = $place['clause'];
 			} else {
-				$args['s']              = $place['search'];
-				$args['search_columns'] = array( 'post_title' );
+				// Looked for in the titles, without making the page a search page.
+				$args['crc_title'] = $place['search'];
 			}
 		}
 
@@ -546,29 +546,37 @@ final class Listing_Query {
 	 * Registers hooks.
 	 */
 	public function hooks() {
-		add_filter( 'posts_clauses', array( __CLASS__, 'order_clauses' ), 10, 2 );
+		add_filter( 'posts_clauses', array( __CLASS__, 'clauses' ), 10, 2 );
 	}
 
 	/**
-	 * Orders the search's results by a number, with listings that don't
-	 * have it last whichever way round, then newest first.
+	 * The search's own parts of a query: a place looked for in the titles,
+	 * and an order by a number, with listings that don't have it last
+	 * whichever way round, then newest first.
 	 *
 	 * @param string[]  $clauses Query clauses.
 	 * @param \WP_Query $query   Query.
 	 * @return string[]
 	 */
-	public static function order_clauses( $clauses, $query ) {
-		$order = is_object( $query ) && method_exists( $query, 'get' ) ? $query->get( 'crc_order' ) : null;
-
-		if ( ! is_array( $order ) || empty( $order['key'] ) ) {
+	public static function clauses( $clauses, $query ) {
+		if ( ! is_object( $query ) || ! method_exists( $query, 'get' ) ) {
 			return $clauses;
 		}
 
 		global $wpdb;
 
-		$direction          = isset( $order['order'] ) && 'DESC' === strtoupper( (string) $order['order'] ) ? 'DESC' : 'ASC';
-		$clauses['join']   .= $wpdb->prepare( " LEFT JOIN {$wpdb->postmeta} AS crc_sort ON ( crc_sort.post_id = {$wpdb->posts}.ID AND crc_sort.meta_key = %s )", (string) $order['key'] );
-		$clauses['orderby'] = "( crc_sort.meta_value IS NULL OR crc_sort.meta_value = '' ) ASC, CAST( crc_sort.meta_value AS DECIMAL(20,2) ) {$direction}, {$wpdb->posts}.post_date DESC";
+		$title = $query->get( 'crc_title' );
+		$order = $query->get( 'crc_order' );
+
+		if ( is_string( $title ) && '' !== $title ) {
+			$clauses['where'] = ( isset( $clauses['where'] ) ? $clauses['where'] : '' ) . $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", '%' . $wpdb->esc_like( $title ) . '%' );
+		}
+
+		if ( is_array( $order ) && ! empty( $order['key'] ) ) {
+			$direction          = isset( $order['order'] ) && 'DESC' === strtoupper( (string) $order['order'] ) ? 'DESC' : 'ASC';
+			$clauses['join']    = ( isset( $clauses['join'] ) ? $clauses['join'] : '' ) . $wpdb->prepare( " LEFT JOIN {$wpdb->postmeta} AS crc_sort ON ( crc_sort.post_id = {$wpdb->posts}.ID AND crc_sort.meta_key = %s )", (string) $order['key'] );
+			$clauses['orderby'] = "( crc_sort.meta_value IS NULL OR crc_sort.meta_value = '' ) ASC, CAST( crc_sort.meta_value AS DECIMAL(20,2) ) {$direction}, {$wpdb->posts}.post_date DESC";
+		}
 
 		return $clauses;
 	}

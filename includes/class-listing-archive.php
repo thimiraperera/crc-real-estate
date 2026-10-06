@@ -1,6 +1,6 @@
 <?php
 /**
- * The listings page.
+ * Where the listings are listed.
  *
  * @package CRC_Real_Estate
  */
@@ -10,30 +10,37 @@ namespace CRC\RealEstate;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * The page that lists listings, with the search filters and results on it:
- * the page chosen on Listings → Widgets → Search, or else the page at
- * /listing/. Category pages (/listings/lands/), district pages
- * (/district/galle/) and town pages (/town/hikkaduwa/) show this page with
- * their category, district or town chosen, like a normal WordPress archive,
- * with their own title and their own address for search engines.
+ * Where the search's filters and results show, and how they know what to show.
+ *
+ * Usually on the listing archives, designed as archive templates in a theme
+ * builder: All Listings Archive at /listing/, and each category's
+ * (/listings/lands/), district's (/district/galle/) and town's
+ * (/town/hikkaduwa/) own archive. There the archive's own list of listings
+ * follows the search in the address, so its numbered pages
+ * (/listings/lands/page/2/) work as WordPress's always do.
+ *
+ * Or on a page chosen on Listings → Widgets → Search: then the archives show
+ * that page with their category, district or town chosen, keeping their own
+ * address and title for search engines.
  */
 final class Listing_Archive {
 
-	const OPTION = 'crc_re_search';
+	const OPTION   = 'crc_re_search';
+	const PER_PAGE = 12;
 
 	/**
-	 * The listings page's ID, once found.
+	 * The chosen page's ID, once found.
 	 *
 	 * @var int|null
 	 */
 	private static $page = null;
 
 	/**
-	 * The category, district or town page being shown, from its address.
+	 * With a chosen page: the archive shown on it, from its address.
 	 *
-	 * @var array|null 'category', 'district' or 'town' (a slug), 'page' and 'term'.
+	 * @var array|null 'category', 'district' or 'town' (a slug) and 'term', or 'archive'; and 'page'.
 	 */
-	private static $context = null;
+	private static $mapped = null;
 
 	/**
 	 * The current request's filters, once read.
@@ -47,6 +54,7 @@ final class Listing_Archive {
 	 */
 	public function hooks() {
 		add_filter( 'request', array( $this, 'map_request' ) );
+		add_action( 'pre_get_posts', array( $this, 'filter_main_query' ) );
 		add_action( 'template_redirect', array( $this, 'redirect_category' ), 5 );
 		add_filter( 'document_title_parts', array( $this, 'title_parts' ) );
 		add_filter( 'get_canonical_url', array( $this, 'canonical' ), 10, 2 );
@@ -63,12 +71,18 @@ final class Listing_Archive {
 	/**
 	 * The saved settings.
 	 *
-	 * @return array 'page': the listings page's ID, or 0 to use the page at /listing/.
+	 * @return array 'page': the chosen page's ID, or 0 for the listing archives;
+	 *               'per_page': listings a page.
 	 */
 	public static function settings() {
 		$saved = get_option( self::OPTION, array() );
+		$saved = is_array( $saved ) ? $saved : array();
+		$per   = isset( $saved['per_page'] ) ? absint( $saved['per_page'] ) : 0;
 
-		return array( 'page' => is_array( $saved ) && isset( $saved['page'] ) ? absint( $saved['page'] ) : 0 );
+		return array(
+			'page'     => isset( $saved['page'] ) ? absint( $saved['page'] ) : 0,
+			'per_page' => $per ? min( Listing_Query::MAX_PER_PAGE, $per ) : self::PER_PAGE,
+		);
 	}
 
 	/**
@@ -78,9 +92,14 @@ final class Listing_Archive {
 	 * @return array
 	 */
 	public static function sanitize( $value ) {
-		$page = is_array( $value ) && isset( $value['page'] ) ? absint( $value['page'] ) : 0;
+		$value = is_array( $value ) ? $value : array();
+		$page  = isset( $value['page'] ) ? absint( $value['page'] ) : 0;
+		$per   = isset( $value['per_page'] ) ? absint( $value['per_page'] ) : 0;
 
-		return array( 'page' => ( $page && 'page' === get_post_type( $page ) ) ? $page : 0 );
+		return array(
+			'page'     => ( $page && 'page' === get_post_type( $page ) ) ? $page : 0,
+			'per_page' => $per ? min( Listing_Query::MAX_PER_PAGE, $per ) : self::PER_PAGE,
+		);
 	}
 
 	/**
@@ -96,66 +115,64 @@ final class Listing_Archive {
 	 */
 	public static function reset() {
 		self::$page    = null;
-		self::$context = null;
+		self::$mapped  = null;
 		self::$filters = null;
 	}
 
 	/**
-	 * Where the listings page is looked for when none is chosen.
+	 * Listings a page.
 	 *
-	 * @return string Page path, e.g. "listing".
+	 * @return int
 	 */
-	public static function path() {
-		/**
-		 * Filters where the listings page is looked for when none is chosen.
-		 *
-		 * @param string $path Page path.
-		 */
-		return trim( (string) apply_filters( 'crc_re_listings_page_path', 'listing' ), '/' );
+	public static function per_page() {
+		return self::settings()['per_page'];
 	}
 
 	/**
-	 * The listings page's ID: the page chosen in the settings, or else the
-	 * published page at /listing/.
+	 * The chosen page's ID, while it is published.
 	 *
-	 * @return int 0 when there is none.
+	 * @return int 0 when the listing archives are used.
 	 */
 	public static function page_id() {
-		if ( null !== self::$page ) {
-			return self::$page;
+		if ( null === self::$page ) {
+			$id = self::settings()['page'];
+			$id = ( $id && 'publish' === get_post_status( $id ) && 'page' === get_post_type( $id ) ) ? $id : 0;
+
+			/**
+			 * Filters the page the listings show on; 0 for the listing archives.
+			 *
+			 * @param int $id Page ID, or 0.
+			 */
+			self::$page = (int) apply_filters( 'crc_re_listings_page', $id );
 		}
-
-		$id = self::settings()['page'];
-
-		if ( ! $id || 'publish' !== get_post_status( $id ) || 'page' !== get_post_type( $id ) ) {
-			$page = get_page_by_path( self::path() );
-			$id   = ( $page && 'publish' === $page->post_status ) ? (int) $page->ID : 0;
-		}
-
-		/**
-		 * Filters the listings page's ID.
-		 *
-		 * @param int $id Page ID, or 0 for none.
-		 */
-		self::$page = (int) apply_filters( 'crc_re_listings_page', $id );
 
 		return self::$page;
 	}
 
 	/**
-	 * The listings page's address.
+	 * The archive of every listing, /listing/.
+	 *
+	 * @return string
+	 */
+	public static function archive_url() {
+		$link = get_post_type_archive_link( Post_Type::NAME );
+
+		return $link ? (string) $link : home_url( '/listing/' );
+	}
+
+	/**
+	 * Where every listing is listed: the chosen page, or the archive of every listing.
 	 *
 	 * @return string
 	 */
 	public static function page_url() {
 		$id = self::page_id();
 
-		return $id ? (string) get_permalink( $id ) : home_url( '/' . self::path() . '/' );
+		return $id ? (string) get_permalink( $id ) : self::archive_url();
 	}
 
 	/**
-	 * A category's listings: its own page, such as /listings/lands/, which
-	 * shows the listings page with the category chosen.
+	 * A category's listings: its own archive, such as /listings/lands/.
 	 *
 	 * @param string $slug Category slug, or empty for every listing.
 	 * @return string
@@ -167,7 +184,7 @@ final class Listing_Archive {
 
 		$term = get_term_by( 'slug', $slug, Taxonomy::NAME );
 
-		if ( self::page_id() && $term && ! is_wp_error( $term ) ) {
+		if ( $term && ! is_wp_error( $term ) ) {
 			$link = get_term_link( $term );
 
 			if ( ! is_wp_error( $link ) ) {
@@ -179,32 +196,132 @@ final class Listing_Archive {
 	}
 
 	/**
-	 * Shows the listings page on a category's, district's or town's own page
-	 * (and its next pages), keeping the address. Feeds and anything else
-	 * asked of those pages stay as WordPress has them.
+	 * The taxonomies with archives the search knows, and what each one is.
+	 *
+	 * @return string[] Taxonomy => 'category', 'district' or 'town'.
+	 */
+	private static function taxonomies() {
+		return array(
+			Taxonomy::NAME => 'category',
+			District::NAME => 'district',
+			Town::NAME     => 'town',
+		);
+	}
+
+	/**
+	 * Which listing archive a query is for.
+	 *
+	 * @param \WP_Query|null $query Query.
+	 * @return array|null 'archive' for every listing, or 'category', 'district' or
+	 *                    'town' (a slug) with its 'term'; and 'page'. Null for anything else.
+	 */
+	public static function archive_context( $query ) {
+		if ( ! is_object( $query ) || ! method_exists( $query, 'is_post_type_archive' ) ) {
+			return null;
+		}
+
+		$page = max( 1, (int) $query->get( 'paged' ) );
+
+		if ( $query->is_post_type_archive( Post_Type::NAME ) ) {
+			return array(
+				'archive' => true,
+				'page'    => $page,
+			);
+		}
+
+		foreach ( self::taxonomies() as $taxonomy => $key ) {
+			if ( $query->is_tax( $taxonomy ) ) {
+				$term = $query->get_queried_object();
+
+				if ( is_object( $term ) && isset( $term->slug, $term->taxonomy ) && $taxonomy === $term->taxonomy ) {
+					return array(
+						$key   => (string) $term->slug,
+						'term' => $term,
+						'page' => $page,
+					);
+				}
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * The main query of the page being shown.
+	 *
+	 * @return \WP_Query|null
+	 */
+	private static function main_query() {
+		return isset( $GLOBALS['wp_the_query'] ) ? $GLOBALS['wp_the_query'] : null;
+	}
+
+	/**
+	 * Whether the page being shown is a listing archive, as the listings show
+	 * there (no page is chosen).
+	 *
+	 * @return bool
+	 */
+	public static function on_archive() {
+		return ! self::page_id() && null !== self::archive_context( self::main_query() );
+	}
+
+	/**
+	 * Whether the page being shown lists listings: a listing archive, or the chosen page.
+	 *
+	 * @return bool
+	 */
+	public static function is_listings_page() {
+		$page = self::page_id();
+
+		return $page ? is_page( $page ) : self::on_archive();
+	}
+
+	/**
+	 * The archive being shown: from its main query, or, with a chosen page,
+	 * from the address the page is shown on.
+	 *
+	 * @return array Empty on any other page.
+	 */
+	public static function context() {
+		if ( self::page_id() ) {
+			return is_array( self::$mapped ) ? self::$mapped : array();
+		}
+
+		$context = self::archive_context( self::main_query() );
+
+		return is_array( $context ) ? $context : array();
+	}
+
+	/**
+	 * With a chosen page, shows it on the listing archives (and their next
+	 * pages), keeping their address. Feeds and anything else asked of them
+	 * stay as WordPress has them.
 	 *
 	 * @param array $vars Query variables from the address.
 	 * @return array
 	 */
 	public function map_request( $vars ) {
-		if ( is_admin() || ! is_array( $vars ) ) {
+		$page = is_admin() || ! is_array( $vars ) ? 0 : self::page_id();
+
+		if ( ! $page ) {
 			return $vars;
 		}
 
-		$keys  = array(
-			Taxonomy::NAME => 'category',
-			District::NAME => 'district',
-			Town::NAME     => 'town',
-		);
+		$keys = self::taxonomies();
+
+		if ( isset( $vars['post_type'] ) && Post_Type::NAME === $vars['post_type'] && ! array_diff( array_keys( $vars ), array( 'post_type', 'paged' ) ) ) {
+			self::$filters = null;
+			self::$mapped  = array(
+				'archive' => true,
+				'page'    => isset( $vars['paged'] ) ? max( 1, (int) $vars['paged'] ) : 1,
+			);
+
+			return array( 'page_id' => $page );
+		}
+
 		$found = array_intersect_key( $vars, $keys );
 
 		if ( 1 !== count( $found ) || array_diff( array_keys( $vars ), array_merge( array_keys( $keys ), array( 'paged' ) ) ) || ! is_string( reset( $found ) ) ) {
-			return $vars;
-		}
-
-		$page = self::page_id();
-
-		if ( ! $page ) {
 			return $vars;
 		}
 
@@ -217,34 +334,49 @@ final class Listing_Archive {
 		}
 
 		self::$filters = null;
-		self::$context = array(
+		self::$mapped  = array(
 			$keys[ $taxonomy ] => (string) $term->slug,
-			'page'             => isset( $vars['paged'] ) ? max( 1, (int) $vars['paged'] ) : 1,
 			'term'             => $term,
+			'page'             => isset( $vars['paged'] ) ? max( 1, (int) $vars['paged'] ) : 1,
 		);
 
 		return array( 'page_id' => $page );
 	}
 
 	/**
-	 * The category, district or town page being shown.
+	 * On a listing archive, its own list of listings follows the search in
+	 * the address: the place, the choices, the order and how many a page.
+	 * Its own category, district or town stays as WordPress has it.
 	 *
-	 * @return array Empty on any other page.
+	 * @param \WP_Query $query Query.
 	 */
-	public static function context() {
-		return is_array( self::$context ) ? self::$context : array();
-	}
+	public function filter_main_query( $query ) {
+		if ( is_admin() || ! is_object( $query ) || ! $query->is_main_query() || $query->is_feed() || self::page_id() ) {
+			return;
+		}
 
-	/**
-	 * Whether the page being shown is the listings page, on its own address
-	 * or a category's, district's or town's.
-	 *
-	 * @return bool
-	 */
-	public static function is_listings_page() {
-		$page = self::page_id();
+		$context = self::archive_context( $query );
 
-		return $page && is_page( $page );
+		if ( null === $context ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- A search, read only.
+		$filters       = Listing_Query::read( $_GET, $context );
+		self::$filters = $filters;
+		$own           = $filters;
+
+		foreach ( array( 'category', 'district', 'town' ) as $key ) {
+			if ( isset( $context[ $key ] ) ) {
+				$own[ $key ] = '';
+			}
+		}
+
+		foreach ( Listing_Query::args( $own, self::per_page() ) as $key => $value ) {
+			if ( 'paged' !== $key ) {
+				$query->set( $key, $value );
+			}
+		}
 	}
 
 	/**
@@ -263,7 +395,7 @@ final class Listing_Archive {
 
 	/**
 	 * Where the page's own links (its pages and its order) start from: the
-	 * category's, district's or town's page, or the page being viewed.
+	 * archive being shown, or the page being viewed.
 	 *
 	 * @return string
 	 */
@@ -278,24 +410,47 @@ final class Listing_Archive {
 			}
 		}
 
+		if ( ! empty( $context['archive'] ) ) {
+			return self::archive_url();
+		}
+
 		$id = (int) get_queried_object_id();
 
 		return ( $id && is_singular() ) ? (string) get_permalink( $id ) : self::page_url();
 	}
 
 	/**
-	 * The address of the page being shown with some filters changed.
+	 * The address of the page being shown with some filters changed. On a
+	 * listing archive the pages are WordPress's own (/page/2/); elsewhere
+	 * they are ?pg=2.
 	 *
 	 * @param array $changes Filter name => new value.
 	 * @return string
 	 */
 	public static function link( array $changes = array() ) {
-		return add_query_arg( array_map( 'rawurlencode', Listing_Query::params( array_merge( self::filters(), $changes ) ) ), self::base_url() );
+		global $wp_rewrite;
+
+		$filters = array_merge( self::filters(), $changes );
+		$base    = self::base_url();
+
+		if ( ! self::on_archive() ) {
+			return add_query_arg( array_map( 'rawurlencode', Listing_Query::params( $filters ) ), $base );
+		}
+
+		$page = max( 1, (int) $filters['page'] );
+
+		if ( $page > 1 ) {
+			$base = ( is_object( $wp_rewrite ) && $wp_rewrite->using_permalinks() )
+				? user_trailingslashit( trailingslashit( $base ) . $wp_rewrite->pagination_base . '/' . $page, 'paged' )
+				: add_query_arg( 'paged', $page, $base );
+		}
+
+		return add_query_arg( array_map( 'rawurlencode', Listing_Query::params( $filters, array( 'page' ) ) ), $base );
 	}
 
 	/**
 	 * The address the search leads to for some filters: the category's
-	 * page with the other filters after it.
+	 * archive with the other filters after it.
 	 *
 	 * @param array $filters Filters, see Listing_Query::blank().
 	 * @return string
@@ -303,7 +458,7 @@ final class Listing_Archive {
 	public static function search_url( array $filters ) {
 		$params = Listing_Query::params( $filters );
 
-		// A district's or town's page searched again keeps its place.
+		// A district's or town's archive searched again keeps its place.
 		if ( ! isset( $params['location'] ) ) {
 			$place = self::place_name( $filters );
 
@@ -317,7 +472,7 @@ final class Listing_Archive {
 
 	/**
 	 * A search with ?category=… on it (from a browser without scripts) goes
-	 * to that category's own page with the same filters.
+	 * to that category's own archive with the same filters.
 	 */
 	public function redirect_category() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- A search, read only.
@@ -397,13 +552,25 @@ final class Listing_Archive {
 	}
 
 	/**
-	 * The browser tab's title on the listings page: what is being looked at.
+	 * Whether the chosen page is being shown. Archives have their own titles
+	 * and addresses, so only the chosen page needs them changed.
+	 *
+	 * @return bool
+	 */
+	private static function on_chosen_page() {
+		$page = self::page_id();
+
+		return $page && is_page( $page );
+	}
+
+	/**
+	 * The browser tab's title on the chosen page: what is being looked at.
 	 *
 	 * @param string[] $parts Title parts.
 	 * @return string[]
 	 */
 	public function title_parts( $parts ) {
-		if ( ! self::is_listings_page() ) {
+		if ( ! self::on_chosen_page() ) {
 			return $parts;
 		}
 
@@ -423,19 +590,19 @@ final class Listing_Archive {
 	}
 
 	/**
-	 * The address search engines are given for a category's, district's or
-	 * town's page: its own, not the listings page's.
+	 * The address search engines are given for an archive shown on the
+	 * chosen page: the archive's own, not the page's.
 	 *
 	 * @return string An empty string on other pages.
 	 */
 	private static function own_url() {
 		$context = self::context();
 
-		if ( ! isset( $context['term'] ) || ! self::is_listings_page() ) {
+		if ( ! self::on_chosen_page() || ( ! isset( $context['term'] ) && empty( $context['archive'] ) ) ) {
 			return '';
 		}
 
-		$link = get_term_link( $context['term'] );
+		$link = isset( $context['term'] ) ? get_term_link( $context['term'] ) : self::archive_url();
 
 		if ( is_wp_error( $link ) ) {
 			return '';
@@ -472,14 +639,14 @@ final class Listing_Archive {
 	}
 
 	/**
-	 * Yoast SEO's and Rank Math's title: the listings page's title becomes
-	 * what is being looked at.
+	 * Yoast SEO's and Rank Math's title on the chosen page: the page's title
+	 * becomes what is being looked at.
 	 *
 	 * @param string $title Title.
 	 * @return string
 	 */
 	public function seo_title( $title ) {
-		if ( ! self::is_listings_page() ) {
+		if ( ! self::on_chosen_page() ) {
 			return $title;
 		}
 

@@ -12,10 +12,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * [crc_listing_results]: the listings that match the search, in the listing
  * carousel's cards, with how many there are, a choice of order and numbered
- * pages. [crc_search_heading]: a heading that says what is being looked at,
- * such as "Land to buy in Galle". Both read the search from the address, so
- * they work on the listings page and on every category's, district's and
- * town's page.
+ * pages. On a listing archive (All Listings, a category, a district or a
+ * town) they are the archive's own listings, which follow the search; on any
+ * other page the search is asked for here. [crc_search_heading]: a heading
+ * that says what is being looked at, such as "Land to buy in Galle".
  */
 final class Listing_Results {
 
@@ -45,21 +45,16 @@ final class Listing_Results {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search results', 'crc-real-estate' ),
-				'description' => __( 'The listings that match the search, for your listings page: the same cards as the listing carousel, how many listings were found, a Sort by choice (newest, price, most viewed, and for land the price per perch and the largest land) and numbered pages. It reads the search from the page\'s address, so category links such as /listings/lands/ show that category\'s listings, like a normal WordPress archive. Put the page at /listing/, or choose it on Listings → Widgets → Search.', 'crc-real-estate' ),
+				'description' => __( 'The listings that match the search: the same cards as the listing carousel, how many listings were found, a Sort by choice (newest, price, most viewed, and for land the price per perch and the largest land) and numbered pages. Put it in your archive templates for All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive: on each it shows that archive\'s listings, following the search in the address. How many show on a page is set on Listings → Widgets → Search.', 'crc-real-estate' ),
 				'attributes'  => array(
-					'per_page' => array(
-						'default'     => '12',
-						/* translators: %d: most listings a page. */
-						'description' => sprintf( __( 'How many listings a page shows, from 1 to %d.', 'crc-real-estate' ), Listing_Query::MAX_PER_PAGE ),
-					),
-					'columns'  => array(
+					'columns' => array(
 						'default'     => '3',
 						'description' => __( 'Cards side by side on computers, from 1 to 4. Laptops show at most 3, tablets 2 and phones 1.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
-					'[' . self::SHORTCODE . ' columns="2" per_page="10"]',
+					'[' . self::SHORTCODE . ' columns="2"]',
 				),
 			)
 		);
@@ -230,15 +225,27 @@ final class Listing_Results {
 	 * @return string
 	 */
 	public function render( $atts ) {
-		$atts     = Shortcodes::atts( self::SHORTCODE, $atts );
-		$per_page = is_numeric( $atts['per_page'] ) ? max( 1, min( Listing_Query::MAX_PER_PAGE, (int) $atts['per_page'] ) ) : 12;
-		$columns  = is_numeric( $atts['columns'] ) ? max( 1, min( 4, (int) $atts['columns'] ) ) : 3;
-		$filters  = Listing_Archive::filters();
-		$query    = self::find( Listing_Query::args( $filters, $per_page ) );
-		$id       = 'crc-results-' . ( ++self::$count );
-		$total    = (int) $query->found_posts;
-		$pages    = max( 1, (int) $query->max_num_pages );
-		$cards    = '';
+		$atts    = Shortcodes::atts( self::SHORTCODE, $atts );
+		$columns = is_numeric( $atts['columns'] ) ? max( 1, min( 4, (int) $atts['columns'] ) ) : 3;
+		$filters = Listing_Archive::filters();
+
+		// On a listing archive, its own listings already follow the search.
+		if ( Listing_Archive::on_archive() ) {
+			$query    = $GLOBALS['wp_the_query'];
+			$per_page = max( 1, (int) $query->get( 'posts_per_page' ) );
+
+			if ( function_exists( 'update_post_thumbnail_cache' ) ) {
+				update_post_thumbnail_cache( $query );
+			}
+		} else {
+			$per_page = Listing_Archive::per_page();
+			$query    = self::find( Listing_Query::args( $filters, $per_page ) );
+		}
+
+		$id    = 'crc-results-' . ( ++self::$count );
+		$total = (int) $query->found_posts;
+		$pages = max( 1, (int) $query->max_num_pages );
+		$cards = '';
 
 		Listing_Search::enqueue();
 

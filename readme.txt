@@ -31,7 +31,7 @@ Real estate listing tools for WordPress.
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
-* Search: a search box for any page with a tab for each category, town and district suggestions as people type and rounded dropdowns for size, price and rooms; filters and results with sorting and numbered pages for the listings page, where category links show their own listings
+* Search: a search box for any page with a tab for each category, town and district suggestions as people type and rounded dropdowns for size, price and rooms; filters and results with sorting and numbered pages for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
@@ -44,6 +44,13 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.25.0 =
+* The search works on the listing archives, for archive templates made with a theme builder: All Listings Archive (/listing/, new), All Listing Categories Archive (/listings/lands/), All Districts Archive (/district/galle/) and All Towns Archive (/town/hikkaduwa/). Put [crc_listing_filters] and [crc_listing_results] (and [crc_search_heading] if you like) in the template; on each archive they show that archive's listings.
+* On those archives the archive's own list of listings follows the search in the address (the place, the choices, the order and how many a page), so its numbered pages are WordPress's own, such as /listings/lands/page/2/, and the theme builder's own posts widgets show the same listings.
+* Listings → Widgets → Search: Listings a page (12 to start with), and where the listings show: the listing archives (as it starts), or a normal page you choose, which the listing archives then show.
+* The search box and Show listings lead to the archives: /listing/ for every listing and each category's own archive.
+* A place that isn't a town or district is still looked for in the listings' titles, now without making the page a search results page.
 
 = 0.24.0 =
 * Search box: [crc_listing_search] for any page, as in the design. A white card (24px corners, a soft shadow) with a tab for each category, named as the categories are and underlined like the listing carousel's, and a place box with a pin and "Town, district or Colombo zone", with the green Search button and its magnifier inside it. Under the card are the chosen tab's own choices as rounded dropdowns: land size, the highest price per perch and the property type for land; bedrooms, the highest rent or price and the property type for homes (only property types the listings have). On phones the tabs can be swiped and the button shows its magnifier only.

@@ -71,7 +71,7 @@ final class Post_Type {
 				'menu_position' => 5,
 				'menu_icon'     => 'dashicons-admin-home',
 				'supports'      => array( 'title', 'editor', 'thumbnail', 'revisions' ),
-				'has_archive'   => false,
+				'has_archive'   => true, // All Listings Archive, at the listings' own address: /listing/.
 				'rewrite'       => array(
 					/**
 					 * Filters the URL base of single listings, e.g. example.com/listing/my-listing/.

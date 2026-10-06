@@ -922,6 +922,11 @@
 	margin: 8px 0 0;
 }
 
+.crc-search-archives {
+	margin: 8px 0 16px 20px;
+	list-style: disc;
+}
+
 /* Something to put right */
 .crc-warning {
 	color: #b32d2e;

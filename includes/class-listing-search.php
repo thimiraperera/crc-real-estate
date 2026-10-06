@@ -15,9 +15,9 @@ defined( 'ABSPATH' ) || exit;
  * [crc_listing_search]: a tab for each category, a place box that suggests
  * towns and districts with listings as you type, a Search button, and under
  * it the category's own filters as rounded dropdowns. Search opens the
- * category's page (such as /listings/lands/), which shows the listings page
- * with the filters chosen. Also loads the search's script and answers the
- * place box's suggestions for every search part.
+ * category's archive (such as /listings/lands/) with the filters chosen.
+ * Also loads the search's script and answers the place box's suggestions
+ * for every search part.
  */
 final class Listing_Search {
 
@@ -52,7 +52,7 @@ final class Listing_Search {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search box', 'crc-real-estate' ),
-				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings as people type, and a Search button. Under it are the chosen category\'s own choices as rounded dropdowns: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Search opens the category\'s page, such as /listings/lands/, which shows your listings page with those choices made.', 'crc-real-estate' ),
+				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings as people type, and a Search button. Under it are the chosen category\'s own choices as rounded dropdowns: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Search opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories'  => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',

@@ -138,7 +138,8 @@ final class Listing_Index {
 	}
 
 	/**
-	 * Clears the lists, and the listings page from the LiteSpeed cache.
+	 * Clears the lists, and the listing archives (or the chosen page) from
+	 * the LiteSpeed cache.
 	 */
 	public static function flush() {
 		foreach ( array_merge( array( 'all' ), array_keys( Taxonomy::terms() ) ) as $slug ) {
@@ -150,6 +151,8 @@ final class Listing_Index {
 
 		if ( $page ) {
 			do_action( 'litespeed_purge_post', $page );
+		} else {
+			do_action( 'litespeed_purge_posttype', Post_Type::NAME );
 		}
 	}
 
