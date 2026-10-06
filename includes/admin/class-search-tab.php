@@ -35,8 +35,9 @@ final class Search_Tab {
 				'type'              => 'array',
 				'sanitize_callback' => array( Listing_Archive::class, 'sanitize' ),
 				'default'           => array(
-					'page'     => 0,
-					'per_page' => Listing_Archive::PER_PAGE,
+					'page'       => 0,
+					'per_page'   => Listing_Archive::PER_PAGE,
+					'sticky_top' => Listing_Archive::TOP,
 				),
 			)
 		);
@@ -128,6 +129,13 @@ final class Search_Tab {
 						<td>
 							<input type="number" id="crc-search-per-page" name="<?php echo esc_attr( Listing_Archive::OPTION ); ?>[per_page]" value="<?php echo esc_attr( (string) $settings['per_page'] ); ?>" min="1" max="<?php echo esc_attr( (string) Listing_Query::MAX_PER_PAGE ); ?>" step="1" class="small-text">
 							<p class="description"><?php esc_html_e( 'How many listings the results show before the numbered pages, from 1 to 48. 12 fills four rows of three.', 'crc-real-estate' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="crc-search-sticky-top"><?php esc_html_e( 'Space above the filters', 'crc-real-estate' ); ?></label></th>
+						<td>
+							<input type="number" id="crc-search-sticky-top" name="<?php echo esc_attr( Listing_Archive::OPTION ); ?>[sticky_top]" value="<?php echo esc_attr( (string) $settings['sticky_top'] ); ?>" min="0" max="400" step="1" class="small-text"> <?php esc_html_e( 'pixels', 'crc-real-estate' ); ?>
+							<p class="description"><?php esc_html_e( 'When the filters sit beside the results, they stay in view while the listings scroll, this far from the top of the window. If your site\'s header stays at the top as people scroll, make it the header\'s height plus a little, for example 120, so the header doesn\'t cover them.', 'crc-real-estate' ); ?></p>
 						</td>
 					</tr>
 					<tr>

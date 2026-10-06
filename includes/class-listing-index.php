@@ -13,19 +13,21 @@ use CRC\RealEstate\Sections\Price_Card;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Keeps two numbers ready on each listing for the search: the land extent in
- * perches, whatever unit it was typed in, and the price per perch (from the
- * Price box, or worked out from the price and the land extent). Also keeps,
- * for each category, which towns, districts and property types published
- * listings have, for the search's suggestions and choices. Everything is
- * worked out again when a listing changes, so there is nothing to type.
+ * Keeps three numbers ready on each listing for the search: the land extent
+ * in perches, whatever unit it was typed in, the price per perch (from the
+ * Price box, or worked out from the price and the land extent), and the floor
+ * area in square feet. Also keeps, for each category, which towns, districts
+ * and property types published listings have, and their lowest and highest
+ * prices, for the search's suggestions and choices. Everything is worked out
+ * again when a listing changes, so there is nothing to type.
  */
 final class Listing_Index {
 
 	const PERCHES   = '_crc_search_perches';
 	const PER_PERCH = '_crc_search_per_perch';
+	const FLOOR     = '_crc_search_floor';
 	const FACETS    = 'crc_re_facets_';
-	const VERSION   = 1;
+	const VERSION   = 2;
 
 	/**
 	 * Whether the lists are cleared at the end of this request.
@@ -35,12 +37,12 @@ final class Listing_Index {
 	private static $dirty = false;
 
 	/**
-	 * The saved details the two numbers come from.
+	 * The saved details the numbers come from.
 	 *
 	 * @return string[]
 	 */
 	public static function sources() {
-		return array( '_crc_land_extent', '_crc_land_extent_unit', '_crc_extent_perches', Price_Card::PRICE_META, Price_Card::PER_PERCH_META );
+		return array( '_crc_land_extent', '_crc_land_extent_unit', '_crc_extent_perches', Price_Card::PRICE_META, Price_Card::PER_PERCH_META, '_crc_floor_area', '_crc_floor_area_unit' );
 	}
 
 	/**
@@ -157,7 +159,7 @@ final class Listing_Index {
 	}
 
 	/**
-	 * Works a listing's two numbers out again.
+	 * Works a listing's numbers out again.
 	 *
 	 * @param int $post_id Listing ID.
 	 */
@@ -179,6 +181,15 @@ final class Listing_Index {
 		}
 
 		self::put( $post_id, self::PER_PERCH, '0' === $per_perch ? '' : $per_perch );
+
+		// Floor area in square feet: 1 square metre is about 10.76 square feet.
+		$floor = Overview::sanitize_number( get_post_meta( $post_id, '_crc_floor_area', true ) );
+
+		if ( '' !== $floor && 'sq_m' === (string) get_post_meta( $post_id, '_crc_floor_area_unit', true ) ) {
+			$floor = (string) round( (float) $floor * 10.7639 );
+		}
+
+		self::put( $post_id, self::FLOOR, '' !== $floor ? (string) round( (float) $floor ) : '' );
 	}
 
 	/**
@@ -228,10 +239,12 @@ final class Listing_Index {
 
 	/**
 	 * What a category's published listings have: how many listings each
-	 * town (by term ID), district (by slug) and property type has.
+	 * town (by term ID), district (by slug) and property type has, and their
+	 * lowest and highest prices.
 	 *
 	 * @param string $category Category slug, or empty for every listing.
-	 * @return array 'total', 'towns', 'districts' and 'types' (lower case => 'name' and 'count').
+	 * @return array 'total', 'towns', 'districts', 'types' (lower case => 'name' and 'count')
+	 *               and 'prices' ('min' and 'max', 0 without prices).
 	 */
 	public static function facets( $category = '' ) {
 		$key    = self::FACETS . ( '' !== $category ? $category : 'all' );
@@ -247,6 +260,10 @@ final class Listing_Index {
 			'towns'     => array(),
 			'districts' => array(),
 			'types'     => array(),
+			'prices'    => array(
+				'min' => 0,
+				'max' => 0,
+			),
 		);
 		$args   = array(
 			'post_type'        => Post_Type::NAME,
@@ -286,6 +303,12 @@ final class Listing_Index {
 				$district = District::of( $post_id );
 				$town     = Town::of( $post_id );
 				$type     = trim( (string) get_post_meta( $post_id, '_crc_property_type', true ) );
+				$price    = (int) Price_Card::price( $post_id );
+
+				if ( $price > 0 ) {
+					$facets['prices']['min'] = $facets['prices']['min'] ? min( $facets['prices']['min'], $price ) : $price;
+					$facets['prices']['max'] = max( $facets['prices']['max'], $price );
+				}
 
 				if ( $district ) {
 					$facets['districts'][ $district['slug'] ] = ( isset( $facets['districts'][ $district['slug'] ] ) ? $facets['districts'][ $district['slug'] ] : 0 ) + 1;

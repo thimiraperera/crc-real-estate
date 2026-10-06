@@ -51,10 +51,15 @@ final class Listing_Results {
 						'default'     => '3',
 						'description' => __( 'Cards side by side on computers, from 1 to 4. Laptops show at most 3, tablets 2 and phones 1.', 'crc-real-estate' ),
 					),
+					'layout'  => array(
+						'default'     => 'grid',
+						'description' => __( 'grid for cards side by side, or list for one wide card a row with the photo on the left. People can switch between the two with the buttons beside Sort by, and their choice is remembered on their device.', 'crc-real-estate' ),
+					),
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
 					'[' . self::SHORTCODE . ' columns="2"]',
+					'[' . self::SHORTCODE . ' layout="list"]',
 				),
 			)
 		);
@@ -67,7 +72,7 @@ final class Listing_Results {
 				'description' => __( 'A heading for your listings page that says what is being looked at, such as "Land to buy", "Land to buy in Galle" or "Listings in Galle". It changes with the search and with category links, and it takes the site\'s heading style. The browser tab\'s title changes the same way on its own.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'tag' => array(
-						'default'     => 'h1',
+						'default'     => 'h3',
 						'description' => __( 'Which heading it is: h1 to h6, or p for plain text.', 'crc-real-estate' ),
 					),
 					'all' => array(
@@ -194,6 +199,23 @@ final class Listing_Results {
 	}
 
 	/**
+	 * The two ways to show the listings: a grid of cards, or a list of wide cards.
+	 *
+	 * @param bool $list Whether the list shows to start with.
+	 * @return string
+	 */
+	private static function views( $list ) {
+		$view = '<span class="crc-results-view%1$s" role="button" tabindex="0" aria-pressed="%2$s" data-view="%3$s" title="%4$s">%5$s<span class="crc-sr">%4$s</span></span>';
+
+		return sprintf(
+			'<div class="crc-results-views" role="group" aria-label="%1$s">%2$s%3$s</div>',
+			esc_attr__( 'Show the listings as', 'crc-real-estate' ),
+			sprintf( $view, $list ? '' : ' is-active', $list ? 'false' : 'true', 'grid', esc_attr__( 'Grid', 'crc-real-estate' ), Icons::svg( 'grid', 'crc-results-view-icon' ) ),
+			sprintf( $view, $list ? ' is-active' : '', $list ? 'true' : 'false', 'list', esc_attr__( 'List', 'crc-real-estate' ), Icons::svg( 'list', 'crc-results-view-icon' ) )
+		);
+	}
+
+	/**
 	 * The Sort by choice. It keeps the other filters and goes back to the first page.
 	 *
 	 * @param string $id      Results ID.
@@ -227,6 +249,7 @@ final class Listing_Results {
 	public function render( $atts ) {
 		$atts    = Shortcodes::atts( self::SHORTCODE, $atts );
 		$columns = is_numeric( $atts['columns'] ) ? max( 1, min( 4, (int) $atts['columns'] ) ) : 3;
+		$list    = 'list' === strtolower( trim( (string) $atts['layout'] ) );
 		$filters = Listing_Archive::filters();
 
 		// On a listing archive, its own listings already follow the search.
@@ -279,15 +302,15 @@ final class Listing_Results {
 				/* translators: %s: listings found. */
 				: sprintf( _n( '%s listing', '%s listings', $total, 'crc-real-estate' ), number_format_i18n( $total ) );
 			$body  = sprintf(
-				'<div class="crc-results-bar"><p class="crc-results-count" role="status">%1$s</p>%2$s</div><ul class="crc-results-grid">%3$s</ul>%4$s',
+				'<div class="crc-results-bar"><p class="crc-results-count" role="status">%1$s</p><div class="crc-results-tools">%2$s</div></div><ul class="crc-results-grid">%3$s</ul>%4$s',
 				esc_html( $found ),
-				self::sort_form( $id, $filters ),
+				self::views( $list ) . self::sort_form( $id, $filters ),
 				$cards, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in card().
 				self::pagination( min( $filters['page'], $pages ), $pages )
 			);
 		}
 
-		return sprintf( '<div class="crc-results crc-results-cols-%1$d" id="%2$s" data-crc-results>%3$s</div>', $columns, esc_attr( $id ), $body );
+		return sprintf( '<div class="crc-results crc-results-cols-%1$d%2$s" id="%3$s" data-crc-results data-layout="%4$s">%5$s</div>', $columns, $list ? ' crc-results-list' : '', esc_attr( $id ), $list ? 'list' : 'grid', $body );
 	}
 
 	/**
@@ -299,7 +322,7 @@ final class Listing_Results {
 	public function render_title( $atts ) {
 		$atts = Shortcodes::atts( self::TITLE_SHORTCODE, $atts );
 		$tag  = strtolower( trim( (string) $atts['tag'] ) );
-		$tag  = in_array( $tag, array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p' ), true ) ? $tag : 'h1';
+		$tag  = in_array( $tag, array( 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p' ), true ) ? $tag : 'h3';
 		$text = Listing_Archive::heading( Listing_Archive::filters(), $atts['all'] );
 
 		return '' !== $text ? sprintf( '<%1$s class="crc-search-heading">%2$s</%1$s>', $tag, esc_html( $text ) ) : '';

@@ -19,7 +19,7 @@ Real estate listing tools for WordPress.
 * Location map with the area around the property, while the exact place stays in the admin
 * Inquiry form that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
 * FAQs that open smoothly, one at a time, set for each category and each listing, with FAQ structured data for search engines
-* Import & Export: add or change many listings at once from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing
+* Import & Export: add or change many listings at once from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing, with buttons for them on All Listings
 * Download listing: a zip file with a page of all the listing's details, its photos in full size and the inquiries about it
 * Owner details kept privately with each listing, never shown on the website
 * Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
@@ -31,7 +31,7 @@ Real estate listing tools for WordPress.
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
-* Search: a search box for any page with a tab for each category, town and district suggestions as people type and rounded dropdowns for size, price and rooms; filters and results with sorting and numbered pages for the listing archives (all listings, and each category, district and town), designed with archive templates
+* Search: a search box for any page with a tab for each category, town and district suggestions from three letters and rounded dropdowns for size, price and rooms; filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
@@ -44,6 +44,17 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.26.0 =
+* Filters: in the same white card as the price box (crc-card and crc-listing-price). Beside the results, they stay in view while the listings scroll, and scroll on their own when taller than the window; Listings → Widgets → Search sets the space above them (32px to start with), for sites whose header stays at the top.
+* Price, and rent per month: a Min and a Max box with a slider under them. Moving a handle writes the amount in its box, and typing an amount moves the handle. The slider's steps run from about the cheapest listing's price to about the dearest's.
+* Bedrooms, bathrooms and furnishing: a box with − and + (and the arrow keys).
+* Show Listings uses the site's own button style (.elementor-button), with Clear All next to it in custom-btn-1-lite. The fields and labels keep the site's form styles.
+* More orders: oldest first, recently updated and name A to Z; for land, price per perch high to low and smallest land first; for homes, most bedrooms, most bathrooms, largest floor area and largest land.
+* Results as a grid or a list: buttons beside Sort by switch between them, and the choice is remembered on the visitor's device. layout="list" starts with the list. Phones show cards.
+* [crc_search_heading] is an H3 to start with, with no margin above or below.
+* Place suggestions start at three letters, in the search box and in the filters.
+* All Listings has Import from CSV, Export to CSV and Sample CSV buttons beside Add New Listing. Import & Export explains that the sample file's photo links (https://example.com/photos/…) are a stand-in, to replace with the address of the folder the photos are in.
 
 = 0.25.0 =
 * The search works on the listing archives, for archive templates made with a theme builder: All Listings Archive (/listing/, new), All Listing Categories Archive (/listings/lands/), All Districts Archive (/district/galle/) and All Towns Archive (/town/hikkaduwa/). Put [crc_listing_filters] and [crc_listing_results] (and [crc_search_heading] if you like) in the template; on each archive they show that archive's listings.

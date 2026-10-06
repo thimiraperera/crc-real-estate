@@ -47,6 +47,34 @@ final class Import_Page {
 		add_action( 'wp_ajax_crc_re_import_stop', array( $this, 'ajax_stop' ) );
 		add_action( 'admin_post_' . self::SAMPLE, array( $this, 'download_sample' ) );
 		add_action( 'admin_post_' . self::EXPORT, array( $this, 'download_export' ) );
+		add_action( 'admin_print_footer_scripts-edit.php', array( $this, 'list_buttons' ) );
+	}
+
+	/**
+	 * Import, Export and Sample CSV buttons beside Add New Listing on All
+	 * Listings, so the spreadsheet tools are one click away.
+	 */
+	public function list_buttons() {
+		$screen = get_current_screen();
+
+		if ( ! $screen || 'edit-' . Post_Type::NAME !== $screen->id || ! current_user_can( self::capability() ) ) {
+			return;
+		}
+
+		$links = sprintf(
+			'<a href="%1$s" class="page-title-action crc-import-action">%2$s</a><a href="%3$s" class="page-title-action crc-import-action">%4$s</a><a href="%5$s" class="page-title-action crc-import-action">%6$s</a>',
+			esc_url( self::url() ),
+			esc_html__( 'Import from CSV', 'crc-real-estate' ),
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::EXPORT ), self::EXPORT ) ),
+			esc_html__( 'Export to CSV', 'crc-real-estate' ),
+			esc_url( wp_nonce_url( admin_url( 'admin-post.php?action=' . self::SAMPLE ), self::SAMPLE ) ),
+			esc_html__( 'Sample CSV', 'crc-real-estate' )
+		);
+
+		printf(
+			'<script>( function () { var add = document.querySelector( ".wrap .page-title-action" ); if ( add ) { add.insertAdjacentHTML( "afterend", %s ); } }() );</script>',
+			wp_json_encode( $links )
+		);
 	}
 
 	/**
@@ -221,6 +249,7 @@ final class Import_Page {
 					<li><?php esc_html_e( 'Download the sample file and open it in Excel or Google Sheets. It has every column, with three example listings to show how each one is filled in.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'Put one listing on each row, under the column names. Keep the first row with the column names as it is. Columns you don\'t need can be deleted or left empty.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'For photos, put links to them (starting with https://). They are downloaded into the Media Library, so they keep working even if the links stop working later. Google Drive and Dropbox links work when the file is shared with anyone who has the link.', 'crc-real-estate' ); ?></li>
+					<li><?php esc_html_e( 'The sample file\'s photo links start with https://example.com/photos/, which is only a stand-in. Upload your photos to a folder online first (for example on your hosting, or in the Media Library, where each photo shows its address), then replace https://example.com/photos/ with that folder\'s real address before you import. The photos\' names after it stay as they are.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'Save the file as CSV. In Excel: File → Save As → CSV UTF-8 (Comma delimited). In Google Sheets: File → Download → Comma-separated values.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'Choose the file below and press Start import. Keep this page open until it says the import is finished. Every row is listed with what happened to it.', 'crc-real-estate' ); ?></li>
 				</ol>

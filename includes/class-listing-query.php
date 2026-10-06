@@ -123,6 +123,73 @@ final class Listing_Query {
 	}
 
 	/**
+	 * Round amounts, smallest first: 1,000, 1,500, 2,000, 2,500, 3,000,
+	 * 4,000, 5,000, 6,000, 7,500, 10,000 and so on up to 10,000,000,000.
+	 *
+	 * @return int[]
+	 */
+	public static function round_amounts() {
+		$amounts = array();
+
+		for ( $power = 3; $power <= 9; $power++ ) {
+			foreach ( array( 1, 1.5, 2, 2.5, 3, 4, 5, 6, 7.5 ) as $times ) {
+				$amounts[] = (int) round( $times * pow( 10, $power ) );
+			}
+		}
+
+		$amounts[] = 10000000000;
+
+		return $amounts;
+	}
+
+	/**
+	 * The steps of a category's price slider: 0 (no lowest), then round
+	 * amounts from about the cheapest listing's price to about the dearest's.
+	 * The last step means no highest.
+	 *
+	 * @param string $category Category slug.
+	 * @return int[]
+	 */
+	public static function price_steps( $category ) {
+		$prices = Listing_Index::facets( $category )['prices'];
+		$low    = (int) $prices['min'];
+		$high   = (int) $prices['max'];
+
+		// Without prices yet, the usual range for the category.
+		if ( $high <= 0 ) {
+			$usual = self::prices( $category );
+			$low   = (int) reset( $usual );
+			$high  = (int) end( $usual );
+		}
+
+		$round = self::round_amounts();
+		$from  = 0;
+		$to    = count( $round ) - 1;
+
+		foreach ( $round as $i => $amount ) {
+			if ( $amount <= max( 1, $low ) ) {
+				$from = $i;
+			}
+
+			if ( $amount >= $high ) {
+				$to = $i;
+				break;
+			}
+		}
+
+		// At least 8 steps, so the slider moves in small enough jumps.
+		$from = max( 0, min( $from, $to - 7 ) );
+
+		/**
+		 * Filters the steps of a category's price slider.
+		 *
+		 * @param int[]  $steps    Amounts in rupees, 0 first.
+		 * @param string $category Category slug.
+		 */
+		return array_map( 'intval', (array) apply_filters( 'crc_re_search_price_steps', array_merge( array( 0 ), array_slice( $round, $from, $to - $from + 1 ) ), $category ) );
+	}
+
+	/**
 	 * Prices per perch to choose from, in rupees.
 	 *
 	 * @return int[]
@@ -216,15 +283,26 @@ final class Listing_Query {
 	public static function sorts( $category ) {
 		$sorts = array(
 			'newest'     => __( 'Newest first', 'crc-real-estate' ),
+			'oldest'     => __( 'Oldest first', 'crc-real-estate' ),
 			'price-asc'  => __( 'Price: low to high', 'crc-real-estate' ),
 			'price-desc' => __( 'Price: high to low', 'crc-real-estate' ),
-			'popular'    => __( 'Most viewed', 'crc-real-estate' ),
 		);
 
-		if ( '' !== $category && ! self::homes( $category ) ) {
-			$sorts['per-perch-asc'] = __( 'Price per perch: low to high', 'crc-real-estate' );
-			$sorts['size-desc']     = __( 'Largest land first', 'crc-real-estate' );
+		if ( self::homes( $category ) ) {
+			$sorts['beds-desc']  = __( 'Most bedrooms', 'crc-real-estate' );
+			$sorts['baths-desc'] = __( 'Most bathrooms', 'crc-real-estate' );
+			$sorts['area-desc']  = __( 'Largest floor area', 'crc-real-estate' );
+			$sorts['size-desc']  = __( 'Largest land first', 'crc-real-estate' );
+		} elseif ( '' !== $category ) {
+			$sorts['per-perch-asc']  = __( 'Price per perch: low to high', 'crc-real-estate' );
+			$sorts['per-perch-desc'] = __( 'Price per perch: high to low', 'crc-real-estate' );
+			$sorts['size-desc']      = __( 'Largest land first', 'crc-real-estate' );
+			$sorts['size-asc']       = __( 'Smallest land first', 'crc-real-estate' );
 		}
+
+		$sorts['popular']   = __( 'Most viewed', 'crc-real-estate' );
+		$sorts['updated']   = __( 'Recently updated', 'crc-real-estate' );
+		$sorts['title-asc'] = __( 'Name: A to Z', 'crc-real-estate' );
 
 		/**
 		 * Filters the orders the results offer.
@@ -518,12 +596,25 @@ final class Listing_Query {
 			$args['meta_query'] = array_merge( array( 'relation' => 'AND' ), $meta ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_query_meta_query -- One page of results.
 		}
 
+		// Orders by a number, with listings that don't have it last.
 		$orders = array(
-			'price-asc'     => array( Price_Card::PRICE_META, 'ASC' ),
-			'price-desc'    => array( Price_Card::PRICE_META, 'DESC' ),
-			'popular'       => array( Views::META, 'DESC' ),
-			'per-perch-asc' => array( Listing_Index::PER_PERCH, 'ASC' ),
-			'size-desc'     => array( Listing_Index::PERCHES, 'DESC' ),
+			'price-asc'      => array( Price_Card::PRICE_META, 'ASC' ),
+			'price-desc'     => array( Price_Card::PRICE_META, 'DESC' ),
+			'popular'        => array( Views::META, 'DESC' ),
+			'per-perch-asc'  => array( Listing_Index::PER_PERCH, 'ASC' ),
+			'per-perch-desc' => array( Listing_Index::PER_PERCH, 'DESC' ),
+			'size-desc'      => array( Listing_Index::PERCHES, 'DESC' ),
+			'size-asc'       => array( Listing_Index::PERCHES, 'ASC' ),
+			'beds-desc'      => array( '_crc_bedrooms', 'DESC' ),
+			'baths-desc'     => array( '_crc_bathrooms', 'DESC' ),
+			'area-desc'      => array( Listing_Index::FLOOR, 'DESC' ),
+		);
+
+		// Orders WordPress knows itself.
+		$plain = array(
+			'oldest'    => array( 'date', 'ASC' ),
+			'updated'   => array( 'modified', 'DESC' ),
+			'title-asc' => array( 'title', 'ASC' ),
 		);
 
 		if ( isset( $orders[ $filters['sort'] ] ) ) {
@@ -531,6 +622,9 @@ final class Listing_Query {
 				'key'   => $orders[ $filters['sort'] ][0],
 				'order' => $orders[ $filters['sort'] ][1],
 			);
+		} elseif ( isset( $plain[ $filters['sort'] ] ) ) {
+			$args['orderby'] = $plain[ $filters['sort'] ][0];
+			$args['order']   = $plain[ $filters['sort'] ][1];
 		}
 
 		/**

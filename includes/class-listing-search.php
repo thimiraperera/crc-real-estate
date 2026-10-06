@@ -21,8 +21,9 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Listing_Search {
 
-	const SHORTCODE = 'crc_listing_search';
-	const AJAX      = 'crc_re_places';
+	const SHORTCODE   = 'crc_listing_search';
+	const AJAX        = 'crc_re_places';
+	const MIN_LETTERS = 3;
 
 	/**
 	 * Search boxes on the page so far, for their ids.
@@ -96,6 +97,9 @@ final class Listing_Search {
 			array(
 				'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 				'action'  => self::AJAX,
+				'letters' => self::MIN_LETTERS,
+				'noMin'   => __( 'No min', 'crc-real-estate' ),
+				'noMax'   => __( 'No max', 'crc-real-estate' ),
 				'pin'     => Icons::svg( 'pin', 'crc-place-option-icon' ),
 			)
 		);
@@ -363,6 +367,7 @@ final class Listing_Search {
 	/**
 	 * Places that match what is typed and have published listings (in the
 	 * chosen category, if any): districts and towns, best first, at most 8.
+	 * Nothing until at least 3 letters are typed.
 	 *
 	 * @param string $query    What is typed.
 	 * @param string $category Category slug, or empty.
@@ -371,7 +376,7 @@ final class Listing_Search {
 	public static function places( $query, $category = '' ) {
 		$key = District::normalize( $query );
 
-		if ( '' === $key ) {
+		if ( strlen( $key ) < self::MIN_LETTERS ) {
 			return array();
 		}
 

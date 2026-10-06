@@ -27,6 +27,7 @@ final class Listing_Archive {
 
 	const OPTION   = 'crc_re_search';
 	const PER_PAGE = 12;
+	const TOP      = 32;
 
 	/**
 	 * The chosen page's ID, once found.
@@ -66,13 +67,26 @@ final class Listing_Archive {
 		add_filter( 'rank_math/frontend/title', array( $this, 'seo_title' ) );
 		add_action( 'update_option_' . self::OPTION, array( $this, 'saved' ) );
 		add_action( 'add_option_' . self::OPTION, array( $this, 'saved' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'sticky_space' ), 21 );
+	}
+
+	/**
+	 * The space above the filters while they stay in view, when it isn't the usual 32px.
+	 */
+	public function sticky_space() {
+		$top = self::settings()['sticky_top'];
+
+		if ( self::TOP !== $top && wp_style_is( 'crc-re-frontend', 'enqueued' ) ) {
+			wp_add_inline_style( 'crc-re-frontend', 'body{--crc-filters-top:' . $top . 'px}' );
+		}
 	}
 
 	/**
 	 * The saved settings.
 	 *
 	 * @return array 'page': the chosen page's ID, or 0 for the listing archives;
-	 *               'per_page': listings a page.
+	 *               'per_page': listings a page; 'sticky_top': the space above
+	 *               the filters while they stay in view, in pixels.
 	 */
 	public static function settings() {
 		$saved = get_option( self::OPTION, array() );
@@ -80,8 +94,9 @@ final class Listing_Archive {
 		$per   = isset( $saved['per_page'] ) ? absint( $saved['per_page'] ) : 0;
 
 		return array(
-			'page'     => isset( $saved['page'] ) ? absint( $saved['page'] ) : 0,
-			'per_page' => $per ? min( Listing_Query::MAX_PER_PAGE, $per ) : self::PER_PAGE,
+			'page'       => isset( $saved['page'] ) ? absint( $saved['page'] ) : 0,
+			'per_page'   => $per ? min( Listing_Query::MAX_PER_PAGE, $per ) : self::PER_PAGE,
+			'sticky_top' => isset( $saved['sticky_top'] ) && is_numeric( $saved['sticky_top'] ) ? min( 400, absint( $saved['sticky_top'] ) ) : self::TOP,
 		);
 	}
 
@@ -97,8 +112,9 @@ final class Listing_Archive {
 		$per   = isset( $value['per_page'] ) ? absint( $value['per_page'] ) : 0;
 
 		return array(
-			'page'     => ( $page && 'page' === get_post_type( $page ) ) ? $page : 0,
-			'per_page' => $per ? min( Listing_Query::MAX_PER_PAGE, $per ) : self::PER_PAGE,
+			'page'       => ( $page && 'page' === get_post_type( $page ) ) ? $page : 0,
+			'per_page'   => $per ? min( Listing_Query::MAX_PER_PAGE, $per ) : self::PER_PAGE,
+			'sticky_top' => isset( $value['sticky_top'] ) && is_numeric( $value['sticky_top'] ) ? min( 400, absint( $value['sticky_top'] ) ) : self::TOP,
 		);
 	}
 

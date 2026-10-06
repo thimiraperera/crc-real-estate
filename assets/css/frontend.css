@@ -1162,15 +1162,12 @@
 	font-size: 0.875em;
 }
 
-/* Search filters: [crc_listing_filters]. The fields and labels keep the
-   site's form styles from Elementor; only their places are set here. */
+/* Search filters: [crc_listing_filters]. A white card like the price box
+   (.crc-card). The fields, labels and buttons keep the site's own styles from
+   Elementor; only their places are set here. */
 .crc-filters {
 	box-sizing: border-box;
 	width: 100%;
-	padding: 24px;
-	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 10%, var(--e-global-color-bb33687));
-	border-radius: 16px;
-	background: var(--e-global-color-3581a59);
 }
 
 .crc-filters .crc-filters-body {
@@ -1182,7 +1179,6 @@
 .crc-filters .crc-filters-head {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: 16px;
 }
 
@@ -1190,12 +1186,6 @@
 	margin-top: 0px;
 	margin-bottom: 0px;
 	color: var(--e-global-color-6e3d619);
-}
-
-.crc-filters .crc-filters-clear {
-	margin-inline-start: auto;
-	color: var(--e-global-color-primary);
-	white-space: nowrap;
 }
 
 .crc-filters .crc-filter {
@@ -1225,51 +1215,236 @@
 	position: relative;
 }
 
-.crc-filters :where(.crc-filter-select, .crc-search-input) {
+.crc-filters :where(.crc-filter-select, .crc-filter-input, .crc-search-input) {
 	box-sizing: border-box;
 	width: 100%;
 	max-width: 100%;
 }
 
-.crc-filters .crc-filters-body .crc-filters-submit {
+/* In the filters the suggestions open in place, so they show even while the filters scroll. */
+.crc-filters .crc-place .crc-places {
+	position: static;
+	margin-top: 8px;
+	box-shadow: none;
+}
+
+/* The price slider under the two boxes: two handles on one track. */
+.crc-filters .crc-range {
+	--crc-range-from: 0%;
+	--crc-range-to: 100%;
+	position: relative;
+	display: none;
+	height: 28px;
+	margin: 12px 10px 0;
+}
+
+.crc-filters.is-ready .crc-range {
+	display: block;
+}
+
+.crc-filters .crc-range-track {
+	position: absolute;
+	top: 12px;
+	right: 0;
+	left: 0;
+	height: 4px;
+	border-radius: 4px;
+	background: color-mix(in srgb, var(--e-global-color-1ead78b) 12%, var(--e-global-color-3581a59));
+}
+
+.crc-filters .crc-range-fill {
+	position: absolute;
+	top: 0;
+	right: calc(100% - var(--crc-range-to));
+	bottom: 0;
+	left: var(--crc-range-from);
+	border-radius: 4px;
+	background: var(--e-global-color-primary);
+}
+
+/* Each handle's own slider is see-through and as wide as the track plus a
+   handle, so the handles' middles reach the track's ends. */
+.crc-filters .crc-range input.crc-range-input:not([type="button"]):not([type="submit"]) {
+	position: absolute;
+	top: 0;
+	left: -10px;
+	box-sizing: border-box;
+	width: calc(100% + 20px);
+	height: 28px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: none;
+	box-shadow: none;
+	outline: none;
+	pointer-events: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.crc-filters .crc-range input.crc-range-input.is-on-top {
+	z-index: 2;
+}
+
+.crc-filters .crc-range .crc-range-input::-webkit-slider-runnable-track {
+	height: 28px;
+	border: 0;
+	background: none;
+}
+
+.crc-filters .crc-range .crc-range-input::-moz-range-track {
+	height: 28px;
+	border: 0;
+	background: none;
+}
+
+.crc-filters .crc-range .crc-range-input::-webkit-slider-thumb {
+	box-sizing: border-box;
+	width: 20px;
+	height: 20px;
+	margin-top: 4px;
+	border: 2px solid var(--e-global-color-primary);
+	border-radius: 50%;
+	background: var(--e-global-color-3581a59);
+	box-shadow: 0 2px 6px color-mix(in srgb, var(--e-global-color-1ead78b) 15%, var(--e-global-color-bb33687));
+	cursor: grab;
+	pointer-events: auto;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.crc-filters .crc-range .crc-range-input::-moz-range-thumb {
+	box-sizing: border-box;
+	width: 20px;
+	height: 20px;
+	border: 2px solid var(--e-global-color-primary);
+	border-radius: 50%;
+	background: var(--e-global-color-3581a59);
+	box-shadow: 0 2px 6px color-mix(in srgb, var(--e-global-color-1ead78b) 15%, var(--e-global-color-bb33687));
+	cursor: grab;
+	pointer-events: auto;
+}
+
+.crc-filters .crc-range .crc-range-input:active::-webkit-slider-thumb {
+	cursor: grabbing;
+}
+
+.crc-filters .crc-range .crc-range-input:focus-visible::-webkit-slider-thumb {
+	outline: 2px solid var(--e-global-color-primary);
+	outline-offset: 2px;
+}
+
+.crc-filters .crc-range .crc-range-input:focus-visible::-moz-range-thumb {
+	outline: 2px solid var(--e-global-color-primary);
+	outline-offset: 2px;
+}
+
+/* Bedrooms, bathrooms and furnishing: a box with − and + on either side. */
+.crc-filters .crc-stepper {
 	display: flex;
+	align-items: stretch;
+	gap: 8px;
+}
+
+.crc-filters .crc-stepper .crc-stepper-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	text-align: center;
+	cursor: default;
+}
+
+.crc-filters .crc-stepper-button {
+	display: flex;
+	flex: none;
 	align-items: center;
 	justify-content: center;
 	box-sizing: border-box;
-	width: 100%;
-	min-height: 48px;
-	margin: 4px 0 0;
-	padding: 12px 20px;
-	border: 0;
-	border-radius: 16px;
-	background: var(--e-global-color-primary);
-	box-shadow: none;
-	color: var(--e-global-color-3581a59);
-	font: inherit;
-	font-weight: 500;
-	line-height: 1.2;
-	letter-spacing: normal;
-	text-transform: none;
+	width: 48px;
+	min-height: 44px;
+	border-radius: 12px;
+	background: var(--e-global-color-f5fd1b7);
+	color: var(--e-global-color-6e3d619);
 	cursor: pointer;
-	transition: background-color 0.25s ease;
-}
-
-.crc-filters .crc-filters-body .crc-filters-submit:focus {
-	background: var(--e-global-color-primary);
-	color: var(--e-global-color-3581a59);
-	outline: none;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	transition: background-color 0.25s ease, opacity 0.25s ease;
 }
 
 @media (hover: hover) {
-	.crc-filters .crc-filters-body .crc-filters-submit:hover {
-		background: color-mix(in srgb, var(--e-global-color-primary) 85%, var(--e-global-color-1ead78b));
-		color: var(--e-global-color-3581a59);
+	.crc-filters .crc-stepper-button:not([aria-disabled="true"]):hover {
+		background: color-mix(in srgb, var(--e-global-color-6e3d619) 8%, var(--e-global-color-f5fd1b7));
 	}
 }
 
-.crc-filters .crc-filters-body .crc-filters-submit:focus-visible {
-	outline: 2px solid var(--e-global-color-primary);
-	outline-offset: 2px;
+.crc-filters .crc-stepper-button:not([aria-disabled="true"]):active {
+	background: color-mix(in srgb, var(--e-global-color-6e3d619) 14%, var(--e-global-color-f5fd1b7));
+}
+
+.crc-filters .crc-stepper-button[aria-disabled="true"] {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.crc-filters .crc-stepper-icon {
+	display: block;
+	width: 14px;
+	height: 14px;
+	fill: currentColor;
+	pointer-events: none;
+}
+
+/* Show Listings and Clear All side by side, in the site's own button styles. */
+.crc-filters .crc-filters-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: stretch;
+	gap: 12px;
+	margin-top: 4px;
+}
+
+.crc-filters .crc-filters-buttons .crc-filters-submit {
+	flex: 1 1 auto;
+	cursor: pointer;
+}
+
+/* When both don't fit side by side, each takes a whole line. */
+.crc-filters .crc-filters-clear {
+	display: flex;
+	flex: 1 1 auto;
+}
+
+.crc-filters .crc-filters-clear .elementor-button {
+	display: inline-flex;
+	flex: 1 1 auto;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Beside the results, the filters' column stays in view while the listings
+   scroll (search.js marks the column). The filters scroll on their own when
+   they are taller than the window. */
+.crc-filters-column {
+	position: sticky;
+	top: var(--crc-filters-top, 32px);
+	z-index: 2;
+	align-self: flex-start;
+}
+
+.admin-bar .crc-filters-column {
+	top: calc(var(--crc-filters-top, 32px) + 32px);
+}
+
+.crc-filters-column .crc-filters {
+	max-height: calc(100vh - var(--crc-filters-top, 32px) - 32px);
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	scrollbar-width: thin;
+}
+
+.admin-bar .crc-filters-column .crc-filters {
+	max-height: calc(100vh - var(--crc-filters-top, 32px) - 64px);
 }
 
 /* The Filters bar, on phones only. */
@@ -1368,6 +1543,65 @@
 	color: var(--e-global-color-6e3d619);
 }
 
+.crc-results .crc-results-tools {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px 16px;
+}
+
+/* Grid or list. */
+.crc-results .crc-results-views {
+	display: flex;
+	gap: 4px;
+}
+
+.crc-results .crc-results-view {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 44px;
+	height: 44px;
+	border-radius: 12px;
+	background: var(--e-global-color-bb33687);
+	color: var(--e-global-color-text);
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+@media (hover: hover) {
+	.crc-results .crc-results-view:hover {
+		background: var(--e-global-color-f5fd1b7);
+		color: var(--e-global-color-6e3d619);
+	}
+}
+
+.crc-results .crc-results-view.is-active {
+	background: var(--e-global-color-f5fd1b7);
+	color: var(--e-global-color-primary);
+}
+
+.crc-results .crc-results-view:focus:not(:focus-visible) {
+	outline: none;
+}
+
+.crc-results .crc-results-view:focus-visible {
+	outline: 2px solid var(--e-global-color-primary);
+	outline-offset: 2px;
+}
+
+.crc-results .crc-results-view-icon {
+	display: block;
+	width: 18px;
+	height: 18px;
+	fill: currentColor;
+	pointer-events: none;
+}
+
 .crc-results .crc-results-sort {
 	display: flex;
 	align-items: center;
@@ -1392,6 +1626,26 @@
 	margin: 0;
 	padding: 0;
 	list-style: none;
+}
+
+/* The list: one wide card a row, the photo on the left. */
+.crc-results.crc-results-list .crc-results-grid {
+	grid-template-columns: minmax(0, 1fr);
+}
+
+.crc-results.crc-results-list .crc-listing-card {
+	flex-direction: row;
+}
+
+.crc-results.crc-results-list .crc-listing-card-media {
+	flex: 0 0 40%;
+	aspect-ratio: auto;
+	min-height: 280px;
+}
+
+.crc-results.crc-results-list .crc-listing-card-body {
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
 /* Nothing found. */
@@ -1630,10 +1884,6 @@
 	}
 
 	/* Filters fold away behind the Filters bar. */
-	.crc-filters {
-		padding: 16px;
-	}
-
 	.crc-filters.is-foldable .crc-filters-toggle {
 		display: flex;
 	}
@@ -1657,6 +1907,21 @@
 
 	.crc-results .crc-results-grid {
 		gap: 16px;
+	}
+
+	/* On phones the list shows as cards too, so there is no choice to make. */
+	.crc-results .crc-results-views {
+		display: none;
+	}
+
+	.crc-results.crc-results-list .crc-listing-card {
+		flex-direction: column;
+	}
+
+	.crc-results.crc-results-list .crc-listing-card-media {
+		flex: none;
+		aspect-ratio: 1.72;
+		min-height: 0;
 	}
 
 	.crc-results .crc-results-bar {
