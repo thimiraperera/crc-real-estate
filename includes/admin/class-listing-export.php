@@ -9,6 +9,7 @@ namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Csv;
 use CRC\RealEstate\District;
+use CRC\RealEstate\Town;
 use CRC\RealEstate\Inquiries;
 use CRC\RealEstate\Listing_Data;
 use CRC\RealEstate\Owner;
@@ -378,6 +379,7 @@ final class Listing_Export {
 		$id       = (int) $post->ID;
 		$category = Taxonomy::listing_category( $id );
 		$district = District::of( $id );
+		$town     = Town::of( $id );
 		$status   = get_post_status_object( $post->post_status );
 		$price    = Price_Card::price( $id );
 		$perch    = Price_Card::price_per_perch( $post->ID );
@@ -397,6 +399,7 @@ final class Listing_Export {
 					__( 'Status', 'crc-real-estate' )       => $status ? $status->label : $post->post_status,
 					__( 'Category', 'crc-real-estate' )     => $category ? $category['term']->name : '',
 					__( 'District', 'crc-real-estate' )     => $district ? $district['name'] : '',
+					__( 'Town', 'crc-real-estate' )         => $town ? $town['name'] : '',
 					__( 'Web address', 'crc-real-estate' )  => array( 'link' => (string) get_permalink( $post ) ),
 					__( 'Added', 'crc-real-estate' )        => mysql2date( $format, $post->post_date ),
 					__( 'Last changed', 'crc-real-estate' ) => mysql2date( $format, $post->post_modified ),

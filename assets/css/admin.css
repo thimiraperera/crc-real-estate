@@ -887,6 +887,41 @@
 	margin: 0;
 }
 
+/* Listing screen: the Town field, under the district */
+.crc-town-box {
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.crc-town-label {
+	display: block;
+	margin: 0 0 6px;
+	font-weight: 600;
+}
+
+.crc-town-box .crc-combo .crc-combo-input {
+	padding-right: 8px;
+}
+
+.crc-town-note {
+	margin: 6px 0 0;
+	color: #007017;
+}
+
+.crc-town-note:empty {
+	margin: 0;
+}
+
+/* Listings → Widgets → Search */
+.crc-search-tab h3 {
+	margin: 24px 0 8px;
+}
+
+.crc-search-status {
+	margin: 8px 0 0;
+}
+
 /* Something to put right */
 .crc-warning {
 	color: #b32d2e;

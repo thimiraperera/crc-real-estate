@@ -187,15 +187,15 @@ final class Listing_Carousel {
 	}
 
 	/**
-	 * One listing's card.
+	 * One listing's card, for a carousel or for the search results.
 	 *
 	 * @param int   $post_id  Listing ID.
 	 * @param array $category Category details from Taxonomy::listing_category().
-	 * @param int   $number   Card number, from 1.
-	 * @param int   $total    How many cards.
+	 * @param int   $number   Card number in a carousel, from 1; 0 for a card in a list.
+	 * @param int   $total    How many cards the carousel has.
 	 * @return string
 	 */
-	public static function card( $post_id, array $category, $number, $total ) {
+	public static function card( $post_id, array $category, $number = 0, $total = 0 ) {
 		$url      = (string) get_permalink( $post_id );
 		$post     = get_post( $post_id );
 		$title    = $post ? get_the_title( $post ) : '';
@@ -233,10 +233,10 @@ final class Listing_Carousel {
 		}
 
 		return sprintf(
-			'<li class="crc-listing-card" role="group" aria-roledescription="%1$s" aria-label="%2$s"><div class="crc-listing-card-media"><a class="crc-listing-card-photo" href="%3$s" tabindex="-1" aria-hidden="true">%4$s</a>%5$s</div><div class="crc-listing-card-body">%6$s<h6 class="crc-listing-card-title"><a href="%3$s">%7$s</a></h6>%8$s<div class="crc-listing-card-button custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%3$s"><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%9$s</span><span class="elementor-button-icon">%10$s</span></span></a></div></div></li>',
-			esc_attr__( 'slide', 'crc-real-estate' ),
+			'<li class="crc-listing-card"%1$s%2$s><div class="crc-listing-card-media"><a class="crc-listing-card-photo" href="%3$s" tabindex="-1" aria-hidden="true">%4$s</a>%5$s</div><div class="crc-listing-card-body">%6$s<h6 class="crc-listing-card-title"><a href="%3$s">%7$s</a></h6>%8$s<div class="crc-listing-card-button custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%3$s"><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%9$s</span><span class="elementor-button-icon">%10$s</span></span></a></div></div></li>',
+			$number ? ' role="group" aria-roledescription="' . esc_attr__( 'slide', 'crc-real-estate' ) . '"' : '',
 			/* translators: 1: card number, 2: number of cards. */
-			esc_attr( sprintf( __( '%1$s of %2$s', 'crc-real-estate' ), $number, $total ) ),
+			$number ? ' aria-label="' . esc_attr( sprintf( __( '%1$s of %2$s', 'crc-real-estate' ), $number, $total ) ) . '"' : '',
 			esc_url( $url ),
 			$image,
 			$place,

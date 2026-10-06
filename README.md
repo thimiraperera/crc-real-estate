@@ -24,6 +24,8 @@ Real estate listing tools for WordPress.
 - **FAQs for any page**: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 - **Testimonials**: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 - **Listing carousel**: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
+- **Search**: a search box for any page with a tab for each category, town and district suggestions as people type and rounded dropdowns for size, price and rooms; filters and results with sorting and numbered pages for the listings page, where category links show their own listings
+- **Towns**: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

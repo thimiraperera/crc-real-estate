@@ -31,6 +31,8 @@ Real estate listing tools for WordPress.
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
+* Search: a search box for any page with a tab for each category, town and district suggestions as people type and rounded dropdowns for size, price and rooms; filters and results with sorting and numbered pages for the listings page, where category links show their own listings
+* Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -42,6 +44,16 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.24.0 =
+* Search box: [crc_listing_search] for any page, as in the design. A white card (24px corners, a soft shadow) with a tab for each category, named as the categories are and underlined like the listing carousel's, and a place box with a pin and "Town, district or Colombo zone", with the green Search button and its magnifier inside it. Under the card are the chosen tab's own choices as rounded dropdowns: land size, the highest price per perch and the property type for land; bedrooms, the highest rent or price and the property type for homes (only property types the listings have). On phones the tabs can be swiped and the button shows its magnifier only.
+* Place suggestions: as people type, the place box suggests the districts and towns that have listings in the chosen category, each with its district, and Colombo zones by their number or by the area people know, such as Kollupitiya for Colombo 3. The arrow keys and Enter, or a click, pick one.
+* Search opens the category's own page, such as /listings/lands/?location=Galle&size=10-20, with only the choices that were made.
+* Listings page: put [crc_listing_filters] and [crc_listing_results] on a page at /listing/ (or choose the page on Listings → Widgets → Search). Category links such as /listings/lands/, district links such as /district/galle/ and town links such as /town/hikkaduwa/ show that page with their category, district or town chosen, like a normal WordPress archive, each with its own title and address for search engines (also with Yoast SEO and Rank Math).
+* Filters: [crc_listing_filters], for beside or above the results: what people are looking for, the place (with the same suggestions), the price or rent, and for land the price per perch and land size, for homes bedrooms, bathrooms and furnishing, and the property type. Show listings opens the category's page; Clear all takes the choices off. The fields and labels keep your form styles from Elementor. On phones the filters fold away behind a Filters bar showing how many are chosen.
+* Results: [crc_listing_results] shows the matching listings in the listing carousel's cards, three across (columns="…" changes it; laptops show at most 3, tablets 2 and phones 1), with how many were found, Sort by (newest, price low to high or high to low, most viewed, and for land the price per perch and the largest land) and numbered pages with the round arrows. [crc_search_heading] is a heading that says what is being looked at, such as "Land to buy in Galle".
+* Towns: each listing has a Town field in the District and town box, under the district. As you type, the towns already used are suggested with their district, so a town is written the same way every time; a new town is added when the listing is saved. Picking a suggested town fills in an empty district, and a place chosen on the map fills in an empty town (Colombo's zones from their postcode). Listings → Towns lists every town to put a spelling right, All Listings has a Town column, and Import & Export has a Town column.
+* The land size in perches and the price per perch are kept ready for the search on each listing, worked out again whenever a listing changes, and the search's lists are cleared from the LiteSpeed cache when listings change.
 
 = 0.23.0 =
 * Listing carousel: [crc_listing_carousel] shows listings in cards with a tab for each category (named as the categories are), 10 a tab. show="latest" has the newest listings, for Latest Verified Listings, and show="popular" the most viewed, for Popular Listings; count="…" and categories="…" change it. A tab without listings doesn't show.

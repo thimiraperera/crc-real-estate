@@ -16,8 +16,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Widgets: ready-made pieces for any page, each on a tab with its
- * shortcode and what goes in it: the category carousel's cards, FAQs, and the
- * keyword ticker.
+ * shortcode and what goes in it: the category carousel's cards, FAQs, the
+ * keyword ticker, and the search with its listings page.
  */
 final class Widgets_Page {
 
@@ -50,6 +50,26 @@ final class Widgets_Page {
 		}
 
 		return $this->ticker;
+	}
+
+	/**
+	 * The Search tab.
+	 *
+	 * @var Search_Tab|null
+	 */
+	private $search = null;
+
+	/**
+	 * The Search tab.
+	 *
+	 * @return Search_Tab
+	 */
+	private function search() {
+		if ( ! $this->search ) {
+			$this->search = new Search_Tab();
+		}
+
+		return $this->search;
 	}
 
 	/**
@@ -102,6 +122,7 @@ final class Widgets_Page {
 		);
 
 		$this->ticker()->register();
+		$this->search()->register();
 	}
 
 	/**
@@ -114,6 +135,7 @@ final class Widgets_Page {
 			'carousel' => __( 'Category carousel', 'crc-real-estate' ),
 			'faqs'     => __( 'FAQs', 'crc-real-estate' ),
 			'ticker'   => __( 'Keyword ticker', 'crc-real-estate' ),
+			'search'   => __( 'Search', 'crc-real-estate' ),
 		);
 	}
 
@@ -178,6 +200,8 @@ final class Widgets_Page {
 				$this->faqs_tab();
 			} elseif ( 'ticker' === $current ) {
 				$this->ticker()->render();
+			} elseif ( 'search' === $current ) {
+				$this->search()->render();
 			} else {
 				$this->carousel_tab();
 			}

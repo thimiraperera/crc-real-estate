@@ -43,6 +43,7 @@ final class Plugin {
 		( new Post_Type() )->hooks();
 		( new Taxonomy() )->hooks();
 		( new District() )->hooks();
+		( new Town() )->hooks();
 		( new Listing_Name() )->hooks();
 		( new Views() )->hooks();
 		( new Popup() )->hooks();
@@ -63,6 +64,12 @@ final class Plugin {
 		( new Ticker() )->hooks();
 		( new Category_Carousel() )->hooks();
 		( new Listing_Carousel() )->hooks();
+		( new Listing_Index() )->hooks();
+		( new Listing_Query() )->hooks();
+		( new Listing_Archive() )->hooks();
+		( new Listing_Search() )->hooks();
+		( new Listing_Filters() )->hooks();
+		( new Listing_Results() )->hooks();
 		( new Testimonials() )->hooks();
 		( new Admin\Name_Help() )->hooks();
 		( new Admin\District_Box() )->hooks();
