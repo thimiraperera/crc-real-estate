@@ -45,6 +45,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.29.1 =
+* Search box on phones: the crc-listing-search container has 16px padding and the card 12px, and the category button, the place box and the Search button have 12px corners.
+
 = 0.29.0 =
 * Search box: until someone clicks in it, the place box types out places with listings as examples ("Search Kandy", "Search Colombo 7" and so on), deletes each and types the next, with a blinking bar for the cursor. Visitors whose device asks for less motion see the box's own hint.
 * Search, and Show Listings in the filters, show a spinning circle while the results load.

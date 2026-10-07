@@ -1342,7 +1342,7 @@
 	min-height: 48px;
 	padding: 0 16px;
 	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 14%, var(--e-global-color-3581a59));
-	border-radius: 16px;
+	border-radius: 12px;
 	background: var(--e-global-color-3581a59);
 	color: var(--e-global-color-6e3d619);
 	font-weight: 500;
@@ -2224,8 +2224,12 @@
 	/* Search box: the categories as a list, the place box the whole width,
 	   and under it the Search button as wide, with its caption and magnifier.
 	   The boxes under the card are one under another. */
+	.crc-listing-search {
+		padding: 16px;
+	}
+
 	.crc-search .crc-search-card {
-		padding: 16px 12px 12px;
+		padding: 12px;
 	}
 
 	.crc-search .crc-search-tabs {
@@ -2251,7 +2255,7 @@
 		min-height: 48px;
 		padding: 0 14px;
 		border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 14%, var(--e-global-color-3581a59));
-		border-radius: 16px;
+		border-radius: 12px;
 		background: var(--e-global-color-3581a59);
 		transition: border-color 0.25s ease;
 	}
@@ -2262,6 +2266,7 @@
 
 	.crc-search .crc-search-row .crc-search-submit {
 		width: 100%;
+		border-radius: 12px;
 	}
 
 	/* The suggestions open right under the place box, over the button. */
