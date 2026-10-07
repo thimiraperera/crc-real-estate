@@ -46,6 +46,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.35.1 =
+* Scroll down hint: the line's corners are rounded to run evenly inside the section's own rounded corners (radius="auto", to start with): the section's corner rounding less the gap, measured on the page, so the gap stays 10px all the way round the corners on every screen size. A number of pixels still works.
+
 = 0.35.0 =
 * Category carousel: Listings → Widgets, Category carousel, has a slide speed (how long the cards take to slide over, 0.6 seconds to start with) and can move the cards on by themselves every so many seconds (0, never, to start with). They wait while the mouse is over the carousel, while someone is using it and while it is off the screen. speed="…" and autoplay="…" change them on one page.
 * Deleting listings: when a listing is deleted for good (the Trash emptied, or Delete Permanently), its main photo, its gallery photos and any other files uploaded to it are deleted from the Media Library too. A photo also used somewhere else is kept. Listings → Settings, Deleting listings, can turn this off.

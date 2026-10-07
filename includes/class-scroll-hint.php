@@ -51,7 +51,7 @@ final class Scroll_Hint {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Scroll down hint', 'crc-real-estate' ),
-				'description' => __( 'A small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. Three arrows light up one after another, downwards, inside one line shaped like a U along the bottom of the section: the line draws itself from the bottom middle out to both sides and up them, in white that fades to clear at the top, in time with the arrows. Put it in a Shortcode widget anywhere in the section: it sits at the bottom of the section by itself, 10px in from its edges, with 40px corners, a little see-through (70%). For the arrows without the line, use [crc_scroll_arrows]. A click or tap scrolls smoothly to what is under the section, and it fades away once the page has been scrolled. To show it on phones only, hide the widget on desktop and tablet in Elementor (Advanced, then Responsive). Visitors whose device asks for less motion see it standing still.', 'crc-real-estate' ),
+				'description' => __( 'A small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. Three arrows light up one after another, downwards, inside one line shaped like a U along the bottom of the section: the line draws itself from the bottom middle out to both sides and up them, in white that fades to clear at the top, in time with the arrows. Put it in a Shortcode widget anywhere in the section: it sits at the bottom of the section by itself, 10px in from its edges, with its corners rounded to run evenly inside the section\'s own rounded corners, a little see-through (70%). For the arrows without the line, use [crc_scroll_arrows]. A click or tap scrolls smoothly to what is under the section, and it fades away once the page has been scrolled. To show it on phones only, hide the widget on desktop and tablet in Elementor (Advanced, then Responsive). Visitors whose device asks for less motion see it standing still.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'gap'    => array(
 						'default'     => '10',
@@ -62,8 +62,8 @@ final class Scroll_Hint {
 						'description' => __( 'How tall the line is at the sides, in pixels.', 'crc-real-estate' ),
 					),
 					'radius'  => array(
-						'default'     => '40',
-						'description' => __( 'How round the line\'s two bottom corners are, in pixels.', 'crc-real-estate' ),
+						'default'     => 'auto',
+						'description' => __( 'How round the line\'s two bottom corners are. auto (to start with) takes the section\'s own corner rounding less the gap, so the line stays the same distance from the section\'s edge all the way round its corners, on every screen size; a section with 32px corners and a 10px gap gives 22px. Or a number of pixels.', 'crc-real-estate' ),
 					),
 					'opacity' => array(
 						'default'     => '70',
@@ -213,7 +213,7 @@ final class Scroll_Hint {
 		$atts += array(
 			'gap'     => '10',
 			'height'  => '48',
-			'radius'  => '40',
+			'radius'  => 'auto',
 			'frame'   => 'yes',
 			'opacity' => '70',
 			'color'   => 'light',
@@ -224,7 +224,8 @@ final class Scroll_Hint {
 		);
 		$gap     = max( 0, min( 200, (int) $atts['gap'] ) );
 		$height  = max( 24, min( 200, (int) $atts['height'] ) );
-		$radius  = max( 0, min( 200, (int) $atts['radius'] ) );
+		$radius  = trim( strtolower( (string) $atts['radius'] ) );
+		$radius  = '' === $radius || 'auto' === $radius || ! is_numeric( $radius ) ? 'auto' : (string) max( 0, min( 200, (int) $radius ) );
 		$offset  = max( 0, min( 400, (int) $atts['offset'] ) );
 		$frame   = Shortcodes::is_on( $atts['frame'] );
 		$opacity = max( 10, min( 100, (int) $atts['opacity'] ) ) / 100;
@@ -239,14 +240,14 @@ final class Scroll_Hint {
 		) : '';
 
 		return sprintf(
-			'<div class="crc-scroll-hint-wrap%1$s%2$s%3$s" id="%4$s" style="--crc-scroll-hint-gap: %5$dpx; --crc-scroll-hint-height: %6$dpx; --crc-scroll-hint-opacity: %13$s;" data-radius="%7$d" data-target="%8$s" data-offset="%9$d"><div class="crc-scroll-hint-frame">%10$s<div class="crc-scroll-hint" role="button" tabindex="0" aria-label="%11$s" data-crc-scroll-hint>%12$s</div></div></div>',
+			'<div class="crc-scroll-hint-wrap%1$s%2$s%3$s" id="%4$s" style="--crc-scroll-hint-gap: %5$dpx; --crc-scroll-hint-height: %6$dpx; --crc-scroll-hint-opacity: %13$s;" data-radius="%7$s" data-target="%8$s" data-offset="%9$d"><div class="crc-scroll-hint-frame">%10$s<div class="crc-scroll-hint" role="button" tabindex="0" aria-label="%11$s" data-crc-scroll-hint>%12$s</div></div></div>',
 			Shortcodes::is_on( $atts['pin'] ) ? ' is-pinned' : '',
 			'dark' === strtolower( trim( (string) $atts['color'] ) ) ? ' is-dark' : '',
 			$frame ? ' has-frame' : '',
 			esc_attr( $id ),
 			$gap,
 			$height,
-			$radius,
+			esc_attr( $radius ),
 			esc_attr( trim( (string) $atts['target'] ) ),
 			$offset,
 			$lines, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.

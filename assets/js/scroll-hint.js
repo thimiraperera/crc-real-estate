@@ -59,6 +59,28 @@
 	}
 
 	/*
+	 * The rounding that keeps the line evenly inside the section's own
+	 * rounded corners: the section's corner rounding less the gap, measured
+	 * to the middle of the line. The section is the box the hint is set in.
+	 */
+	function evenRound( wrap, edge ) {
+		var widget = wrap.closest( '.elementor-widget' );
+		var holder = ( widget || wrap ).offsetParent;
+		var corner;
+		var gap;
+
+		if ( ! holder || holder === document.body || holder === document.documentElement ) {
+			return 0;
+		}
+
+		corner = String( window.getComputedStyle( holder ).borderBottomLeftRadius || '0' ).split( ' ' )[ 0 ];
+		corner = -1 !== corner.indexOf( '%' ) ? parseFloat( corner ) * holder.offsetWidth / 100 : parseFloat( corner ) || 0;
+		gap = parseFloat( window.getComputedStyle( wrap ).paddingLeft ) || 0;
+
+		return Math.max( 0, corner - gap - edge );
+	}
+
+	/*
 	 * The U-shaped line: two halves, each from the bottom middle out along the
 	 * bottom, round the corner and up its side, drawn to the line's width so
 	 * the corners keep their rounding however wide the section is.
@@ -82,7 +104,9 @@
 		height = Math.round( box.height );
 		bottom = height - edge;
 		middle = width / 2;
-		round = Math.max( 0, Math.min( parseFloat( wrap.getAttribute( 'data-radius' ) ) || 0, middle - edge, bottom - edge ) );
+		round = wrap.getAttribute( 'data-radius' ) || 'auto';
+		round = 'auto' === round ? evenRound( wrap, edge ) : parseFloat( round ) || 0;
+		round = Math.max( 0, Math.min( round, middle - edge, bottom - edge ) );
 
 		svg.setAttribute( 'viewBox', '0 0 ' + width + ' ' + height );
 		halves[ 0 ].setAttribute( 'd', 'M' + middle + ' ' + bottom + 'H' + ( edge + round ) + 'A' + round + ' ' + round + ' 0 0 1 ' + edge + ' ' + ( bottom - round ) + 'V' + edge );
