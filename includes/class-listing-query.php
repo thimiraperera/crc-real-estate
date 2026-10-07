@@ -535,14 +535,30 @@ final class Listing_Query {
 			}
 		}
 
+		// What was typed, understood: places, and filters not chosen otherwise that fit the category; the other words are keywords.
 		if ( '' !== $filters['location'] ) {
-			$place = self::place( $filters['location'] );
+			$text   = Listing_Text::read( $filters['location'], $filters['category'] );
+			$fields = self::fields_for( $filters['category'] );
 
-			if ( $place['clause'] ) {
-				$tax[] = $place['clause'];
-			} else {
-				// Looked for in the titles, without making the page a search page.
-				$args['crc_title'] = $place['search'];
+			if ( $text['clause'] ) {
+				$tax[] = $text['clause'];
+			}
+
+			foreach ( array( 'type', 'price_min', 'price_max', 'size_min', 'size_max', 'furnishing' ) as $key ) {
+				if ( '' === (string) $filters[ $key ] && '' !== (string) $text[ $key ] && in_array( $key, $fields, true ) ) {
+					$filters[ $key ] = $text[ $key ];
+				}
+			}
+
+			foreach ( array( 'beds', 'beds_max' ) as $key ) {
+				if ( ! $filters[ $key ] && $text[ $key ] && in_array( $key, $fields, true ) ) {
+					$filters[ $key ] = $text[ $key ];
+				}
+			}
+
+			// Looked for in the listings, without making the page a search page.
+			if ( $text['words'] ) {
+				$args['crc_words'] = $text['words'];
 			}
 		}
 
@@ -673,10 +689,37 @@ final class Listing_Query {
 		global $wpdb;
 
 		$title = $query->get( 'crc_title' );
+		$words = $query->get( 'crc_words' );
 		$order = $query->get( 'crc_order' );
 
 		if ( is_string( $title ) && '' !== $title ) {
 			$clauses['where'] = ( isset( $clauses['where'] ) ? $clauses['where'] : '' ) . $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", '%' . $wpdb->esc_like( $title ) . '%' );
+		}
+
+		// Each keyword is in the title, the description, the type, furnishing, features or details, or the town, district or category.
+		if ( is_array( $words ) && $words ) {
+			$keys       = "'" . implode( "','", array_map( 'esc_sql', Listing_Text::meta_keys() ) ) . "'";
+			$taxonomies = "'" . implode( "','", array_map( 'esc_sql', array( Town::NAME, District::NAME, Taxonomy::NAME ) ) ) . "'";
+
+			foreach ( array_slice( $words, 0, 6 ) as $word ) {
+				if ( ! is_string( $word ) || '' === $word ) {
+					continue;
+				}
+
+				$like = '%' . $wpdb->esc_like( $word ) . '%';
+
+				// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- The table names, keys and taxonomies are the plugin's own, escaped above.
+				$clauses['where'] = ( isset( $clauses['where'] ) ? $clauses['where'] : '' ) . $wpdb->prepare(
+					" AND ( {$wpdb->posts}.post_title LIKE %s OR {$wpdb->posts}.post_content LIKE %s"
+					. " OR EXISTS ( SELECT 1 FROM {$wpdb->postmeta} AS crc_m WHERE crc_m.post_id = {$wpdb->posts}.ID AND crc_m.meta_key IN ( {$keys} ) AND crc_m.meta_value LIKE %s )"
+					. " OR EXISTS ( SELECT 1 FROM {$wpdb->term_relationships} AS crc_r INNER JOIN {$wpdb->term_taxonomy} AS crc_tt ON crc_tt.term_taxonomy_id = crc_r.term_taxonomy_id INNER JOIN {$wpdb->terms} AS crc_t ON crc_t.term_id = crc_tt.term_id WHERE crc_r.object_id = {$wpdb->posts}.ID AND crc_tt.taxonomy IN ( {$taxonomies} ) AND crc_t.name LIKE %s ) )",
+					$like,
+					$like,
+					$like,
+					$like
+				);
+				// phpcs:enable
+			}
 		}
 
 		if ( is_array( $order ) && ! empty( $order['key'] ) ) {

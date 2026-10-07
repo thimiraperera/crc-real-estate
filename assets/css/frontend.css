@@ -1543,6 +1543,46 @@
 	font-size: 0.875em;
 }
 
+/* The suggestions in groups: places, property types and listings. */
+.crc-search .crc-places-group,
+.crc-filters .crc-places-group {
+	margin: 0;
+	padding: 10px 12px 4px;
+	color: var(--e-global-color-text);
+	font-size: 0.8em;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	cursor: default;
+}
+
+.crc-search .crc-places-group:first-child,
+.crc-filters .crc-places-group:first-child {
+	padding-top: 4px;
+}
+
+/* A listing's photo in its suggestion. */
+.crc-search .crc-place-option-photo,
+.crc-filters .crc-place-option-photo {
+	display: block;
+	flex: none;
+	width: 44px;
+	height: 33px;
+	border-radius: 6px;
+	background: var(--e-global-color-f5fd1b7);
+	object-fit: cover;
+}
+
+.crc-search .crc-place-option-listing .crc-place-option-name,
+.crc-filters .crc-place-option-listing .crc-place-option-name {
+	font-weight: 500;
+}
+
+/* A listing's price stays whole; its title is shortened instead. */
+.crc-search .crc-place-option-listing .crc-place-option-note,
+.crc-filters .crc-place-option-listing .crc-place-option-note {
+	flex: none;
+}
+
 /* Slim scrollbars in the site's colours, for the lists and the filters. */
 .crc-search .crc-dropdown-list,
 .crc-search .crc-places,

@@ -54,14 +54,14 @@ final class Listing_Search {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search box', 'crc-real-estate' ),
-				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings from three letters, and a Search button in the site\'s button style. Under it are the chosen category\'s own choices as rounded boxes: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Each opens a list to choose from, and people can also type in it: an amount such as 25,000,000 or 25m, a size such as 25 perches, or bedrooms such as 2-4. On phones the categories are a dropdown and the Search button takes the whole width. Until someone clicks in it, the place box types out places with listings as examples. Search shows a spinning circle while the results load, and opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
+				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a search box where people can type anything (a town, a district, a Colombo zone, a property type, bedrooms, a price such as under 50m, a size such as 20 perches, or any words such as pool or sea view) with suggestions from three letters: places, property types and the listings that match, and a Search button in the site\'s button style. Under it are the chosen category\'s own choices as rounded boxes: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Each opens a list to choose from, and people can also type in it: an amount such as 25,000,000 or 25m, a size such as 25 perches, or bedrooms such as 2-4. On phones the categories are a dropdown and the Search button takes the whole width. Until someone clicks in it, the place box types out places with listings as examples. Search shows a spinning circle while the results load, and opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories'  => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
 						'description' => __( 'Which categories have tabs, in order, separated by commas. The first one is chosen to start with.', 'crc-real-estate' ),
 					),
 					'placeholder' => array(
-						'default'     => __( 'Town, district or Colombo zone', 'crc-real-estate' ),
+						'default'     => __( 'Town, property type or keyword', 'crc-real-estate' ),
 						'description' => __( 'The grey hint in the place box.', 'crc-real-estate' ),
 					),
 					'button'      => array(
@@ -101,8 +101,12 @@ final class Listing_Search {
 				'letters' => self::MIN_LETTERS,
 				'noMin'   => __( 'No min', 'crc-real-estate' ),
 				'noMax'   => __( 'No max', 'crc-real-estate' ),
-				'pin'     => Icons::svg( 'pin', 'crc-place-option-icon' ),
-				'check'   => Icons::svg( 'check', 'crc-dropdown-option-icon' ),
+				'pin'      => Icons::svg( 'pin', 'crc-place-option-icon' ),
+				'home'     => Icons::svg( 'home', 'crc-place-option-icon' ),
+				'check'    => Icons::svg( 'check', 'crc-dropdown-option-icon' ),
+				'places'   => __( 'Places', 'crc-real-estate' ),
+				'types'    => __( 'Property types', 'crc-real-estate' ),
+				'listings' => __( 'Listings', 'crc-real-estate' ),
 			)
 		);
 	}
@@ -503,6 +507,43 @@ final class Listing_Search {
 			}
 		}
 
+		// Searches people can make, from real listings, such as "Villa in Unawatuna", in between the places.
+		$phrases = array();
+		$recent  = get_posts(
+			array(
+				'post_type'        => Post_Type::NAME,
+				'post_status'      => 'publish',
+				'numberposts'      => 12,
+				'fields'           => 'ids',
+				'has_password'     => false,
+				'suppress_filters' => true,
+			)
+		);
+
+		foreach ( (array) $recent as $post_id ) {
+			$type  = trim( (string) get_post_meta( (int) $post_id, '_crc_property_type', true ) );
+			$where = Town::of( (int) $post_id );
+			$where = $where ? $where : District::of( (int) $post_id );
+
+			if ( '' !== $type && $where ) {
+				/* translators: 1: property type, e.g. "Villa", 2: place, e.g. "Unawatuna". */
+				$phrases[] = sprintf( __( '%1$s in %2$s', 'crc-real-estate' ), $type, $where['name'] );
+			}
+		}
+
+		$phrases = array_slice( array_values( array_unique( $phrases ) ), 0, 4 );
+		$mixed   = array();
+
+		foreach ( $places as $i => $place ) {
+			if ( isset( $phrases[ $i ] ) ) {
+				$mixed[] = $phrases[ $i ];
+			}
+
+			$mixed[] = $place;
+		}
+
+		$places = array_slice( array_values( array_unique( $mixed ) ), 0, 10 );
+
 		/**
 		 * Filters the places the search box types out as examples.
 		 *
@@ -602,7 +643,7 @@ final class Listing_Search {
 			$tabs, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			$category, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			Icons::svg( 'pin', 'crc-search-place-icon' ),
-			esc_html__( 'Town, district or Colombo zone', 'crc-real-estate' ),
+			esc_html__( 'Search listings: a town, a property type or any words', 'crc-real-estate' ),
 			self::place_field( $id . '-location', $place, $atts['placeholder'], $id . '-places' ),
 			esc_html( $atts['button'] ),
 			Icons::svg( 'search', 'crc-search-submit-icon' ),
@@ -710,7 +751,125 @@ final class Listing_Search {
 	}
 
 	/**
-	 * Answers the place box: the places matching what is typed.
+	 * Property types that match what is typed, from the category's listings:
+	 * "vil" finds Villa, and "flat" finds Apartment.
+	 *
+	 * @param string $query    What is typed.
+	 * @param string $category Category slug, or empty.
+	 * @return array[] Each with a 'name' and a 'note'.
+	 */
+	public static function type_suggestions( $query, $category = '' ) {
+		$key   = District::normalize( $query );
+		$found = array();
+
+		if ( strlen( $key ) < self::MIN_LETTERS ) {
+			return array();
+		}
+
+		$types = self::property_types( isset( Taxonomy::terms()[ $category ] ) ? $category : '' );
+		$other = array_key_exists( strtolower( trim( $query ) ), Listing_Text::TYPE_WORDS ) ? Listing_Text::TYPE_WORDS[ strtolower( trim( $query ) ) ] : '';
+
+		foreach ( $types as $type ) {
+			if ( false !== strpos( District::normalize( $type ), $key ) || $type === $other ) {
+				$found[] = array(
+					'name' => $type,
+					'note' => __( 'Property type', 'crc-real-estate' ),
+				);
+			}
+		}
+
+		return array_slice( $found, 0, 3 );
+	}
+
+	/**
+	 * Listings that match what is typed, understood as the search would:
+	 * "villa galle" finds the villas in Galle. At most 4, newest first.
+	 *
+	 * @param string $query    What is typed.
+	 * @param string $category Category slug, or empty.
+	 * @return array[] Each with a 'name', a 'note' (place and price), a 'url' and an 'image'.
+	 */
+	public static function listing_suggestions( $query, $category = '' ) {
+		$filters             = Listing_Query::blank();
+		$filters['category'] = isset( Taxonomy::terms()[ $category ] ) ? $category : '';
+		$filters['location'] = $query;
+		$args                  = Listing_Query::args( $filters, 4 );
+		$args['fields']        = 'ids';
+		$args['paged']         = 1;
+		$args['no_found_rows'] = true;
+		$found                 = array();
+
+		$listings = new \WP_Query( $args );
+
+		foreach ( $listings->posts as $post_id ) {
+			$post_id  = (int) $post_id;
+			$town     = Town::of( $post_id );
+			$district = District::of( $post_id );
+			$details  = Taxonomy::listing_category( $post_id );
+			$price    = (string) Price_Card::price( $post_id );
+			$where    = $town ? $town['name'] : ( $district ? $district['name'] : '' );
+
+			// The price, which the title doesn't have; its place otherwise.
+			$note = '' !== $price && '0' !== $price ? Price_Card::money( $price ) . ( $details && ! empty( $details['period'] ) ? $details['period'] : '' ) : $where;
+
+			$found[] = array(
+				'name'  => html_entity_decode( get_the_title( $post_id ), ENT_QUOTES, 'UTF-8' ),
+				'note'  => $note,
+				'url'   => (string) get_permalink( $post_id ),
+				'image' => (string) get_the_post_thumbnail_url( $post_id, 'thumbnail' ),
+			);
+		}
+
+		return $found;
+	}
+
+	/**
+	 * What the search suggests for what is typed: places and property types
+	 * for the last word or two (a pick puts them in place of those words),
+	 * and the listings that match all of it.
+	 *
+	 * @param string $query    What is typed.
+	 * @param string $category Category slug, or empty.
+	 * @return array 'places', 'types', 'listings' and 'replace' (how many words at the end a place or type goes in place of).
+	 */
+	public static function suggestions( $query, $category = '' ) {
+		$query  = trim( (string) $query );
+		$words  = '' === $query ? array() : preg_split( '/\s+/', $query );
+		$answer = array(
+			'places'   => array(),
+			'types'    => array(),
+			'listings' => array(),
+			'replace'  => 0,
+		);
+
+		if ( strlen( District::normalize( $query ) ) < self::MIN_LETTERS ) {
+			return $answer;
+		}
+
+		foreach ( array( 2, 1 ) as $count ) {
+			if ( count( $words ) < $count ) {
+				continue;
+			}
+
+			$tail   = implode( ' ', array_slice( $words, -$count ) );
+			$places = self::places( $tail, $category );
+			$types  = self::type_suggestions( $tail, $category );
+
+			if ( $places || $types ) {
+				$answer['places']  = array_slice( $places, 0, 5 );
+				$answer['types']   = $types;
+				$answer['replace'] = $count;
+				break;
+			}
+		}
+
+		$answer['listings'] = self::listing_suggestions( $query, $category );
+
+		return $answer;
+	}
+
+	/**
+	 * Answers the search box: places, property types and listings matching what is typed.
 	 */
 	public function ajax_places() {
 		// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Public, read only, works on cached pages.
@@ -718,6 +877,6 @@ final class Listing_Search {
 		$category = isset( $_GET['category'] ) && is_scalar( $_GET['category'] ) ? sanitize_title( wp_unslash( $_GET['category'] ) ) : '';
 		// phpcs:enable
 
-		wp_send_json_success( array( 'places' => self::places( substr( $query, 0, 60 ), $category ) ) );
+		wp_send_json_success( self::suggestions( substr( $query, 0, 80 ), $category ) );
 	}
 }

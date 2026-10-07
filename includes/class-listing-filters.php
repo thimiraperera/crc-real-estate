@@ -377,8 +377,8 @@ final class Listing_Filters {
 			Icons::svg( 'chevron-down', 'crc-filters-toggle-arrow' ),
 			esc_html__( 'Looking for', 'crc-real-estate' ),
 			$choices, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
-			esc_html__( 'Location', 'crc-real-estate' ),
-			Listing_Search::place_field( $id . '-location', $place, __( 'Town, district or Colombo zone', 'crc-real-estate' ), $id . '-places' ),
+			esc_html__( 'Location or keyword', 'crc-real-estate' ),
+			Listing_Search::place_field( $id . '-location', $place, __( 'Town, property type or keyword', 'crc-real-estate' ), $id . '-places' ),
 			esc_attr__( 'Places', 'crc-real-estate' ),
 			$fields, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in fields().
 			'<span class="elementor-button-content-wrapper"><span class="elementor-button-text">' . esc_html( $atts['button'] ) . '</span><span class="crc-search-spinner" aria-hidden="true"></span></span>',

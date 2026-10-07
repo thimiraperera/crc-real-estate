@@ -2,8 +2,10 @@
  * Listing search: the search box ([crc_listing_search]), the filters
  * ([crc_listing_filters]) and the results ([crc_listing_results]).
  *
- * The place box suggests towns and districts with listings once three
- * letters are typed. The chosen category shows its own choices: in the search
+ * People can type anything in the search: a place, a property type,
+ * bedrooms, a price, a size or any words. Once three letters are typed it
+ * suggests places and property types for the last word or two, and the
+ * listings that match all of it. The chosen category shows its own choices: in the search
  * box, rounded boxes with a list to choose from, that can be typed in too
  * ("25m", "25 perches", "2-4"); on phones the categories are a list too. In
  * the filters, the price and
@@ -145,6 +147,7 @@
 		var cache = {};
 		var asked = 0;
 		var typing = 0;
+		var replace = 0;
 
 		if ( ! list || ! text.ajaxUrl || ! window.fetch ) {
 			return;
@@ -166,7 +169,7 @@
 			} ).then( function ( response ) {
 				return response.json();
 			} ).then( function ( answer ) {
-				var found = answer && answer.success && answer.data && Array.isArray( answer.data.places ) ? answer.data.places : [];
+				var found = answer && answer.success && answer.data && 'object' === typeof answer.data ? answer.data : {};
 
 				cache[ key ] = found;
 				return found;
@@ -197,40 +200,78 @@
 			setActive( -1 );
 		}
 
+		/*
+		 * The suggestions, in groups: places and property types for the last
+		 * word or two, and the listings that match all of it, with their
+		 * photos. Headings show when there is more than one group.
+		 */
 		function open( found ) {
-			shown = found;
+			var groups = [
+				[ 'places', text.places || 'Places', 'place' ],
+				[ 'types', text.types || 'Property types', 'type' ],
+				[ 'listings', text.listings || 'Listings', 'listing' ]
+			].filter( function ( group ) {
+				return Array.isArray( found[ group[ 0 ] ] ) && found[ group[ 0 ] ].length;
+			} );
+
+			shown = [];
+			replace = parseInt( found.replace, 10 ) || 0;
 			list.innerHTML = '';
 
-			if ( ! found.length ) {
+			if ( ! groups.length ) {
 				close();
 				return;
 			}
 
-			found.forEach( function ( place, i ) {
-				var li = document.createElement( 'li' );
-				var words = document.createElement( 'span' );
-				var name = document.createElement( 'span' );
-				var note = document.createElement( 'span' );
+			groups.forEach( function ( group ) {
+				var heading;
 
-				li.id = list.id + '-' + i;
-				li.className = 'crc-place-option';
-				li.setAttribute( 'role', 'option' );
-				li.setAttribute( 'aria-selected', 'false' );
-				li.setAttribute( 'data-index', String( i ) );
-				words.className = 'crc-place-option-text';
-				name.className = 'crc-place-option-name';
-				name.textContent = place.name;
-				note.className = 'crc-place-option-note';
-				note.textContent = place.note || '';
-				words.appendChild( name );
-				words.appendChild( note );
-
-				if ( text.pin ) {
-					li.innerHTML = text.pin;
+				if ( groups.length > 1 ) {
+					heading = document.createElement( 'li' );
+					heading.className = 'crc-places-group';
+					heading.setAttribute( 'role', 'presentation' );
+					heading.textContent = group[ 1 ];
+					list.appendChild( heading );
 				}
 
-				li.appendChild( words );
-				list.appendChild( li );
+				found[ group[ 0 ] ].forEach( function ( item ) {
+					var li = document.createElement( 'li' );
+					var words = document.createElement( 'span' );
+					var name = document.createElement( 'span' );
+					var note = document.createElement( 'span' );
+					var image;
+
+					item.kind = group[ 2 ];
+					li.id = list.id + '-' + shown.length;
+					li.className = 'crc-place-option crc-place-option-' + item.kind;
+					li.setAttribute( 'role', 'option' );
+					li.setAttribute( 'aria-selected', 'false' );
+					li.setAttribute( 'data-index', String( shown.length ) );
+					words.className = 'crc-place-option-text';
+					name.className = 'crc-place-option-name';
+					name.textContent = item.name;
+					note.className = 'crc-place-option-note';
+					note.textContent = item.note || '';
+					words.appendChild( name );
+					words.appendChild( note );
+
+					if ( 'listing' === item.kind && item.image ) {
+						image = document.createElement( 'img' );
+						image.className = 'crc-place-option-photo';
+						image.src = item.image;
+						image.alt = '';
+						image.loading = 'lazy';
+						li.appendChild( image );
+					} else if ( 'place' === item.kind && text.pin ) {
+						li.innerHTML = text.pin;
+					} else if ( text.home ) {
+						li.innerHTML = text.home;
+					}
+
+					li.appendChild( words );
+					list.appendChild( li );
+					shown.push( item );
+				} );
 			} );
 
 			list.hidden = false;
@@ -259,12 +300,26 @@
 			} );
 		}
 
-		// Anything still being looked up is forgotten, so the list stays closed.
-		function choose( place ) {
+		/*
+		 * A listing opens. A place or a property type goes in place of the
+		 * word or two it was suggested for: "villa in gal" becomes "villa in
+		 * Galle". Anything still being looked up is forgotten, so the list
+		 * stays closed.
+		 */
+		function choose( item ) {
+			var words = input.value.trim().split( /\s+/ );
+
 			window.clearTimeout( typing );
 			asked++;
-			input.value = place.name;
 			close();
+
+			if ( 'listing' === item.kind && item.url ) {
+				window.location.href = item.url;
+				return;
+			}
+
+			words = replace > 0 && replace < words.length ? words.slice( 0, words.length - replace ) : [];
+			input.value = words.concat( [ item.name ] ).join( ' ' );
 		}
 
 		input.addEventListener( 'input', function () {

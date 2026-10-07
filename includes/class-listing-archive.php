@@ -508,17 +508,9 @@ final class Listing_Archive {
 	 * @return string
 	 */
 	public static function place_name( array $filters ) {
+		// The place in what was typed, if there is one: "villa in galle" is Galle.
 		if ( '' !== $filters['location'] ) {
-			$district = District::find( $filters['location'] );
-			$all      = District::districts();
-
-			if ( '' !== $district && ! Town::find( $filters['location'] ) ) {
-				return $all[ $district ]['name'];
-			}
-
-			$town = Town::find( $filters['location'] );
-
-			return $town ? (string) $town->name : Town::tidy( $filters['location'] );
+			return Listing_Text::read( $filters['location'], $filters['category'] )['place'];
 		}
 
 		if ( '' !== $filters['town'] ) {
@@ -556,15 +548,20 @@ final class Listing_Archive {
 		}
 
 		if ( '' === $name ) {
-			$name = '' !== $place ? __( 'Listings', 'crc-real-estate' ) : (string) $all;
+			$name = '' !== $place || '' !== $filters['location'] ? __( 'Listings', 'crc-real-estate' ) : (string) $all;
 		}
 
-		if ( '' === $name || '' === $place ) {
-			return $name;
+		if ( '' !== $name && '' !== $place ) {
+			/* translators: 1: category, e.g. "Land to buy", 2: place, e.g. "Galle". */
+			return sprintf( __( '%1$s in %2$s', 'crc-real-estate' ), $name, $place );
 		}
 
-		/* translators: 1: category, e.g. "Land to buy", 2: place, e.g. "Galle". */
-		return sprintf( __( '%1$s in %2$s', 'crc-real-estate' ), $name, $place );
+		if ( '' !== $name && '' !== $filters['location'] ) {
+			/* translators: 1: category, e.g. "Properties for Sale", 2: what was searched for, e.g. "villa with pool". */
+			return sprintf( __( '%1$s matching “%2$s”', 'crc-real-estate' ), $name, $filters['location'] );
+		}
+
+		return $name;
 	}
 
 	/**
