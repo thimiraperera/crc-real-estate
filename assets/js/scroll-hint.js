@@ -77,6 +77,11 @@
 		corner = -1 !== corner.indexOf( '%' ) ? parseFloat( corner ) * holder.offsetWidth / 100 : parseFloat( corner ) || 0;
 		gap = parseFloat( window.getComputedStyle( wrap ).paddingLeft ) || 0;
 
+		// Corners made with pictures don't show in the section's own rounding: the corners attribute says how round they are.
+		if ( corner <= 0 ) {
+			corner = parseFloat( wrap.getAttribute( 'data-corners' ) ) || 0;
+		}
+
 		return Math.max( 0, corner - gap - edge );
 	}
 

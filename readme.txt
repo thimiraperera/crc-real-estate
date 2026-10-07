@@ -46,6 +46,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.35.2 =
+* Scroll down hint: works with corners made from pictures, such as two corner images, which the section's own rounding doesn't show. When the section has no rounding of its own, the line follows corners="…" (32px to start with), so with a 10px gap its corners are 22px.
+
 = 0.35.1 =
 * Scroll down hint: the line's corners are rounded to run evenly inside the section's own rounded corners (radius="auto", to start with): the section's corner rounding less the gap, measured on the page, so the gap stays 10px all the way round the corners on every screen size. A number of pixels still works.
 

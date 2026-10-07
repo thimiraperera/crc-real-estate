@@ -63,7 +63,11 @@ final class Scroll_Hint {
 					),
 					'radius'  => array(
 						'default'     => 'auto',
-						'description' => __( 'How round the line\'s two bottom corners are. auto (to start with) takes the section\'s own corner rounding less the gap, so the line stays the same distance from the section\'s edge all the way round its corners, on every screen size; a section with 32px corners and a 10px gap gives 22px. Or a number of pixels.', 'crc-real-estate' ),
+						'description' => __( 'How round the line\'s two bottom corners are. auto (to start with) takes the section\'s corner rounding less the gap, so the line stays the same distance from the section\'s edge all the way round its corners, on every screen size; 32px corners and a 10px gap give 22px. Or a number of pixels.', 'crc-real-estate' ),
+					),
+					'corners' => array(
+						'default'     => '32',
+						'description' => __( 'The section\'s corner rounding in pixels, for corners made with pictures (such as two corner images) instead of the section\'s own rounding in Elementor. auto uses the section\'s own rounding when it has some, and this when it has none.', 'crc-real-estate' ),
 					),
 					'opacity' => array(
 						'default'     => '70',
@@ -214,6 +218,7 @@ final class Scroll_Hint {
 			'gap'     => '10',
 			'height'  => '48',
 			'radius'  => 'auto',
+			'corners' => '32',
 			'frame'   => 'yes',
 			'opacity' => '70',
 			'color'   => 'light',
@@ -226,6 +231,7 @@ final class Scroll_Hint {
 		$height  = max( 24, min( 200, (int) $atts['height'] ) );
 		$radius  = trim( strtolower( (string) $atts['radius'] ) );
 		$radius  = '' === $radius || 'auto' === $radius || ! is_numeric( $radius ) ? 'auto' : (string) max( 0, min( 200, (int) $radius ) );
+		$corners = max( 0, min( 200, (int) $atts['corners'] ) );
 		$offset  = max( 0, min( 400, (int) $atts['offset'] ) );
 		$frame   = Shortcodes::is_on( $atts['frame'] );
 		$opacity = max( 10, min( 100, (int) $atts['opacity'] ) ) / 100;
@@ -240,7 +246,7 @@ final class Scroll_Hint {
 		) : '';
 
 		return sprintf(
-			'<div class="crc-scroll-hint-wrap%1$s%2$s%3$s" id="%4$s" style="--crc-scroll-hint-gap: %5$dpx; --crc-scroll-hint-height: %6$dpx; --crc-scroll-hint-opacity: %13$s;" data-radius="%7$s" data-target="%8$s" data-offset="%9$d"><div class="crc-scroll-hint-frame">%10$s<div class="crc-scroll-hint" role="button" tabindex="0" aria-label="%11$s" data-crc-scroll-hint>%12$s</div></div></div>',
+			'<div class="crc-scroll-hint-wrap%1$s%2$s%3$s" id="%4$s" style="--crc-scroll-hint-gap: %5$dpx; --crc-scroll-hint-height: %6$dpx; --crc-scroll-hint-opacity: %13$s;" data-radius="%7$s" data-corners="%14$d" data-target="%8$s" data-offset="%9$d"><div class="crc-scroll-hint-frame">%10$s<div class="crc-scroll-hint" role="button" tabindex="0" aria-label="%11$s" data-crc-scroll-hint>%12$s</div></div></div>',
 			Shortcodes::is_on( $atts['pin'] ) ? ' is-pinned' : '',
 			'dark' === strtolower( trim( (string) $atts['color'] ) ) ? ' is-dark' : '',
 			$frame ? ' has-frame' : '',
@@ -253,7 +259,8 @@ final class Scroll_Hint {
 			$lines, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			esc_attr( $atts['label'] ),
 			str_repeat( '<span class="crc-scroll-hint-arrow"></span>', 3 ),
-			esc_attr( number_format( $opacity, 2, '.', '' ) )
+			esc_attr( number_format( $opacity, 2, '.', '' ) ),
+			$corners
 		);
 	}
 }
