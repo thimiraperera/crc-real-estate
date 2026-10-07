@@ -46,6 +46,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.34.0 =
+* Scroll down hint: the line's corners are 40px, the line and the arrows together are a little see-through (70%, opacity="…" changes it), and the arrows are a little smaller and sit 20px above the line, so they stay well clear of it.
+* [crc_scroll_arrows]: the hint's arrows on their own, without the line, 24px up from the bottom of the section (gap="…").
+
 = 0.33.0 =
 * Scroll down hint: one design. The three arrows sit inside one line shaped like a U along the bottom of the section, 10px in from its left, right and bottom edges (gap="…"), 48px tall at the sides (height="…") with 42px corners (radius="…"), so it follows a section with 32px corners. The line draws itself from the bottom middle out along the bottom, round the corners and up both sides, in white fading to clear at the top, in time with the arrows, then fades and starts again. frame="no" shows the arrows on their own.
 * The round button, mouse and line designs are gone; a page that still asks for one shows this design.

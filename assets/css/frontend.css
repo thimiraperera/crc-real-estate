@@ -2181,10 +2181,12 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 	pointer-events: none;
 }
 
+/* The line and the arrows together are a little see-through (opacity="…"). */
 .crc-scroll-hint-frame {
 	position: relative;
 	display: flex;
 	justify-content: center;
+	opacity: var(--crc-scroll-hint-opacity, 0.7);
 	transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
@@ -2250,11 +2252,11 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 	-webkit-tap-highlight-color: transparent;
 }
 
-/* In the line, the arrows sit in the middle, 10px above its bottom. */
+/* In the line, the arrows sit in the middle, a little smaller, well clear of its bottom. */
 .crc-scroll-hint-wrap.has-frame .crc-scroll-hint {
 	position: absolute;
 	right: 0;
-	bottom: 10px;
+	bottom: 20px;
 	left: 0;
 	width: max-content;
 	min-height: 0;
@@ -2308,6 +2310,11 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 
 .crc-scroll-hint-arrow:nth-child(3) {
 	animation-delay: 0.4s;
+}
+
+.crc-scroll-hint-wrap.has-frame .crc-scroll-hint-arrow {
+	width: 12px;
+	height: 12px;
 }
 
 @keyframes crc-scroll-arrow {
