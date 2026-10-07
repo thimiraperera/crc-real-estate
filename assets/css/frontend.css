@@ -314,6 +314,11 @@
 	cursor: grabbing;
 }
 
+/* Sliding at the set speed: no snapping on the way. */
+.crc-carousel.is-gliding .crc-carousel-viewport {
+	scroll-snap-type: none;
+}
+
 .crc-carousel .crc-carousel-track {
 	display: flex;
 	align-items: flex-start;

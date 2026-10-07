@@ -255,7 +255,7 @@ final class Widgets_Page {
 		<section class="crc-info-card" id="<?php echo esc_attr( Category_Carousel::SHORTCODE ); ?>">
 			<h2 class="crc-info-title"><?php esc_html_e( 'Category carousel', 'crc-real-estate' ); ?></h2>
 			<?php $this->shortcode( '[' . Category_Carousel::SHORTCODE . ']' ); ?>
-			<p class="description"><?php esc_html_e( 'Paste the shortcode into an Elementor Shortcode widget. Click a picture to change it. Drag a card by its handle, or use the arrows, to change the order.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php esc_html_e( 'Paste the shortcode into an Elementor Shortcode widget. Click a picture to change it. Drag a card by its handle, or use the arrows, to change the order. Under the cards, set how fast they slide and how often they move on by themselves.', 'crc-real-estate' ); ?></p>
 
 			<form action="options.php" method="post">
 				<?php
@@ -282,6 +282,27 @@ final class Widgets_Page {
 						<?php $this->row( 0, array() ); ?>
 					</template>
 				</div>
+
+				<h3><?php esc_html_e( 'Movement', 'crc-real-estate' ); ?></h3>
+				<table class="form-table crc-carousel-movement" role="presentation">
+					<tr>
+						<th scope="row"><label for="crc-carousel-speed"><?php esc_html_e( 'Slide speed', 'crc-real-estate' ); ?></label></th>
+						<td>
+							<input type="number" class="small-text" id="crc-carousel-speed" name="<?php echo esc_attr( Category_Carousel::OPTION ); ?>[speed]" value="<?php echo esc_attr( (string) Category_Carousel::setting( 'speed' ) ); ?>" min="0.1" max="3" step="0.1" inputmode="decimal">
+							<?php esc_html_e( 'seconds', 'crc-real-estate' ); ?>
+							<p class="description"><?php esc_html_e( 'How long the cards take to slide over when someone uses the arrows or the dots, or when they move on by themselves. 0.3 is quick, 0.6 is gentle (the usual) and 1.5 is slow. Swiping on phones and touch pads keeps the device\'s own speed.', 'crc-real-estate' ); ?></p>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="crc-carousel-autoplay"><?php esc_html_e( 'Move on by itself', 'crc-real-estate' ); ?></label></th>
+						<td>
+							<?php esc_html_e( 'every', 'crc-real-estate' ); ?>
+							<input type="number" class="small-text" id="crc-carousel-autoplay" name="<?php echo esc_attr( Category_Carousel::OPTION ); ?>[autoplay]" value="<?php echo esc_attr( (string) Category_Carousel::setting( 'autoplay' ) ); ?>" min="0" max="60" step="0.5" inputmode="decimal">
+							<?php esc_html_e( 'seconds', 'crc-real-estate' ); ?>
+							<p class="description"><?php esc_html_e( 'The cards slide on to the next one by themselves this often, and back to the first after the last. They wait while the mouse is over the carousel, while someone is using it, and while it is off the screen. 0 keeps them still until someone uses the arrows. Visitors whose device asks for less motion are never moved.', 'crc-real-estate' ); ?></p>
+						</td>
+					</tr>
+				</table>
 
 				<datalist id="crc-cards-links">
 					<?php foreach ( $this->category_links() as $name => $url ) : ?>

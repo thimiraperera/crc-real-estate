@@ -23,6 +23,7 @@ final class Category_Carousel {
 	const SHORTCODE = 'crc_category_carousel';
 	const OPTION    = 'crc_re_carousel';
 	const CARDS_MAX = 50;
+	const SPEED     = 0.6;
 
 	/**
 	 * Registers hooks.
@@ -69,16 +70,25 @@ final class Category_Carousel {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Category carousel', 'crc-real-estate' ),
-				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows or by dragging with the mouse. On computers and tablets the cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. Phones show one card at a time: people swipe, or tap the dots under it. The cards are set in Listings → Widgets.', 'crc-real-estate' ),
+				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows or by dragging with the mouse, and that can move on by themselves. On computers and tablets the cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. Phones show one card at a time: people swipe, or tap the dots under it. The cards, how fast they slide and how often they move on by themselves are set in Listings → Widgets.', 'crc-real-estate' ),
 				'attributes'  => array(
-					'width' => array(
+					'width'    => array(
 						'default'     => 'bleed',
 						'description' => __( 'bleed to let the cards run on to the right edge of the window on computers and tablets, or container to keep them inside the container.', 'crc-real-estate' ),
+					),
+					'speed'    => array(
+						'default'     => '',
+						'description' => __( 'How long the cards take to slide over here, in seconds, from 0.1 to 3. Leave it out to use the slide speed from the Category carousel tab in Listings → Widgets.', 'crc-real-estate' ),
+					),
+					'autoplay' => array(
+						'default'     => '',
+						'description' => __( 'How often the cards move on by themselves here, in seconds; 0 keeps them still. Leave it out to use the setting from the Category carousel tab in Listings → Widgets.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
 					'[' . self::SHORTCODE . ' width="container"]',
+					'[' . self::SHORTCODE . ' speed="1" autoplay="5"]',
 				),
 			)
 		);
@@ -130,7 +140,48 @@ final class Category_Carousel {
 			}
 		}
 
-		return array( 'cards' => $cards );
+		return array(
+			'cards'    => $cards,
+			'speed'    => self::sanitize_speed( isset( $input['speed'] ) ? $input['speed'] : '' ),
+			'autoplay' => self::sanitize_autoplay( isset( $input['autoplay'] ) ? $input['autoplay'] : '' ),
+		);
+	}
+
+	/**
+	 * A slide speed: seconds from 0.1 to 3, or the usual 0.6.
+	 *
+	 * @param mixed $value Seconds.
+	 * @return float
+	 */
+	public static function sanitize_speed( $value ) {
+		$value = is_scalar( $value ) ? str_replace( ',', '.', trim( (string) $value ) ) : '';
+
+		return is_numeric( $value ) && (float) $value > 0 ? round( max( 0.1, min( 3, (float) $value ) ), 2 ) : self::SPEED;
+	}
+
+	/**
+	 * How often the cards move on by themselves: seconds from 1 to 60, or 0 for never.
+	 *
+	 * @param mixed $value Seconds.
+	 * @return float
+	 */
+	public static function sanitize_autoplay( $value ) {
+		$value = is_scalar( $value ) ? str_replace( ',', '.', trim( (string) $value ) ) : '';
+
+		return is_numeric( $value ) && (float) $value > 0 ? round( max( 1, min( 60, (float) $value ) ), 1 ) : 0.0;
+	}
+
+	/**
+	 * A saved movement setting.
+	 *
+	 * @param string $key "speed" (seconds a slide takes) or "autoplay" (seconds between moves; 0 for never).
+	 * @return float
+	 */
+	public static function setting( $key ) {
+		$saved = get_option( self::OPTION, array() );
+		$value = is_array( $saved ) && isset( $saved[ $key ] ) ? $saved[ $key ] : '';
+
+		return 'autoplay' === $key ? self::sanitize_autoplay( $value ) : self::sanitize_speed( $value );
 	}
 
 	/**
@@ -216,15 +267,20 @@ final class Category_Carousel {
 
 		wp_enqueue_script( 'crc-re-carousel' );
 
+		$speed    = '' !== trim( (string) $atts['speed'] ) ? self::sanitize_speed( $atts['speed'] ) : self::setting( 'speed' );
+		$autoplay = '' !== trim( (string) $atts['autoplay'] ) ? self::sanitize_autoplay( $atts['autoplay'] ) : self::setting( 'autoplay' );
+
 		return sprintf(
-			'<div class="crc-carousel%1$s" data-crc-carousel role="region" aria-roledescription="%2$s" aria-label="%3$s"><div class="crc-carousel-stage"><div class="crc-carousel-viewport"><ul class="crc-carousel-track">%4$s</ul></div>%5$s%6$s</div>%7$s</div>',
+			'<div class="crc-carousel%1$s" data-crc-carousel data-speed="%8$d" data-autoplay="%9$d" role="region" aria-roledescription="%2$s" aria-label="%3$s"><div class="crc-carousel-stage"><div class="crc-carousel-viewport"><ul class="crc-carousel-track">%4$s</ul></div>%5$s%6$s</div>%7$s</div>',
 			'container' === strtolower( trim( (string) $atts['width'] ) ) ? '' : ' crc-carousel-bleed',
 			esc_attr__( 'carousel', 'crc-real-estate' ),
 			esc_attr__( 'Property categories', 'crc-real-estate' ),
 			$items, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			Arrow::html( 'prev', __( 'Previous', 'crc-real-estate' ), 'crc-carousel-arrow crc-carousel-prev', true ),
 			Arrow::html( 'next', __( 'Next', 'crc-real-estate' ), 'crc-carousel-arrow crc-carousel-next' ),
-			'' !== $dots ? '<div class="crc-carousel-dots">' . $dots . '</div>' : '' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			'' !== $dots ? '<div class="crc-carousel-dots">' . $dots . '</div>' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			(int) round( $speed * 1000 ),
+			(int) round( $autoplay * 1000 )
 		);
 	}
 }

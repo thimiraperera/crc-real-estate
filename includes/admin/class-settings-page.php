@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Settings: the default phone and WhatsApp numbers and button
- * texts, the map, the inquiry form, and plugin updates.
+ * texts, the map, the inquiry form, deleting listings, and plugin updates.
  */
 final class Settings_Page {
 
@@ -150,6 +150,53 @@ final class Settings_Page {
 
 		$this->register_map();
 		$this->register_inquiry();
+		$this->register_cleanup();
+	}
+
+	/**
+	 * Registers the setting for deleting listings.
+	 */
+	private function register_cleanup() {
+		register_setting(
+			self::GROUP,
+			Settings::CLEANUP_OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_cleanup' ),
+				'default'           => Settings::cleanup_defaults(),
+			)
+		);
+
+		add_settings_section(
+			'crc_re_cleanup',
+			__( 'Deleting listings', 'crc-real-estate' ),
+			function () {
+				echo '<p>' . esc_html__( 'What happens to a listing\'s photos when the listing is deleted for good, by emptying the Trash or with Delete Permanently. Moving a listing to the Trash keeps everything, so it can still be restored.', 'crc-real-estate' ) . '</p>';
+			},
+			self::SLUG
+		);
+
+		add_settings_field(
+			'crc_re_cleanup_media',
+			__( 'Photos', 'crc-real-estate' ),
+			array( $this, 'cleanup_field' ),
+			self::SLUG,
+			'crc_re_cleanup',
+			array( 'label_for' => 'crc-cleanup-media' )
+		);
+	}
+
+	/**
+	 * Prints the tick box for deleting a listing's photos with it.
+	 */
+	public function cleanup_field() {
+		printf(
+			'<input type="hidden" name="%1$s[media]" value="0"><label for="crc-cleanup-media"><input type="checkbox" id="crc-cleanup-media" name="%1$s[media]" value="1"%2$s> %3$s</label><p class="description">%4$s</p>',
+			esc_attr( Settings::CLEANUP_OPTION ),
+			checked( (int) Settings::cleanup( 'media' ), 1, false ),
+			esc_html__( 'Delete photos with the listing', 'crc-real-estate' ),
+			esc_html__( 'When a listing is deleted for good, its main photo, its gallery photos and any other files uploaded to it are deleted from the Media Library too, so they do not take up space. A photo that is also used somewhere else (as another listing\'s or page\'s photo, or on a category carousel card) is kept. Untick this to keep every photo.', 'crc-real-estate' )
+		);
 	}
 
 	/**

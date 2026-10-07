@@ -72,6 +72,7 @@ final class Plugin {
 		( new Listing_Results() )->hooks();
 		( new Testimonials() )->hooks();
 		( new Scroll_Hint() )->hooks();
+		( new Listing_Cleanup() )->hooks();
 		( new Admin\Name_Help() )->hooks();
 		( new Admin\District_Box() )->hooks();
 		( new Admin\Gallery_Box() )->hooks();

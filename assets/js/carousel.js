@@ -1,7 +1,9 @@
 /**
  * Category carousel: the arrows, the dots on phones, dragging with the mouse,
  * and the cards running on to the edge of the window. Swiping on phones and
- * touch pads is the browser's own scrolling.
+ * touch pads is the browser's own scrolling. A carousel with data-speed
+ * slides over that many milliseconds, and one with data-autoplay moves on by
+ * itself that often, waiting while it is used, pointed at or off the screen.
  */
 ( function () {
 	'use strict';
@@ -22,6 +24,15 @@
 		var frame = 0;
 		var measureFrame = 0;
 		var observer = null;
+		var duration = parseInt( root.getAttribute( 'data-speed' ), 10 ) || 0;
+		var every = parseInt( root.getAttribute( 'data-autoplay' ), 10 ) || 0;
+		var gliding = 0;
+		var autoTimer = 0;
+		var hovering = false;
+		var focused = false;
+		var touchedAt = 0;
+		var onScreen = true;
+		var watcher = null;
 
 		if ( root.crcCarousel || ! viewport || ! track || ! track.children.length ) {
 			return;
@@ -68,21 +79,103 @@
 			viewport.scrollLeft = rtl() ? -to : to;
 		}
 
+		// Smooth all the way: slow at the start and the end.
+		function ease( t ) {
+			return t < 0.5 ? 4 * t * t * t : 1 - Math.pow( -2 * t + 2, 3 ) / 2;
+		}
+
+		function stopGlide() {
+			if ( gliding ) {
+				window.cancelAnimationFrame( gliding );
+				gliding = 0;
+				root.classList.remove( 'is-gliding' );
+			}
+		}
+
+		// Slides to a place over the set time, with snapping off on the way.
+		function glide( to ) {
+			var from = position();
+			var start = null;
+
+			stopGlide();
+
+			if ( Math.abs( to - from ) < 1 ) {
+				place( to );
+				return;
+			}
+
+			root.classList.add( 'is-gliding' );
+
+			function frameAt( now ) {
+				var t;
+
+				if ( null === start ) {
+					start = now;
+				}
+
+				t = Math.min( 1, ( now - start ) / duration );
+				place( from + ( to - from ) * ease( t ) );
+
+				if ( t < 1 ) {
+					gliding = window.requestAnimationFrame( frameAt );
+				} else {
+					gliding = 0;
+					root.classList.remove( 'is-gliding' );
+				}
+			}
+
+			gliding = window.requestAnimationFrame( frameAt );
+		}
+
 		function go( to ) {
 			to = Math.max( 0, Math.min( furthest(), to ) );
 			aim = to;
 			window.clearTimeout( aimTimer );
 			aimTimer = window.setTimeout( function () {
 				aim = null;
-			}, 700 );
+			}, Math.max( 700, duration + 100 ) );
 
-			if ( viewport.scrollTo ) {
+			if ( duration > 0 && 'smooth' === behavior() ) {
+				glide( to );
+			} else if ( viewport.scrollTo ) {
 				viewport.scrollTo( { left: rtl() ? -to : to, behavior: behavior() } );
 			} else {
 				place( to );
 			}
 
 			return to;
+		}
+
+		// Moving on by itself: not while it is pointed at, used, touched lately or off the screen.
+		function waiting() {
+			return hovering || focused || drag || document.hidden || ! onScreen || Date.now() - touchedAt < every || ( reduce && reduce.matches );
+		}
+
+		function planAuto() {
+			window.clearTimeout( autoTimer );
+			autoTimer = every > 0 ? window.setTimeout( autoNext, every ) : 0;
+		}
+
+		function autoNext() {
+			if ( ! root.isConnected ) {
+				stop();
+				return;
+			}
+
+			if ( ! waiting() && furthest() > 1 ) {
+				if ( position() >= furthest() - 1 ) {
+					go( 0 );
+				} else {
+					step( true );
+				}
+			}
+
+			planAuto();
+		}
+
+		function onTouch() {
+			touchedAt = Date.now();
+			stopGlide();
 		}
 
 		// One card along, counting from where an arrow press is already heading.
@@ -309,9 +402,12 @@
 			}
 
 			settleAt( go( target ) );
+			planAuto();
 		}
 
 		function onDown( event ) {
+			stopGlide();
+
 			if ( 'mouse' !== event.pointerType || 0 !== event.button || drag || furthest() <= 1 ) {
 				return;
 			}
@@ -354,6 +450,7 @@
 			}
 
 			step( event.currentTarget === next );
+			planAuto();
 		}
 
 		function onDot( event ) {
@@ -364,6 +461,7 @@
 			}
 
 			go( stops()[ index ] );
+			planAuto();
 		}
 
 		// Safari on iPhones and iPads only shows the pressed look with a touch listener.
@@ -405,10 +503,21 @@
 
 			window.clearTimeout( settle );
 			window.clearTimeout( aimTimer );
+			window.clearTimeout( autoTimer );
+			stopGlide();
+			viewport.removeEventListener( 'wheel', onTouch );
+			viewport.removeEventListener( 'touchstart', onTouch );
+
+			if ( watcher ) {
+				watcher.disconnect();
+			}
+
 			root.crcCarousel = null;
 		}
 
 		viewport.addEventListener( 'scroll', schedule, { passive: true } );
+		viewport.addEventListener( 'wheel', onTouch, { passive: true } );
+		viewport.addEventListener( 'touchstart', onTouch, { passive: true } );
 		viewport.addEventListener( 'pointerdown', onDown );
 		viewport.addEventListener( 'click', onClick, true );
 		window.addEventListener( 'resize', scheduleMeasure );
@@ -421,6 +530,30 @@
 			observer = new window.ResizeObserver( scheduleMeasure );
 			observer.observe( root );
 			observer.observe( document.documentElement );
+		}
+
+		if ( every > 0 ) {
+			root.addEventListener( 'mouseenter', function () {
+				hovering = true;
+			} );
+			root.addEventListener( 'mouseleave', function () {
+				hovering = false;
+			} );
+			root.addEventListener( 'focusin', function () {
+				focused = true;
+			} );
+			root.addEventListener( 'focusout', function ( event ) {
+				focused = !! ( event.relatedTarget && root.contains( event.relatedTarget ) );
+			} );
+
+			if ( window.IntersectionObserver ) {
+				watcher = new window.IntersectionObserver( function ( entries ) {
+					onScreen = entries[ entries.length - 1 ].isIntersecting;
+				} );
+				watcher.observe( root );
+			}
+
+			planAuto();
 		}
 
 		root.crcCarousel = { measure: measure, step: step, stops: stops, current: current, stop: stop };

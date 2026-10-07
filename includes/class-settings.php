@@ -20,6 +20,7 @@ final class Settings {
 	const MAP_OPTION        = 'crc_re_map';
 	const INQUIRY_OPTION    = 'crc_re_inquiry';
 	const TICKER_OPTION     = 'crc_re_ticker';
+	const CLEANUP_OPTION    = 'crc_re_cleanup';
 	const TICKER_MAX        = 200;
 	const KEYWORD_MAX       = 100;
 	const DEFAULT_NUMBER    = '+94777643264';
@@ -174,6 +175,41 @@ final class Settings {
 			'tiles'  => $valid ? $tiles : '',
 			'credit' => isset( $input['credit'] ) && is_scalar( $input['credit'] ) ? sanitize_text_field( (string) $input['credit'] ) : '',
 		);
+	}
+
+	/**
+	 * What happens when a listing is deleted for good, until saved: its
+	 * photos are deleted from the Media Library too.
+	 *
+	 * @return array
+	 */
+	public static function cleanup_defaults() {
+		return array( 'media' => 1 );
+	}
+
+	/**
+	 * A saved setting for deleting listings.
+	 *
+	 * @param string $key "media".
+	 * @return int|null
+	 */
+	public static function cleanup( $key ) {
+		$saved = get_option( self::CLEANUP_OPTION, null );
+		$saved = is_array( $saved ) ? self::sanitize_cleanup( $saved ) : self::cleanup_defaults();
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Cleans the settings for deleting listings.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_cleanup( $input ) {
+		$media = is_array( $input ) && isset( $input['media'] ) && is_scalar( $input['media'] ) ? (string) $input['media'] : '0';
+
+		return array( 'media' => '' !== $media && '0' !== $media ? 1 : 0 );
 	}
 
 	/**
