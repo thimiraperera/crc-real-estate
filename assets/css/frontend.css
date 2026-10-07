@@ -2255,27 +2255,106 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 	}
 }
 
-/* Mouse: its wheel moves down and fades, over and over. */
+/* Circle: a round, see-through button with an arrow dropping through it, over
+   and over, and a soft ring spreading out from it. */
+.crc-scroll-hint-circle {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	width: 44px;
+	height: 44px;
+	overflow: visible;
+	border: 1.5px solid color-mix(in srgb, var(--crc-scroll-hint-color) 55%, var(--e-global-color-bb33687));
+	border-radius: 50%;
+	background: color-mix(in srgb, var(--crc-scroll-hint-color) 10%, var(--e-global-color-bb33687));
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
+}
+
+.crc-scroll-hint-circle::after {
+	position: absolute;
+	inset: -1.5px;
+	border: 1.5px solid color-mix(in srgb, var(--crc-scroll-hint-color) 45%, var(--e-global-color-bb33687));
+	border-radius: 50%;
+	content: "";
+	opacity: 0;
+	animation: crc-scroll-ripple 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+	pointer-events: none;
+}
+
+.crc-scroll-hint-drop {
+	display: block;
+	box-sizing: border-box;
+	width: 11px;
+	height: 11px;
+	margin-top: -5px;
+	border-right: 2px solid var(--crc-scroll-hint-color);
+	border-bottom: 2px solid var(--crc-scroll-hint-color);
+	opacity: 0;
+	transform: rotate(45deg);
+	animation: crc-scroll-drop 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes crc-scroll-drop {
+	0% {
+		opacity: 0;
+		transform: translateY(-9px) rotate(45deg);
+	}
+
+	30%,
+	60% {
+		opacity: 1;
+		transform: translateY(0) rotate(45deg);
+	}
+
+	100% {
+		opacity: 0;
+		transform: translateY(9px) rotate(45deg);
+	}
+}
+
+@keyframes crc-scroll-ripple {
+	0%,
+	40% {
+		opacity: 0;
+		transform: scale(1);
+	}
+
+	50% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+		transform: scale(1.55);
+	}
+}
+
+/* Mouse: a capsule whose wheel scrolls down and fades, with two small
+   arrows under it lighting up one after another. */
 .crc-scroll-hint-mouse {
 	position: relative;
 	display: block;
 	box-sizing: border-box;
-	width: 26px;
-	height: 42px;
-	border: 2px solid color-mix(in srgb, var(--crc-scroll-hint-color) 80%, var(--e-global-color-bb33687));
-	border-radius: 14px;
+	width: 24px;
+	height: 38px;
+	border: 2px solid color-mix(in srgb, var(--crc-scroll-hint-color) 85%, var(--e-global-color-bb33687));
+	border-radius: 12px;
 }
 
 .crc-scroll-hint-wheel {
 	position: absolute;
-	top: 7px;
-	left: 50%;
-	width: 4px;
-	height: 8px;
-	margin-left: -2px;
-	border-radius: 2px;
+	top: 6px;
+	right: 0;
+	left: 0;
+	width: 3px;
+	height: 7px;
+	margin: 0 auto;
+	border-radius: 3px;
 	background: var(--crc-scroll-hint-color);
-	animation: crc-scroll-wheel 1.6s ease-in-out infinite;
+	animation: crc-scroll-wheel 1.6s cubic-bezier(0.15, 0.41, 0.69, 0.94) infinite;
 }
 
 @keyframes crc-scroll-wheel {
@@ -2284,15 +2363,28 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 		transform: translateY(0);
 	}
 
-	25% {
+	20% {
 		opacity: 1;
 	}
 
-	75%,
 	100% {
 		opacity: 0;
-		transform: translateY(14px);
+		transform: translateY(13px);
 	}
+}
+
+/* The two small arrows under the mouse. */
+.crc-scroll-hint-mouse ~ .crc-scroll-hint-arrow {
+	width: 9px;
+	height: 9px;
+	margin-top: -2px;
+	border-right-width: 2px;
+	border-bottom-width: 2px;
+	animation-duration: 1.6s;
+}
+
+.crc-scroll-hint-mouse + .crc-scroll-hint-arrow {
+	margin-top: 8px;
 }
 
 /* Line: a light runs down a faint line, clear at the top and white at the bottom. */
@@ -2331,11 +2423,15 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 @media (prefers-reduced-motion: reduce) {
 	.crc-scroll-hint-arrow,
 	.crc-scroll-hint-wheel,
-	.crc-scroll-hint-light {
+	.crc-scroll-hint-light,
+	.crc-scroll-hint-drop,
+	.crc-scroll-hint-circle::after {
 		animation: none;
 	}
 
-	.crc-scroll-hint-arrow {
+	.crc-scroll-hint-arrow,
+	.crc-scroll-hint-wheel,
+	.crc-scroll-hint-drop {
 		opacity: 1;
 	}
 

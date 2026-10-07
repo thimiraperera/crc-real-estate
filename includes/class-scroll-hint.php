@@ -41,11 +41,11 @@ final class Scroll_Hint {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Scroll down hint', 'crc-real-estate' ),
-				'description' => __( 'A small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. It can be arrows that light up one after another, a mouse with its wheel moving down, or a line with a light running down it, in white that fades to clear. Put it in a Shortcode widget anywhere in the section: it sits at the bottom of the section, in the middle, by itself. A click or tap scrolls smoothly to what is under the section, and it fades away once the page has been scrolled. To show it on phones only, hide the widget on desktop and tablet in Elementor (Advanced, then Responsive). Visitors whose device asks for less motion see it standing still.', 'crc-real-estate' ),
+				'description' => __( 'A small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. It can be arrows that light up one after another, a round button with an arrow dropping through it, a mouse with its wheel scrolling down and two small arrows under it, or a line with a light running down it, in white that fades to clear. Put it in a Shortcode widget anywhere in the section: it sits at the bottom of the section, in the middle, by itself. A click or tap scrolls smoothly to what is under the section, and it fades away once the page has been scrolled. To show it on phones only, hide the widget on desktop and tablet in Elementor (Advanced, then Responsive). Visitors whose device asks for less motion see it standing still.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'style'  => array(
 						'default'     => 'arrows',
-						'description' => __( 'arrows (three arrows lighting up one after another, downwards), mouse (a mouse with its wheel moving down) or line (a thin line with a light running down it).', 'crc-real-estate' ),
+						'description' => __( 'arrows (three arrows lighting up one after another, downwards), circle (a round, see-through button with an arrow dropping through it and a soft ring spreading out from it), mouse (a mouse with its wheel scrolling down and two small arrows under it) or line (a thin line with a light running down it).', 'crc-real-estate' ),
 					),
 					'color'  => array(
 						'default'     => 'light',
@@ -74,6 +74,7 @@ final class Scroll_Hint {
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
+					'[' . self::SHORTCODE . ' style="circle"]',
 					'[' . self::SHORTCODE . ' style="mouse"]',
 					'[' . self::SHORTCODE . ' style="line" bottom="32"]',
 					'[' . self::SHORTCODE . ' target="#search" offset="80"]',
@@ -123,14 +124,16 @@ final class Scroll_Hint {
 	 */
 	public function render( $atts ) {
 		$atts   = Shortcodes::atts( self::SHORTCODE, $atts );
-		$style  = in_array( $atts['style'], array( 'arrows', 'mouse', 'line' ), true ) ? $atts['style'] : 'arrows';
+		$style  = in_array( $atts['style'], array( 'arrows', 'circle', 'mouse', 'line' ), true ) ? $atts['style'] : 'arrows';
 		$bottom = max( 0, min( 400, (int) $atts['bottom'] ) );
 		$offset = max( 0, min( 400, (int) $atts['offset'] ) );
 
 		$this->enqueue_script();
 
-		if ( 'mouse' === $style ) {
-			$inner = '<span class="crc-scroll-hint-mouse"><span class="crc-scroll-hint-wheel"></span></span>';
+		if ( 'circle' === $style ) {
+			$inner = '<span class="crc-scroll-hint-circle"><span class="crc-scroll-hint-drop"></span></span>';
+		} elseif ( 'mouse' === $style ) {
+			$inner = '<span class="crc-scroll-hint-mouse"><span class="crc-scroll-hint-wheel"></span></span><span class="crc-scroll-hint-arrow"></span><span class="crc-scroll-hint-arrow"></span>';
 		} elseif ( 'line' === $style ) {
 			$inner = '<span class="crc-scroll-hint-track"><span class="crc-scroll-hint-light"></span></span>';
 		} else {
@@ -138,7 +141,7 @@ final class Scroll_Hint {
 		}
 
 		return sprintf(
-			'<div class="crc-scroll-hint-wrap%1$s%2$s" style="--crc-scroll-hint-bottom: %3$dpx;" data-target="%4$s" data-offset="%5$d"><div class="crc-scroll-hint crc-scroll-hint-%6$s" role="button" tabindex="0" aria-label="%7$s" data-crc-scroll-hint>%8$s</div></div>',
+			'<div class="crc-scroll-hint-wrap%1$s%2$s" style="--crc-scroll-hint-bottom: %3$dpx;" data-target="%4$s" data-offset="%5$d"><div class="crc-scroll-hint is-%6$s" role="button" tabindex="0" aria-label="%7$s" data-crc-scroll-hint>%8$s</div></div>',
 			Shortcodes::is_on( $atts['pin'] ) ? ' is-pinned' : '',
 			'dark' === strtolower( trim( (string) $atts['color'] ) ) ? ' is-dark' : '',
 			$bottom,
