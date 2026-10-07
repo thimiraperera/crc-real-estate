@@ -45,6 +45,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.27.1 =
+* Search box: a container with the class crc-listing-search gets the search box's white background, 24px padding, 16px corners and a width of at most 680px. The search card has 16px corners, and the choices sit 24px under it on every screen.
+
 = 0.27.0 =
 * Search box: the rounded dropdowns are now rounded buttons. Land size, bedrooms, the highest price per perch, the highest price and the highest rent each open a slider in a panel under the buttons, as wide as the search box, that opens and closes smoothly. What is chosen shows on the button as it moves, such as "Up to Rs. 25,000,000" or "2 – 4 bedrooms".
 * Bedrooms: two handles, for the fewest and the most, with Minimum and Maximum boxes in the panel's corner to type them in. The listings can now be searched by the most bedrooms too.

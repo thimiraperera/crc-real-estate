@@ -105,6 +105,14 @@
 	/* Your styles for the price box */
 }
 
+/* Search box's container: add the class crc-listing-search to the container around [crc_listing_search]. */
+.crc-listing-search {
+	max-width: 680px !important;
+	padding: 24px;
+	background-color: var(--e-global-color-3581a59);
+	border-radius: 16px !important;
+}
+
 /* Keyword ticker: [crc_ticker] */
 .crc-ticker {
 	--crc-ticker-gap: 0.75em;
@@ -842,7 +850,7 @@
 .crc-search .crc-search-card {
 	box-sizing: border-box;
 	padding: 20px 16px 16px;
-	border-radius: 24px;
+	border-radius: 16px;
 	background: var(--e-global-color-3581a59);
 	box-shadow: 0 11px 20px 0 color-mix(in srgb, var(--e-global-color-1ead78b) 10%, var(--e-global-color-bb33687));
 }
@@ -1002,7 +1010,7 @@
    a slider in a panel under the buttons, as wide as the search box, or a list
    (the property type). What is chosen shows on the button. */
 .crc-search .crc-search-filters {
-	margin: 24px 0 0;
+	margin-top: 24px;
 }
 
 .crc-search .crc-search-filters[hidden] {
@@ -2205,7 +2213,6 @@
 	   and under it the Search button as wide, showing its magnifier only. */
 	.crc-search .crc-search-card {
 		padding: 16px 12px 12px;
-		border-radius: 20px;
 	}
 
 	.crc-search .crc-search-tabs {
@@ -2256,10 +2263,6 @@
 		overflow: hidden;
 		clip: rect(0, 0, 0, 0);
 		white-space: nowrap;
-	}
-
-	.crc-search .crc-search-filters {
-		margin-top: 16px;
 	}
 
 	.crc-search .crc-pills > .crc-pill,
