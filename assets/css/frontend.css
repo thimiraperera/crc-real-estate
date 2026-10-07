@@ -105,6 +105,14 @@
 	/* Your styles for the price box */
 }
 
+/* Hero: the container with the class hero shows what reaches outside it, such
+   as the search box's lists, above the section under it. */
+.hero {
+	position: relative;
+	z-index: 2;
+	overflow: visible !important;
+}
+
 /* Search box's container: add the class crc-listing-search to the container around [crc_listing_search]. */
 .crc-listing-search {
 	max-width: 680px !important;
@@ -1201,6 +1209,32 @@
 	display: none;
 }
 
+/* A box's list opens right under it, as wide as the whole row of boxes, so
+   its choices have room on one line. */
+.crc-search .crc-pills {
+	position: relative;
+}
+
+.crc-search .crc-combo {
+	position: static;
+	display: block;
+}
+
+.crc-search .crc-combo > .crc-pill {
+	display: flex;
+	width: 100%;
+}
+
+.crc-search .crc-combo .crc-dropdown-list {
+	top: auto;
+	right: 0;
+	left: 0;
+	width: auto;
+	min-width: 0;
+	max-width: none;
+	margin-top: 8px;
+}
+
 .crc-search .crc-dropdown-option {
 	display: flex;
 	align-items: center;
@@ -1230,6 +1264,13 @@
 .crc-search .crc-dropdown-option.is-selected {
 	color: var(--e-global-color-primary);
 	font-weight: 500;
+}
+
+.crc-search .crc-dropdown-option-text {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 }
 
 .crc-search .crc-dropdown-option-icon {
@@ -1409,20 +1450,69 @@
 .crc-search .crc-place-option-text,
 .crc-filters .crc-place-option-text {
 	display: flex;
-	flex-direction: column;
-	gap: 2px;
+	align-items: baseline;
+	gap: 8px;
 	min-width: 0;
+	white-space: nowrap;
 }
 
 .crc-search .crc-place-option-name,
 .crc-filters .crc-place-option-name {
+	flex: 0 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	font-weight: 500;
 }
 
 .crc-search .crc-place-option-note,
 .crc-filters .crc-place-option-note {
+	flex: 0 100 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	color: var(--e-global-color-text);
 	font-size: 0.875em;
+}
+
+/* Slim scrollbars in the site's colours, for the lists and the filters. */
+.crc-search .crc-dropdown-list,
+.crc-search .crc-places,
+.crc-filters .crc-places,
+.crc-filters-column .crc-filters {
+	scrollbar-width: thin;
+	scrollbar-color: color-mix(in srgb, var(--e-global-color-1ead78b) 20%, var(--e-global-color-3581a59)) var(--e-global-color-bb33687);
+}
+
+.crc-search .crc-dropdown-list::-webkit-scrollbar,
+.crc-search .crc-places::-webkit-scrollbar,
+.crc-filters .crc-places::-webkit-scrollbar,
+.crc-filters-column .crc-filters::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+.crc-search .crc-dropdown-list::-webkit-scrollbar-track,
+.crc-search .crc-places::-webkit-scrollbar-track,
+.crc-filters .crc-places::-webkit-scrollbar-track,
+.crc-filters-column .crc-filters::-webkit-scrollbar-track {
+	background: var(--e-global-color-bb33687);
+}
+
+.crc-search .crc-dropdown-list::-webkit-scrollbar-thumb,
+.crc-search .crc-places::-webkit-scrollbar-thumb,
+.crc-filters .crc-places::-webkit-scrollbar-thumb,
+.crc-filters-column .crc-filters::-webkit-scrollbar-thumb {
+	border: 3px solid var(--e-global-color-3581a59);
+	border-radius: 10px;
+	background: color-mix(in srgb, var(--e-global-color-1ead78b) 20%, var(--e-global-color-3581a59));
+}
+
+.crc-search .crc-dropdown-list::-webkit-scrollbar-thumb:hover,
+.crc-search .crc-places::-webkit-scrollbar-thumb:hover,
+.crc-filters .crc-places::-webkit-scrollbar-thumb:hover,
+.crc-filters-column .crc-filters::-webkit-scrollbar-thumb:hover {
+	background: color-mix(in srgb, var(--e-global-color-1ead78b) 32%, var(--e-global-color-3581a59));
 }
 
 /* Search filters: [crc_listing_filters]. A white card like the price box

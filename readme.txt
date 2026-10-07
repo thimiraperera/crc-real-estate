@@ -45,6 +45,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.28.2 =
+* Search box: a box's list opens right under it as wide as the whole row of boxes, and its choices stay on one line.
+* Place suggestions are on one line too: the name, then its district or area in grey.
+* The lists and the filters have slim scrollbars in the site's colours.
+* A container with the class hero no longer hides what reaches outside it, so the search box's lists show in full, above the section under it.
+
 = 0.28.1 =
 * Search box: on phones the Search button shows its caption with the magnifier.
 * The boxes under the search card are all as wide as each other, and in line with the place box and the button inside the card. On phones they are one under another.
