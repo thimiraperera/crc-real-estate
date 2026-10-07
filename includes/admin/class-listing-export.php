@@ -66,7 +66,7 @@ final class Listing_Export {
 
 	/**
 	 * Whether the current person may see inquiries: only those who can open
-	 * Listings → Inquiries (editors and administrators) get them in the zip.
+	 * Inquiries (editors and administrators) get them in the zip.
 	 *
 	 * @return bool
 	 */

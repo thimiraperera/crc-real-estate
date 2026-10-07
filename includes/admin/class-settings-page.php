@@ -27,7 +27,7 @@ final class Settings_Page {
 	 * Registers hooks.
 	 */
 	public function hooks() {
-		// After Listings → Inquiries, which WordPress adds at the usual time.
+		// After the Listings menu's own items, which WordPress adds at the usual time.
 		add_action( 'admin_menu', array( $this, 'menu' ), 20 );
 		add_action( 'admin_init', array( $this, 'register' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
@@ -353,7 +353,7 @@ final class Settings_Page {
 			return sprintf( '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( $url ), esc_html( $text ) );
 		};
 
-		echo '<p>' . esc_html__( 'Inquiries sent with the inquiry form are emailed to you and also kept under Listings → Inquiries, so none are lost if an email doesn\'t arrive.', 'crc-real-estate' ) . '</p>';
+		echo '<p>' . esc_html__( 'Inquiries sent with the inquiry form are emailed to you and also kept in Inquiries (its own menu in wp-admin), so none are lost if an email doesn\'t arrive.', 'crc-real-estate' ) . '</p>';
 
 		printf(
 			/* translators: 1: hCaptcha link, 2: hCaptcha Sites link, 3: hCaptcha Settings link. */

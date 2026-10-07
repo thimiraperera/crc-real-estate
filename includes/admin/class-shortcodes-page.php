@@ -31,7 +31,7 @@ final class Shortcodes_Page {
 	 * Registers hooks.
 	 */
 	public function hooks() {
-		// After Listings → Inquiries, which WordPress adds at the usual time.
+		// After the Listings menu's own items, which WordPress adds at the usual time.
 		add_action( 'admin_menu', array( $this, 'menu' ), 20 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
 	}

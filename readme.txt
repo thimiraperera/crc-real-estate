@@ -46,6 +46,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.36.0 =
+* Inquiries has its own menu in wp-admin, just under Listings, with an icon of a speech bubble with a house in it. It no longer sits under Listings.
+* The menu shows how many inquiries are new, like new comments, and a new inquiry is marked New in the list until it is opened. Inquiries kept before this version don't count as new.
+
 = 0.35.2 =
 * Scroll down hint: works with corners made from pictures, such as two corner images, which the section's own rounding doesn't show. When the section has no rounding of its own, the line follows corners="…" (32px to start with), so with a 10px gap its corners are 22px.
 

@@ -10,12 +10,14 @@ namespace CRC\RealEstate;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Emails each inquiry and keeps it under Listings → Inquiries, so none is
- * lost when an email doesn't arrive.
+ * Emails each inquiry and keeps it in Inquiries, its own menu in wp-admin,
+ * so none is lost when an email doesn't arrive. A new inquiry counts as new
+ * until it is opened.
  */
 final class Inquiries {
 
-	const NAME = 'crc_inquiry';
+	const NAME     = 'crc_inquiry';
+	const NEW_META = '_crc_inquiry_new';
 
 	/**
 	 * Details kept with each inquiry: key => field name.
@@ -41,8 +43,41 @@ final class Inquiries {
 	}
 
 	/**
+	 * The Inquiries menu's icon: a speech bubble with a house in it. WordPress
+	 * colours it to match the admin menu.
+	 *
+	 * @return string
+	 */
+	public static function icon() {
+		$svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path fill="black" fill-rule="evenodd" d="M4 2h12a3 3 0 0 1 3 3v7a3 3 0 0 1-3 3H9.5L5 18.5V15H4a3 3 0 0 1-3-3V5a3 3 0 0 1 3-3zM10 4.6 5.8 8.2H7V12h2.2V9.8h1.6V12H13V8.2h1.2z"/></svg>';
+
+		return 'data:image/svg+xml;base64,' . base64_encode( $svg ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- A menu icon, as WordPress asks for.
+	}
+
+	/**
+	 * How many inquiries haven't been opened yet.
+	 *
+	 * @return int
+	 */
+	public static function new_count() {
+		$query = new \WP_Query(
+			array(
+				'post_type'              => self::NAME,
+				'post_status'            => 'publish',
+				'meta_key'               => self::NEW_META, // phpcs:ignore WordPress.DB.SlowDBQuery.slow_query_meta_key -- Once a page in wp-admin, for the menu.
+				'fields'                 => 'ids',
+				'posts_per_page'         => 1,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+			)
+		);
+
+		return (int) $query->found_posts;
+	}
+
+	/**
 	 * Registers inquiries: only in wp-admin, for editors and administrators,
-	 * and never added by hand.
+	 * and never added by hand. They have a menu of their own.
 	 */
 	public function register() {
 		register_post_type(
@@ -52,7 +87,7 @@ final class Inquiries {
 					'name'               => __( 'Inquiries', 'crc-real-estate' ),
 					'singular_name'      => __( 'Inquiry', 'crc-real-estate' ),
 					'menu_name'          => __( 'Inquiries', 'crc-real-estate' ),
-					'all_items'          => __( 'Inquiries', 'crc-real-estate' ),
+					'all_items'          => __( 'All Inquiries', 'crc-real-estate' ),
 					'edit_item'          => __( 'Inquiry', 'crc-real-estate' ),
 					'view_item'          => __( 'View inquiry', 'crc-real-estate' ),
 					'search_items'       => __( 'Search inquiries', 'crc-real-estate' ),
@@ -64,7 +99,9 @@ final class Inquiries {
 				'publicly_queryable'  => false,
 				'exclude_from_search' => true,
 				'show_ui'             => true,
-				'show_in_menu'        => 'edit.php?post_type=' . Post_Type::NAME,
+				'show_in_menu'        => true,
+				'menu_position'       => 6,
+				'menu_icon'           => self::icon(),
 				'show_in_nav_menus'   => false,
 				'show_in_admin_bar'   => false,
 				'show_in_rest'        => false,
@@ -96,6 +133,9 @@ final class Inquiries {
 				$meta[ $meta_key ] = $value;
 			}
 		}
+
+		// New until it is opened.
+		$meta[ self::NEW_META ] = '1';
 
 		$id = wp_insert_post(
 			wp_slash(
@@ -213,7 +253,7 @@ final class Inquiries {
 
 		/* translators: %s: first name. */
 		$reply = sprintf( __( 'Reply to this email to answer %s directly.', 'crc-real-estate' ), $first );
-		$kept  = __( 'This inquiry is also kept in wp-admin under Listings → Inquiries.', 'crc-real-estate' );
+		$kept  = __( 'This inquiry is also kept in wp-admin under Inquiries.', 'crc-real-estate' );
 		$link  = $post_id ? admin_url( 'post.php?post=' . (int) $post_id . '&action=edit' ) : admin_url( 'edit.php?post_type=' . self::NAME );
 
 		$html .= '</table>';

@@ -13,8 +13,9 @@ use CRC\RealEstate\Phone;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Listings → Inquiries: every inquiry with who sent it and how to reach
- * them, and each inquiry in full with buttons to reply.
+ * Inquiries, a menu of its own: every inquiry with who sent it and how to
+ * reach them, and each inquiry in full with buttons to reply. The menu shows
+ * how many are new, and new ones are marked New until they are opened.
  */
 final class Inquiries_Screen {
 
@@ -22,6 +23,9 @@ final class Inquiries_Screen {
 	 * Registers hooks.
 	 */
 	public function hooks() {
+		add_action( 'admin_menu', array( $this, 'badge' ), 99 );
+		add_action( 'load-post.php', array( $this, 'opened' ) );
+		add_filter( 'display_post_states', array( $this, 'states' ), 10, 2 );
 		add_filter( 'manage_' . Inquiries::NAME . '_posts_columns', array( $this, 'columns' ) );
 		add_action( 'manage_' . Inquiries::NAME . '_posts_custom_column', array( $this, 'column' ), 10, 2 );
 		add_filter( 'post_date_column_status', array( $this, 'date_status' ), 10, 2 );
@@ -30,6 +34,59 @@ final class Inquiries_Screen {
 		add_filter( 'views_edit-' . Inquiries::NAME, array( $this, 'views' ) );
 		add_action( 'add_meta_boxes_' . Inquiries::NAME, array( $this, 'boxes' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+	}
+
+	/**
+	 * The number of new inquiries on the Inquiries menu, like new comments.
+	 */
+	public function badge() {
+		global $menu;
+
+		$count = is_array( $menu ) ? Inquiries::new_count() : 0;
+
+		if ( ! $count ) {
+			return;
+		}
+
+		foreach ( $menu as $key => $item ) {
+			if ( isset( $item[2] ) && 'edit.php?post_type=' . Inquiries::NAME === $item[2] ) {
+				$menu[ $key ][0] .= sprintf( // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Adding the count, as WordPress does for comments.
+					' <span class="awaiting-mod count-%1$d"><span class="pending-count" aria-hidden="true">%2$s</span><span class="screen-reader-text">%3$s</span></span>',
+					$count,
+					esc_html( number_format_i18n( $count ) ),
+					/* translators: %s: number of new inquiries. */
+					esc_html( sprintf( _n( '%s new inquiry', '%s new inquiries', $count, 'crc-real-estate' ), number_format_i18n( $count ) ) )
+				);
+				break;
+			}
+		}
+	}
+
+	/**
+	 * An inquiry opened is no longer new.
+	 */
+	public function opened() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reads which inquiry is open.
+		$id = isset( $_GET['post'] ) && is_scalar( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
+
+		if ( $id && Inquiries::NAME === get_post_type( $id ) && current_user_can( 'edit_post', $id ) ) {
+			delete_post_meta( $id, Inquiries::NEW_META );
+		}
+	}
+
+	/**
+	 * New next to a new inquiry's name in the list.
+	 *
+	 * @param string[] $states States shown after the name.
+	 * @param \WP_Post $post   Post.
+	 * @return string[]
+	 */
+	public function states( $states, $post ) {
+		if ( $post instanceof \WP_Post && Inquiries::NAME === $post->post_type && get_post_meta( $post->ID, Inquiries::NEW_META, true ) ) {
+			$states['crc_new'] = __( 'New', 'crc-real-estate' );
+		}
+
+		return $states;
 	}
 
 	/**
