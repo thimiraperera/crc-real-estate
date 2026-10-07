@@ -2118,6 +2118,206 @@
 	text-align: center;
 }
 
+/* Scroll down hint: [crc_scroll_hint]. A small moving sign without words, in
+   white fading to clear (dark grey with color="dark"). */
+.crc-scroll-hint-wrap {
+	--crc-scroll-hint-color: var(--e-global-color-3581a59);
+	display: flex;
+	justify-content: center;
+}
+
+.crc-scroll-hint-wrap.is-dark {
+	--crc-scroll-hint-color: var(--e-global-color-6e3d619);
+}
+
+.crc-scroll-hint-wrap.is-pinned {
+	padding-bottom: var(--crc-scroll-hint-bottom, 24px);
+}
+
+/* Pinned in an Elementor widget: the widget lies along the bottom of its
+   section, over it, so the hint is in the middle at the bottom. */
+.elementor-widget:not(.elementor-widget-template):has(.crc-scroll-hint-wrap.is-pinned) {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 3;
+	width: auto;
+	max-width: none;
+	margin: 0;
+}
+
+/* Only the hint takes clicks, not the strip across the section. */
+body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-template):has(.crc-scroll-hint-wrap.is-pinned) {
+	pointer-events: none;
+}
+
+.crc-scroll-hint {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	min-width: 44px;
+	min-height: 44px;
+	padding: 8px;
+	cursor: pointer;
+	pointer-events: auto;
+	-webkit-tap-highlight-color: transparent;
+	transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.crc-scroll-hint:focus {
+	outline: none;
+}
+
+.crc-scroll-hint:focus-visible {
+	border-radius: 8px;
+	outline: 2px solid var(--crc-scroll-hint-color);
+	outline-offset: 2px;
+}
+
+/* Gone once the page has been scrolled; back at the top. */
+.crc-scroll-hint-wrap.is-scrolled .crc-scroll-hint {
+	opacity: 0;
+	transform: translateY(8px);
+	pointer-events: none;
+}
+
+/* Arrows: three lighting up one after another, downwards, the top one the faintest. */
+.crc-scroll-hint-arrow {
+	display: block;
+	box-sizing: border-box;
+	width: 14px;
+	height: 14px;
+	margin-top: -3px;
+	border-right: 2px solid var(--crc-scroll-hint-color);
+	border-bottom: 2px solid var(--crc-scroll-hint-color);
+	opacity: 0;
+	transform: rotate(45deg);
+	animation: crc-scroll-arrow 2s ease-in-out infinite;
+}
+
+.crc-scroll-hint-arrow:first-child {
+	margin-top: 0;
+	border-color: color-mix(in srgb, var(--crc-scroll-hint-color) 45%, var(--e-global-color-bb33687));
+}
+
+.crc-scroll-hint-arrow:nth-child(2) {
+	border-color: color-mix(in srgb, var(--crc-scroll-hint-color) 72%, var(--e-global-color-bb33687));
+	animation-delay: 0.2s;
+}
+
+.crc-scroll-hint-arrow:nth-child(3) {
+	animation-delay: 0.4s;
+}
+
+@keyframes crc-scroll-arrow {
+	0% {
+		opacity: 0;
+		transform: translateY(-6px) rotate(45deg);
+	}
+
+	45%,
+	55% {
+		opacity: 1;
+	}
+
+	100% {
+		opacity: 0;
+		transform: translateY(6px) rotate(45deg);
+	}
+}
+
+/* Mouse: its wheel moves down and fades, over and over. */
+.crc-scroll-hint-mouse {
+	position: relative;
+	display: block;
+	box-sizing: border-box;
+	width: 26px;
+	height: 42px;
+	border: 2px solid color-mix(in srgb, var(--crc-scroll-hint-color) 80%, var(--e-global-color-bb33687));
+	border-radius: 14px;
+}
+
+.crc-scroll-hint-wheel {
+	position: absolute;
+	top: 7px;
+	left: 50%;
+	width: 4px;
+	height: 8px;
+	margin-left: -2px;
+	border-radius: 2px;
+	background: var(--crc-scroll-hint-color);
+	animation: crc-scroll-wheel 1.6s ease-in-out infinite;
+}
+
+@keyframes crc-scroll-wheel {
+	0% {
+		opacity: 0;
+		transform: translateY(0);
+	}
+
+	25% {
+		opacity: 1;
+	}
+
+	75%,
+	100% {
+		opacity: 0;
+		transform: translateY(14px);
+	}
+}
+
+/* Line: a light runs down a faint line, clear at the top and white at the bottom. */
+.crc-scroll-hint-track {
+	position: relative;
+	display: block;
+	width: 2px;
+	height: 56px;
+	overflow: hidden;
+	border-radius: 2px;
+	background: color-mix(in srgb, var(--crc-scroll-hint-color) 22%, var(--e-global-color-bb33687));
+}
+
+.crc-scroll-hint-light {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 50%;
+	border-radius: 2px;
+	background: linear-gradient(var(--e-global-color-bb33687), var(--crc-scroll-hint-color));
+	animation: crc-scroll-line 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes crc-scroll-line {
+	from {
+		transform: translateY(-100%);
+	}
+
+	to {
+		transform: translateY(200%);
+	}
+}
+
+/* Less motion: the sign stands still. */
+@media (prefers-reduced-motion: reduce) {
+	.crc-scroll-hint-arrow,
+	.crc-scroll-hint-wheel,
+	.crc-scroll-hint-light {
+		animation: none;
+	}
+
+	.crc-scroll-hint-arrow {
+		opacity: 1;
+	}
+
+	.crc-scroll-hint-light {
+		transform: translateY(50%);
+	}
+}
+
 /* Search heading: [crc_search_heading] */
 .crc-search-heading {
 	margin-top: 0px;

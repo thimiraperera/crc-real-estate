@@ -29,6 +29,7 @@ Real estate listing tools for WordPress.
 * Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
+* Scroll down hint: a small moving sign without words (arrows, a mouse or a line, in white fading to clear) that sits at the bottom of a hero section and scrolls to what is under it
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
 * Search: a search box for any page with a tab for each category, town and district suggestions from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
@@ -44,6 +45,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.30.0 =
+* Scroll down hint: [crc_scroll_hint] is a small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. style="arrows" (three arrows lighting up one after another, the top one the faintest), style="mouse" (a mouse with its wheel moving down) or style="line" (a light running down a thin line), in white fading to clear, or dark grey with color="dark".
+* In a Shortcode widget anywhere in the section it sits at the bottom, in the middle, 24px up (bottom="…" changes it; pin="no" keeps it where it is placed). A click or tap scrolls smoothly to what is under the section, or to target="#…", stopping short by offset="…" pixels for a header that stays at the top. It fades away once the page has been scrolled and comes back at the top.
 
 = 0.29.1 =
 * Search box on phones: the crc-listing-search container has 16px padding and the card 12px, and the category button, the place box and the Search button have 12px corners.
