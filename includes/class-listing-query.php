@@ -7,6 +7,7 @@
 
 namespace CRC\RealEstate;
 
+use CRC\RealEstate\Sections\Features;
 use CRC\RealEstate\Sections\Overview;
 use CRC\RealEstate\Sections\Price_Card;
 
@@ -21,6 +22,16 @@ defined( 'ABSPATH' ) || exit;
 final class Listing_Query {
 
 	const MAX_PER_PAGE = 48;
+
+	/**
+	 * The most parking spaces the filters ask for: 1+, 2+ or 3+.
+	 */
+	const MOST_PARKING = 3;
+
+	/**
+	 * The filters under More filters, in the order they go in the address.
+	 */
+	const MORE = array( 'negotiable', 'bank_loan', 'bills', 'advance_max', 'floor_min', 'floor_max', 'parking', 'road_type', 'road_width', 'electricity', 'water', 'features', 'availability', 'listed_by', 'posted' );
 
 	/**
 	 * Every filter, empty.
@@ -39,6 +50,21 @@ final class Listing_Query {
 	 * - beds_max:      most bedrooms.
 	 * - baths:         fewest bathrooms.
 	 * - furnishing:    furnished, semi_furnished or unfurnished.
+	 * - negotiable:    '1' for a price that can be talked down.
+	 * - bank_loan:     '1' for homes a bank loan is available for.
+	 * - bills:         '1' for rents with the utility bills included.
+	 * - advance_max:   most months of rent paid in advance.
+	 * - floor_min:     smallest floor area, in square feet.
+	 * - floor_max:     largest floor area, in square feet.
+	 * - parking:       fewest parking spaces.
+	 * - road_type:     approach road, e.g. carpeted; see more_choices().
+	 * - road_width:    narrowest approach road, in feet.
+	 * - electricity:   available (three-phase too) or three_phase.
+	 * - water:         pipe_borne or well (either counts pipe-borne and well).
+	 * - features:      ready-made features every listing must have, e.g. "clear_deed,garden".
+	 * - availability:  e.g. available-now; see more_choices().
+	 * - listed_by:     e.g. owner; see more_choices().
+	 * - posted:        listed in the last so many days.
 	 * - sort:          order, see sorts().
 	 * - page:          page of results, from 1.
 	 *
@@ -60,6 +86,21 @@ final class Listing_Query {
 			'beds_max'      => 0,
 			'baths'         => 0,
 			'furnishing'    => '',
+			'negotiable'    => '',
+			'bank_loan'     => '',
+			'bills'         => '',
+			'advance_max'   => 0,
+			'floor_min'     => 0,
+			'floor_max'     => 0,
+			'parking'       => 0,
+			'road_type'     => '',
+			'road_width'    => 0,
+			'electricity'   => '',
+			'water'         => '',
+			'features'      => '',
+			'availability'  => '',
+			'listed_by'     => '',
+			'posted'        => 0,
 			'sort'          => 'newest',
 			'page'          => 1,
 		);
@@ -76,19 +117,27 @@ final class Listing_Query {
 	}
 
 	/**
-	 * The filters that fit a category. With every category, only the place
-	 * and the property type do, as prices for sale and for rent don't mix.
+	 * The filters that fit a category. With every category, only the place,
+	 * the property type and the More filters every listing has do, as prices
+	 * for sale and for rent don't mix.
 	 *
 	 * @param string $category Category slug, or empty for every category.
 	 * @return string[]
 	 */
 	public static function fields_for( $category ) {
+		$more = array( 'negotiable', 'road_type', 'road_width', 'electricity', 'water', 'features', 'availability', 'listed_by', 'posted' );
+
 		if ( '' === $category ) {
-			$fields = array( 'location', 'type' );
+			$fields = array_merge( array( 'location', 'type' ), $more );
 		} elseif ( self::homes( $category ) ) {
-			$fields = array( 'location', 'type', 'price_min', 'price_max', 'beds', 'beds_max', 'baths', 'furnishing' );
+			$fields = array_merge(
+				array( 'location', 'type', 'price_min', 'price_max', 'beds', 'beds_max', 'baths', 'furnishing' ),
+				'properties-for-rent' === $category ? array( 'bills', 'advance_max' ) : array( 'bank_loan' ),
+				array( 'floor_min', 'floor_max', 'parking' ),
+				$more
+			);
 		} else {
-			$fields = array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max' );
+			$fields = array_merge( array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max' ), $more );
 		}
 
 		/**
@@ -277,6 +326,152 @@ final class Listing_Query {
 	}
 
 	/**
+	 * Where a ready-made detail, such as road_type, is kept for each listing.
+	 *
+	 * @param string $name Detail name.
+	 * @return string Meta key.
+	 */
+	public static function meta_of( $name ) {
+		$items = Overview::common_items();
+
+		return isset( $items[ $name ]['meta'] ) ? (string) $items[ $name ]['meta'] : '_crc_' . $name;
+	}
+
+	/**
+	 * The choices of More filters that are lists: filter name => value => label.
+	 * Floor areas are for both the smallest and the largest.
+	 *
+	 * @return array[]
+	 */
+	public static function more_choices() {
+		$items  = Overview::common_items();
+		$fields = Overview::fields();
+		$option = function ( $item, $key, $fallback ) use ( $items ) {
+			return isset( $items[ $item ]['options'][ $key ] ) ? (string) $items[ $item ]['options'][ $key ] : $fallback;
+		};
+		$lists  = array(
+			'availability' => array(),
+			'listed_by'    => array(),
+		);
+
+		// Availability is kept as its label ("Available Now"), and Listed by as typed ("Owner").
+		foreach ( array(
+			'availability' => 'options',
+			'listed_by'    => 'suggestions',
+		) as $name => $from ) {
+			if ( isset( $fields[ $name ][ $from ] ) ) {
+				foreach ( array_values( (array) $fields[ $name ][ $from ] ) as $i => $label ) {
+					$slug = sanitize_title( (string) $label );
+
+					// Letters an address can't carry plainly, e.g. in Sinhala, make a number instead.
+					if ( '' === $slug || false !== strpos( $slug, '%' ) ) {
+						$slug = (string) ( $i + 1 );
+					}
+
+					$lists[ $name ][ $slug ] = (string) $label;
+				}
+			}
+		}
+
+		$widths = array();
+
+		foreach ( array( 8, 10, 12, 15, 20 ) as $feet ) {
+			/* translators: %s: road width in feet. */
+			$widths[ $feet ] = sprintf( __( 'At least %s ft', 'crc-real-estate' ), number_format_i18n( $feet ) );
+		}
+
+		$floors = array();
+
+		foreach ( array( 500, 750, 1000, 1250, 1500, 2000, 2500, 3000, 4000, 5000 ) as $feet ) {
+			/* translators: %s: floor area in square feet. */
+			$floors[ $feet ] = sprintf( __( '%s sq ft', 'crc-real-estate' ), number_format_i18n( $feet ) );
+		}
+
+		$advances = array();
+
+		foreach ( array( 1, 2, 3, 6, 12 ) as $months ) {
+			/* translators: %s: number of months. */
+			$advances[ $months ] = sprintf( _n( 'Up to %s month', 'Up to %s months', $months, 'crc-real-estate' ), number_format_i18n( $months ) );
+		}
+
+		/**
+		 * Filters the choices of More filters that are lists.
+		 *
+		 * @param array[] $choices Filter name => value => label: availability,
+		 *                         listed_by, posted (days), road_type,
+		 *                         road_width (feet), electricity, water,
+		 *                         floor (square feet) and advance_max (months).
+		 */
+		return (array) apply_filters(
+			'crc_re_search_more_choices',
+			array(
+				'availability' => $lists['availability'],
+				'listed_by'    => $lists['listed_by'],
+				'posted'       => array(
+					1  => __( 'In the last 24 hours', 'crc-real-estate' ),
+					3  => __( 'In the last 3 days', 'crc-real-estate' ),
+					7  => __( 'In the last week', 'crc-real-estate' ),
+					30 => __( 'In the last month', 'crc-real-estate' ),
+					90 => __( 'In the last 3 months', 'crc-real-estate' ),
+				),
+				'road_type'    => isset( $items['road_type']['options'] ) ? array_map( 'strval', (array) $items['road_type']['options'] ) : array(),
+				'road_width'   => $widths,
+				'electricity'  => array(
+					'available'   => $option( 'electricity', 'available', __( 'Available', 'crc-real-estate' ) ),
+					'three_phase' => $option( 'electricity', 'three_phase', __( 'Three-phase', 'crc-real-estate' ) ),
+				),
+				'water'        => array(
+					'pipe_borne' => $option( 'water_supply', 'pipe_borne', __( 'Pipe-borne', 'crc-real-estate' ) ),
+					'well'       => $option( 'water_supply', 'well', __( 'Well', 'crc-real-estate' ) ),
+				),
+				'floor'        => $floors,
+				'advance_max'  => $advances,
+			)
+		);
+	}
+
+	/**
+	 * The groups of ready-made features that fit a category, e.g. Legal and
+	 * documents, Home features and Nearby: name => 'title' and 'features'
+	 * (name => label). With every category, only the groups every category has.
+	 *
+	 * @param string $category Category slug, or empty for every category.
+	 * @return array[]
+	 */
+	public static function feature_groups( $category ) {
+		$groups = array();
+
+		foreach ( Features::common_groups() as $name => $group ) {
+			$for = (array) $group['categories'];
+
+			if ( $group['features'] && ( ! $for || ( '' !== $category && in_array( $category, $for, true ) ) ) ) {
+				$groups[ $name ] = array(
+					'title'    => (string) $group['title'],
+					'features' => $group['features'],
+				);
+			}
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * Every ready-made feature that fits a category once: name => label.
+	 *
+	 * @param string $category Category slug, or empty for every category.
+	 * @return string[]
+	 */
+	public static function features_for( $category ) {
+		$features = array();
+
+		foreach ( self::feature_groups( $category ) as $group ) {
+			$features += $group['features'];
+		}
+
+		return $features;
+	}
+
+	/**
 	 * The orders a category's results can have: key => label.
 	 *
 	 * @param string $category Category slug, or empty.
@@ -377,6 +572,31 @@ final class Listing_Query {
 		$furnishing            = sanitize_key( self::text( $get, 'furnishing', 30 ) );
 		$filters['furnishing'] = isset( self::furnishings()[ $furnishing ] ) ? $furnishing : '';
 
+		// More filters: ticks, choices from their lists, and numbers.
+		foreach ( array( 'negotiable', 'bank_loan', 'bills' ) as $key ) {
+			$filters[ $key ] = self::text( $get, $key, 5 ) ? '1' : '';
+		}
+
+		$choices = self::more_choices();
+
+		foreach ( array( 'road_type', 'electricity', 'water', 'availability', 'listed_by' ) as $key ) {
+			$value           = self::text( $get, $key, 60 );
+			$filters[ $key ] = '' !== $value && isset( $choices[ $key ] ) && array_key_exists( $value, (array) $choices[ $key ] ) ? $value : '';
+		}
+
+		foreach ( array( 'advance_max', 'road_width', 'posted' ) as $key ) {
+			$value           = absint( self::text( $get, $key, 6 ) );
+			$filters[ $key ] = $value && isset( $choices[ $key ] ) && array_key_exists( $value, (array) $choices[ $key ] ) ? $value : 0;
+		}
+
+		foreach ( array( 'floor_min', 'floor_max' ) as $key ) {
+			$value           = absint( self::text( $get, $key, 7 ) );
+			$filters[ $key ] = $value && isset( $choices['floor'] ) && array_key_exists( $value, (array) $choices['floor'] ) ? $value : 0;
+		}
+
+		$filters['parking']  = min( self::MOST_PARKING, absint( self::text( $get, 'parking', 3 ) ) );
+		$filters['features'] = self::features_in( $get, $filters['category'] );
+
 		$sort            = sanitize_key( self::text( $get, 'sort', 30 ) );
 		$filters['sort'] = isset( self::sorts( $filters['category'] )[ $sort ] ) ? $sort : 'newest';
 
@@ -386,7 +606,7 @@ final class Listing_Query {
 		$fields = self::fields_for( $filters['category'] );
 		$blank  = self::blank();
 
-		foreach ( array( 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing' ) as $key ) {
+		foreach ( array_merge( array( 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing' ), self::MORE ) as $key ) {
 			if ( ! in_array( $key, $fields, true ) ) {
 				$filters[ $key ] = $blank[ $key ];
 			}
@@ -401,13 +621,47 @@ final class Listing_Query {
 			}
 		}
 
-		if ( $filters['beds'] && $filters['beds_max'] && $filters['beds'] > $filters['beds_max'] ) {
-			$low                 = $filters['beds_max'];
-			$filters['beds_max'] = $filters['beds'];
-			$filters['beds']     = $low;
+		foreach ( array( array( 'beds', 'beds_max' ), array( 'floor_min', 'floor_max' ) ) as $pair ) {
+			if ( $filters[ $pair[0] ] && $filters[ $pair[1] ] && $filters[ $pair[0] ] > $filters[ $pair[1] ] ) {
+				$low                  = $filters[ $pair[1] ];
+				$filters[ $pair[1] ] = $filters[ $pair[0] ];
+				$filters[ $pair[0] ] = $low;
+			}
 		}
 
 		return $filters;
+	}
+
+	/**
+	 * The ready-made features asked for that fit the category, in the order
+	 * of their groups, so the same ticks always make the same address:
+	 * "clear_deed,garden". They come as features=clear_deed,garden, or as
+	 * features[]=… from the filters without their script.
+	 *
+	 * @param array  $get      Address values.
+	 * @param string $category Category slug, or empty.
+	 * @return string Names separated by commas.
+	 */
+	private static function features_in( array $get, $category ) {
+		$value = isset( $get['features'] ) ? $get['features'] : '';
+
+		if ( is_array( $value ) ) {
+			$names = array_slice( $value, 0, 100 );
+		} elseif ( is_scalar( $value ) ) {
+			$names = explode( ',', substr( (string) $value, 0, 2000 ) );
+		} else {
+			$names = array();
+		}
+
+		$asked = array();
+
+		foreach ( $names as $name ) {
+			if ( is_scalar( $name ) ) {
+				$asked[ sanitize_key( (string) $name ) ] = true;
+			}
+		}
+
+		return implode( ',', array_keys( array_intersect_key( self::features_for( $category ), $asked ) ) );
 	}
 
 	/**
@@ -422,7 +676,7 @@ final class Listing_Query {
 		$params = array();
 		$blank  = self::blank();
 
-		foreach ( array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing', 'sort', 'page' ) as $key ) {
+		foreach ( array_merge( array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing' ), self::MORE, array( 'sort', 'page' ) ) as $key ) {
 			if ( in_array( $key, $skip, true ) || ! isset( $filters[ $key ] ) || $blank[ $key ] === $filters[ $key ] || '' === (string) $filters[ $key ] ) {
 				continue;
 			}
@@ -617,6 +871,102 @@ final class Listing_Query {
 			);
 		}
 
+		// More filters. Ready-made details keep their option's name, e.g. "carpeted".
+		$is = function ( $name, $values ) use ( &$meta ) {
+			$meta[] = array(
+				'key'     => self::meta_of( $name ),
+				'value'   => $values,
+				'compare' => 'IN',
+			);
+		};
+
+		if ( '' !== $filters['negotiable'] ) {
+			$is( 'price_type', array( 'negotiable' ) );
+		}
+
+		if ( '' !== $filters['bank_loan'] ) {
+			$is( 'bank_loan', array( 'pre_approved', 'available' ) );
+		}
+
+		if ( '' !== $filters['bills'] ) {
+			$is( 'utility_bills', array( 'included' ) );
+		}
+
+		if ( $filters['advance_max'] ) {
+			$number( self::meta_of( 'advance_payment' ), (int) $filters['advance_max'], '<=' );
+		}
+
+		if ( $filters['floor_min'] ) {
+			$number( Listing_Index::FLOOR, (int) $filters['floor_min'], '>=' );
+		}
+
+		if ( $filters['floor_max'] ) {
+			$number( Listing_Index::FLOOR, (int) $filters['floor_max'], '<=' );
+		}
+
+		if ( $filters['parking'] ) {
+			$number( self::meta_of( 'parking' ), (int) $filters['parking'], '>=' );
+		}
+
+		if ( '' !== $filters['road_type'] ) {
+			$is( 'road_type', array( $filters['road_type'] ) );
+		}
+
+		if ( $filters['road_width'] ) {
+			$number( self::meta_of( 'road_width' ), (int) $filters['road_width'], '>=', 'DECIMAL(10,2)' );
+		}
+
+		// Three-phase power is available power too, and a listing with pipe-borne water and a well has both.
+		$also = array(
+			'electricity' => array( 'available' => array( 'available', 'three_phase' ) ),
+			'water'       => array(
+				'pipe_borne' => array( 'pipe_borne', 'pipe_borne_well' ),
+				'well'       => array( 'well', 'pipe_borne_well' ),
+			),
+		);
+
+		foreach ( array(
+			'electricity' => 'electricity',
+			'water'       => 'water_supply',
+		) as $key => $name ) {
+			if ( '' !== $filters[ $key ] ) {
+				$is( $name, isset( $also[ $key ][ $filters[ $key ] ] ) ? $also[ $key ][ $filters[ $key ] ] : array( $filters[ $key ] ) );
+			}
+		}
+
+		// Every ticked feature, looked for in clauses(), so however many are ticked the query stays light.
+		if ( '' !== $filters['features'] ) {
+			$args['crc_features'] = explode( ',', $filters['features'] );
+		}
+
+		// Availability and Listed by are kept as their words, e.g. "Available Now" and "Owner".
+		if ( '' !== $filters['availability'] || '' !== $filters['listed_by'] ) {
+			$choices = self::more_choices();
+			$main    = Overview::fields();
+
+			foreach ( array( 'availability', 'listed_by' ) as $key ) {
+				if ( '' !== $filters[ $key ] && isset( $choices[ $key ][ $filters[ $key ] ] ) ) {
+					$meta[] = array(
+						'key'   => isset( $main[ $key ]['meta'] ) ? $main[ $key ]['meta'] : '_crc_' . $key,
+						'value' => $choices[ $key ][ $filters[ $key ] ],
+					);
+				}
+			}
+		}
+
+		if ( $filters['posted'] ) {
+			// What was listed in the last day changes with the clock, so the page is kept in the cache for an hour at most.
+			do_action( 'litespeed_control_set_ttl', HOUR_IN_SECONDS );
+
+			$args['date_query'] = array(
+				array(
+					'column'    => 'post_date_gmt',
+					'after'     => gmdate( 'Y-m-d H:i:s', time() - (int) $filters['posted'] * DAY_IN_SECONDS ),
+					'inclusive' => true,
+				),
+			);
+		}
+
 		if ( $tax ) {
 			$args['tax_query'] = array_merge( array( 'relation' => 'AND' ), $tax ); // phpcs:ignore WordPress.DB.SlowDBQuery.slow_query_tax_query -- One page of results.
 		}
@@ -674,8 +1024,8 @@ final class Listing_Query {
 
 	/**
 	 * The search's own parts of a query: a place looked for in the titles,
-	 * and an order by a number, with listings that don't have it last
-	 * whichever way round, then newest first.
+	 * keywords, the ticked features, and an order by a number, with listings
+	 * that don't have it last whichever way round, then newest first.
 	 *
 	 * @param string[]  $clauses Query clauses.
 	 * @param \WP_Query $query   Query.
@@ -688,9 +1038,10 @@ final class Listing_Query {
 
 		global $wpdb;
 
-		$title = $query->get( 'crc_title' );
-		$words = $query->get( 'crc_words' );
-		$order = $query->get( 'crc_order' );
+		$title    = $query->get( 'crc_title' );
+		$words    = $query->get( 'crc_words' );
+		$order    = $query->get( 'crc_order' );
+		$features = $query->get( 'crc_features' );
 
 		if ( is_string( $title ) && '' !== $title ) {
 			$clauses['where'] = ( isset( $clauses['where'] ) ? $clauses['where'] : '' ) . $wpdb->prepare( " AND {$wpdb->posts}.post_title LIKE %s", '%' . $wpdb->esc_like( $title ) . '%' );
@@ -719,6 +1070,21 @@ final class Listing_Query {
 					$like
 				);
 				// phpcs:enable
+			}
+		}
+
+		// Each ticked feature, in quotes so one name can't match part of another, e.g. "garden" in a list of them.
+		if ( is_array( $features ) ) {
+			foreach ( array_slice( $features, 0, 100 ) as $feature ) {
+				if ( ! is_string( $feature ) || '' === $feature ) {
+					continue;
+				}
+
+				$clauses['where'] = ( isset( $clauses['where'] ) ? $clauses['where'] : '' ) . $wpdb->prepare(
+					" AND EXISTS ( SELECT 1 FROM {$wpdb->postmeta} AS crc_f WHERE crc_f.post_id = {$wpdb->posts}.ID AND crc_f.meta_key = %s AND crc_f.meta_value LIKE %s )",
+					Features::META,
+					'%"' . $wpdb->esc_like( $feature ) . '"%'
+				);
 			}
 		}
 

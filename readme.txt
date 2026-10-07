@@ -32,7 +32,7 @@ Real estate listing tools for WordPress.
 * Scroll down hint: a small moving sign without words, three arrows inside a U-shaped line that draws itself from the bottom middle out and up both sides, in white fading to clear, at the bottom of a hero section; a tap scrolls to what is under it
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
-* Search: a search box for any page with a tab for each category, a free search that understands places, property types, bedrooms, prices, sizes and any words, with suggestions of places, types and listings from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
+* Search: a search box for any page with a tab for each category, a free search that understands places, property types, bedrooms, prices, sizes and any words, with suggestions of places, types and listings from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and More filters for features, the price and terms, floor area, parking, the road, water and electricity, availability, who listed it and when, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
@@ -45,6 +45,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.38.0 =
+* Search filters: More filters, a bar under the property type that slides open. People can tick features as rounded choices in their groups (legal papers such as a clear deed or Verified by CRC, the category's own features such as a garden, a swimming pool, CCTV or flat land, and nearby places such as schools or the beach), and choose a price that can be negotiated, a bank loan for homes for sale, bills included and the most advance for rentals, the floor area and parking spaces for homes, the road type and its width, electricity (three-phase too) and water, the availability, who listed it and how recently it was listed.
+* The bar shows how many of them are chosen and opens by itself when some are; the Filters bar on phones counts them too. When the filters are wide, the lists sit side by side.
+* The bar's words can change with more="…", and more="" hides it.
 
 = 0.37.0 =
 * Free search: people can type anything in the search box and the filters, as on any property site. Places (towns, districts, Colombo zones and the areas they are known by), property types (house, villa, apartment or flat, annex, room and the site's own types), bedrooms (3 bed, 3br, 2-4 bedrooms), prices (under 50m, below 45 lakhs, over 20 million, between 10m and 20m), land sizes (20 perches, 2 acres) and furnishing are understood wherever they are in the text. Every other word is looked for in the listings' titles, descriptions, features, details, places and types, so "3 bedroom villa with pool in Galle under 50m" finds just that. Filters chosen in the boxes come first.

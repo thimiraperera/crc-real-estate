@@ -21,6 +21,12 @@ defined( 'ABSPATH' ) || exit;
  * - homes: the price or rent per month (two boxes and a slider), bedrooms,
  *   bathrooms and furnishing (each a box with − and +) and the property type.
  *
+ * Under More filters, a bar that slides open: ticks for features (legal
+ * papers, the category's own features, nearby places) and for the price and
+ * terms; the floor area and parking for homes; the road type and width,
+ * electricity and water; the availability, who listed it and how recently.
+ * It opens by itself when some of them are chosen, with how many on the bar.
+ *
  * Show Listings opens the category's archive with the choices made; Clear All
  * takes them off. On phones the filters fold away behind a Filters bar.
  *
@@ -54,7 +60,7 @@ final class Listing_Filters {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search filters', 'crc-real-estate' ),
-				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People choose what they are looking for (a category, or every listing) and the place, with the same suggestions as the search box, then the category\'s own choices. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Show Listings opens the category\'s archive with the choices made, and Clear All takes them off. On phones the filters fold away behind a Filters bar. The fields and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles.', 'crc-real-estate' ),
+				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People choose what they are looking for (a category, or every listing) and the place, with the same suggestions as the search box, then the category\'s own choices. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made, and Clear All takes them off. On phones the filters fold away behind a Filters bar. The fields and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories' => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
@@ -72,10 +78,15 @@ final class Listing_Filters {
 						'default'     => __( 'Clear All', 'crc-real-estate' ),
 						'description' => __( 'The text on the button that takes the choices off.', 'crc-real-estate' ),
 					),
+					'more'       => array(
+						'default'     => __( 'More filters', 'crc-real-estate' ),
+						'description' => __( 'The text on the bar that opens the extra filters (features, road, water, who listed it and more). Leave it empty, more="", to hide the extra filters.', 'crc-real-estate' ),
+					),
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
 					'[' . self::SHORTCODE . ' title="Refine your search"]',
+					'[' . self::SHORTCODE . ' more="Advanced filters"]',
 				),
 			)
 		);
@@ -330,13 +341,162 @@ final class Listing_Filters {
 	}
 
 	/**
-	 * How many filters are chosen, for the Filters bar on phones.
+	 * Rounded choices that are ticked on and off, under a heading: features,
+	 * or the price and terms. The heading is a label, so it looks like the
+	 * other fields' labels.
+	 *
+	 * @param string $for     Category slug, or "all".
+	 * @param bool   $on      Whether it is for the category chosen now.
+	 * @param string $id      Heading ID.
+	 * @param string $heading Heading.
+	 * @param array  $chips   Each 'name', 'value', 'label' and 'on' (ticked).
+	 * @return string
+	 */
+	private static function chips( $for, $on, $id, $heading, array $chips ) {
+		$html = '';
+
+		foreach ( $chips as $chip ) {
+			$html .= sprintf(
+				'<label class="crc-chip"><input type="checkbox" class="crc-chip-input" name="%1$s" value="%2$s"%3$s><span class="crc-chip-face">%4$s<span class="crc-chip-text">%5$s</span></span></label>',
+				esc_attr( $chip['name'] ),
+				esc_attr( $chip['value'] ),
+				$chip['on'] ? ' checked' : '',
+				Icons::svg( 'check', 'crc-chip-icon' ),
+				esc_html( $chip['label'] )
+			);
+		}
+
+		return sprintf(
+			'<fieldset class="crc-filter crc-filter-wide" data-for="%1$s" aria-labelledby="%2$s"%3$s><label class="crc-filter-label" id="%2$s">%4$s</label><div class="crc-chips">%5$s</div></fieldset>',
+			esc_attr( $for ),
+			esc_attr( $id ),
+			$on ? '' : ' hidden disabled',
+			esc_html( $heading ),
+			$html
+		);
+	}
+
+	/**
+	 * The More filters for one category, or for every listing: the price and
+	 * terms, the floor area and parking for homes, the road, the water and
+	 * electricity, the features, and the availability, who listed it and when.
+	 *
+	 * @param string $id       Filters ID.
+	 * @param string $category Category slug, or empty for every listing.
+	 * @param array  $filters  Filters chosen now, or blank ones for another category.
+	 * @param bool   $on       Whether the category is chosen now.
+	 * @return string
+	 */
+	private static function more_fields( $id, $category, array $filters, $on ) {
+		$fields  = Listing_Query::fields_for( $category );
+		$slug    = '' !== $category ? $category : 'all';
+		$prefix  = $id . '-' . $slug;
+		$choices = Listing_Query::more_choices();
+		$any     = __( 'Any', 'crc-real-estate' );
+		$html    = '';
+		$terms   = array();
+
+		foreach ( array(
+			'negotiable' => __( 'Price negotiable', 'crc-real-estate' ),
+			'bank_loan'  => __( 'Bank loan available', 'crc-real-estate' ),
+			'bills'      => __( 'Bills included in the rent', 'crc-real-estate' ),
+		) as $key => $label ) {
+			if ( in_array( $key, $fields, true ) ) {
+				$terms[] = array(
+					'name'  => $key,
+					'value' => '1',
+					'label' => $label,
+					'on'    => '' !== $filters[ $key ],
+				);
+			}
+		}
+
+		if ( $terms ) {
+			$html .= self::chips( $slug, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
+		}
+
+		$list = function ( $key, $label, $first, $name = '' ) use ( $fields, $choices, $slug, $on, $prefix, $filters ) {
+			$name = '' !== $name ? $name : $key;
+
+			if ( ! in_array( $key, $fields, true ) || empty( $choices[ $name ] ) ) {
+				return '';
+			}
+
+			return self::group( $slug, $on, self::select( $prefix . '-' . str_replace( '_', '-', $key ), $key, $label, $first, (array) $choices[ $name ], 0 !== $filters[ $key ] ? (string) $filters[ $key ] : '' ) );
+		};
+
+		$html .= $list( 'advance_max', __( 'Advance payment', 'crc-real-estate' ), $any );
+
+		if ( in_array( 'floor_min', $fields, true ) && ! empty( $choices['floor'] ) ) {
+			$html .= self::group(
+				$slug,
+				$on,
+				self::select( $prefix . '-floor-min', 'floor_min', __( 'Smallest', 'crc-real-estate' ), __( 'No min', 'crc-real-estate' ), (array) $choices['floor'], $filters['floor_min'] ? (string) $filters['floor_min'] : '', true )
+				. self::select( $prefix . '-floor-max', 'floor_max', __( 'Largest', 'crc-real-estate' ), __( 'No max', 'crc-real-estate' ), (array) $choices['floor'], $filters['floor_max'] ? (string) $filters['floor_max'] : '', true ),
+				__( 'Floor area', 'crc-real-estate' ),
+				$prefix . '-floor'
+			);
+		}
+
+		if ( in_array( 'parking', $fields, true ) ) {
+			$spaces = array( '' => $any );
+
+			foreach ( range( 1, Listing_Query::MOST_PARKING ) as $number ) {
+				/* translators: %s: number of parking spaces, e.g. "2+" means 2 or more. */
+				$spaces[ $number ] = sprintf( __( '%s+', 'crc-real-estate' ), number_format_i18n( $number ) );
+			}
+
+			$html .= self::group( $slug, $on, self::stepper( $prefix . '-parking', 'parking', __( 'Parking spaces', 'crc-real-estate' ), $spaces, $filters['parking'] ? (string) $filters['parking'] : '', __( 'Fewer parking spaces', 'crc-real-estate' ), __( 'More parking spaces', 'crc-real-estate' ) ) );
+		}
+
+		$html .= $list( 'road_type', __( 'Road type', 'crc-real-estate' ), $any )
+			. $list( 'road_width', __( 'Road width', 'crc-real-estate' ), $any )
+			. $list( 'electricity', __( 'Electricity', 'crc-real-estate' ), $any )
+			. $list( 'water', __( 'Water supply', 'crc-real-estate' ), $any );
+
+		if ( in_array( 'features', $fields, true ) ) {
+			$ticked = '' !== $filters['features'] ? explode( ',', $filters['features'] ) : array();
+
+			foreach ( Listing_Query::feature_groups( $category ) as $name => $group ) {
+				$chips = array();
+
+				foreach ( $group['features'] as $feature => $label ) {
+					$chips[] = array(
+						'name'  => 'features[]',
+						'value' => $feature,
+						'label' => $label,
+						'on'    => in_array( (string) $feature, $ticked, true ),
+					);
+				}
+
+				$html .= self::chips( $slug, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $chips );
+			}
+		}
+
+		return $html
+			. $list( 'availability', __( 'Availability', 'crc-real-estate' ), $any )
+			. $list( 'listed_by', __( 'Listed by', 'crc-real-estate' ), $any )
+			. $list( 'posted', __( 'Date listed', 'crc-real-estate' ), __( 'Any time', 'crc-real-estate' ) );
+	}
+
+	/**
+	 * How many filters are chosen, for the Filters bar on phones. Each
+	 * ticked feature counts.
 	 *
 	 * @param array $filters Filters.
+	 * @param array $only    Filter names to count, or empty for all.
 	 * @return int
 	 */
-	public static function chosen( array $filters ) {
-		return count( Listing_Query::params( $filters, array( 'sort', 'page' ) ) );
+	public static function chosen( array $filters, array $only = array() ) {
+		$count = 0;
+
+		foreach ( Listing_Query::params( $filters, array( 'sort', 'page' ) ) as $key => $value ) {
+			if ( ! $only || in_array( $key, $only, true ) ) {
+				$count += 'features' === $key ? count( explode( ',', $value ) ) : 1;
+			}
+		}
+
+		return $count;
 	}
 
 	/**
@@ -355,11 +515,29 @@ final class Listing_Filters {
 		$filters = Listing_Archive::filters();
 		$choices = sprintf( '<option value="" data-url="%1$s"%2$s>%3$s</option>', esc_url( Listing_Archive::page_url() ), '' === $filters['category'] ? ' selected' : '', esc_html__( 'All listings', 'crc-real-estate' ) );
 		$fields  = self::fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] );
+		$show    = '' !== trim( $atts['more'] );
+		$more    = $show ? self::more_fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] ) : '';
 
 		foreach ( $terms as $term ) {
 			$on       = $term->slug === $filters['category'];
 			$choices .= sprintf( '<option value="%1$s" data-url="%2$s"%3$s>%4$s</option>', esc_attr( $term->slug ), esc_url( Listing_Archive::category_url( $term->slug ) ), $on ? ' selected' : '', esc_html( $term->name ) );
 			$fields  .= self::fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on );
+			$more    .= $show ? self::more_fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on ) : '';
+		}
+
+		// More filters: open when some are chosen, with how many on the bar.
+		if ( '' !== $more ) {
+			$extra = self::chosen( $filters, Listing_Query::MORE );
+			$more  = sprintf(
+				'<details class="crc-filters-more"%1$s data-crc-more><summary class="crc-filters-more-toggle">%2$s<span class="crc-filters-more-text">%3$s</span><span class="crc-filters-more-count"%4$s>%5$s</span>%6$s</summary><div class="crc-filters-more-body"><div class="crc-filters-more-inner">%7$s</div></div></details>',
+				$extra ? ' open' : '',
+				Icons::svg( 'filter', 'crc-filters-more-icon' ),
+				esc_html( $atts['more'] ),
+				$extra ? '' : ' hidden',
+				esc_html( number_format_i18n( $extra ) ),
+				Icons::svg( 'chevron-down', 'crc-filters-more-arrow' ),
+				$more
+			);
 		}
 
 		$count = self::chosen( $filters );
@@ -367,7 +545,7 @@ final class Listing_Filters {
 		$label = '<span class="elementor-button-content-wrapper"><span class="elementor-button-text">%s</span></span>';
 
 		return sprintf(
-			'<form class="crc-filters crc-card crc-listing-price" id="%1$s" method="get" action="%2$s" aria-label="%3$s" data-crc-filters><div class="crc-filters-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="%1$s-body" data-crc-filters-toggle>%4$s<span class="crc-filters-toggle-text">%5$s</span>%6$s%7$s</div><div class="crc-filters-body" id="%1$s-body"><div class="crc-filters-head"><h6 class="crc-filters-title">%5$s</h6></div><div class="crc-filter"><label class="crc-filter-label" for="%1$s-category">%8$s</label><select class="crc-filter-select" id="%1$s-category" name="category">%9$s</select></div><div class="crc-filter"><label class="crc-filter-label" for="%1$s-location">%10$s</label><div class="crc-place">%11$s<ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div>%13$s<div class="crc-filters-buttons"><button type="submit" class="elementor-button crc-filters-submit">%14$s</button><div class="crc-filters-clear custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%15$s">%16$s</a></div></div></div></form>',
+			'<form class="crc-filters crc-card crc-listing-price" id="%1$s" method="get" action="%2$s" aria-label="%3$s" data-crc-filters><div class="crc-filters-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="%1$s-body" data-crc-filters-toggle>%4$s<span class="crc-filters-toggle-text">%5$s</span>%6$s%7$s</div><div class="crc-filters-body" id="%1$s-body"><div class="crc-filters-head"><h6 class="crc-filters-title">%5$s</h6></div><div class="crc-filter"><label class="crc-filter-label" for="%1$s-category">%8$s</label><select class="crc-filter-select" id="%1$s-category" name="category">%9$s</select></div><div class="crc-filter"><label class="crc-filter-label" for="%1$s-location">%10$s</label><div class="crc-place">%11$s<ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div>%13$s%17$s<div class="crc-filters-buttons"><button type="submit" class="elementor-button crc-filters-submit">%14$s</button><div class="crc-filters-clear custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%15$s">%16$s</a></div></div></div></form>',
 			esc_attr( $id ),
 			esc_url( Listing_Archive::base_url() ),
 			esc_attr__( 'Filter listings', 'crc-real-estate' ),
@@ -383,7 +561,8 @@ final class Listing_Filters {
 			$fields, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in fields().
 			'<span class="elementor-button-content-wrapper"><span class="elementor-button-text">' . esc_html( $atts['button'] ) . '</span><span class="crc-search-spinner" aria-hidden="true"></span></span>',
 			esc_url( Listing_Archive::base_url() ),
-			sprintf( $label, esc_html( $atts['clear'] ) )
+			sprintf( $label, esc_html( $atts['clear'] ) ),
+			$more // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in more_fields() and above.
 		);
 	}
 }

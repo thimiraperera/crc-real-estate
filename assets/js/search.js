@@ -12,7 +12,9 @@
  * rent have two boxes and a slider that move together; bedrooms, bathrooms
  * and furnishing have − and +. Search and Show Listings open the category's
  * archive with only the choices that were made in its address, and Sort by
- * keeps the search and starts from its first page. The results can show as a
+ * keeps the search and starts from its first page. The filters' More filters
+ * slide open and count the ones chosen; ticked features go in the address as
+ * one list. The results can show as a
  * grid or a list, remembered on the device. Beside the results the filters
  * stay in view while the listings scroll; on phones they fold away behind a
  * Filters bar.
@@ -65,39 +67,70 @@
 	}
 
 	// The address for a form: the category's page, then each choice made.
+	// What a field puts in the address: nothing for another category's, an unticked box or an empty one.
+	function valueOf( field ) {
+		var group = field.closest ? field.closest( '[data-for]' ) : null;
+		var value;
+
+		if ( ! field.name || 'category' === field.name || field.matches( ':disabled' ) || ( group && group.hidden ) ) {
+			return '';
+		}
+
+		if ( ( 'radio' === field.type || 'checkbox' === field.type ) && ! field.checked ) {
+			return '';
+		}
+
+		if ( 'submit' === field.type || 'button' === field.type ) {
+			return '';
+		}
+
+		value = String( field.value || '' ).trim();
+
+		// Prices go in the address as plain numbers.
+		if ( field.hasAttribute( 'data-crc-money' ) ) {
+			value = digits( value );
+		}
+
+		return value;
+	}
+
 	function address( form ) {
 		var base = categoryOf( form ).url || form.getAttribute( 'action' ) || window.location.pathname;
-		var params = [];
+		var pairs = [];
+		var lists = {};
 
 		each( form.elements, function ( field ) {
-			var group = field.closest ? field.closest( '[data-for]' ) : null;
-			var value;
+			var value = valueOf( field );
+			var name;
 
-			if ( ! field.name || 'category' === field.name || field.matches( ':disabled' ) || ( group && group.hidden ) ) {
+			if ( '' === value ) {
 				return;
 			}
 
-			if ( ( 'radio' === field.type || 'checkbox' === field.type ) && ! field.checked ) {
+			// Ticks that share a name, such as features[], go in as one list: features=clear_deed,garden.
+			if ( '[]' === field.name.slice( -2 ) ) {
+				name = field.name.slice( 0, -2 );
+
+				if ( ! lists[ name ] ) {
+					lists[ name ] = [ name, [] ];
+					pairs.push( lists[ name ] );
+				}
+
+				lists[ name ][ 1 ].push( value );
 				return;
 			}
 
-			if ( 'submit' === field.type || 'button' === field.type ) {
-				return;
-			}
-
-			value = String( field.value || '' ).trim();
-
-			// Prices go in the address as plain numbers.
-			if ( field.hasAttribute( 'data-crc-money' ) ) {
-				value = digits( value );
-			}
-
-			if ( '' !== value ) {
-				params.push( encodeURIComponent( field.name ) + '=' + encodeURIComponent( value ).replace( /%20/g, '+' ) );
-			}
+			pairs.push( [ field.name, value ] );
 		} );
 
-		return base + ( params.length ? ( -1 === base.indexOf( '?' ) ? '?' : '&' ) + params.join( '&' ) : '' );
+		pairs = pairs.map( function ( pair ) {
+			var list = Array.isArray( pair[ 1 ] );
+			var value = encodeURIComponent( list ? pair[ 1 ].join( ',' ) : pair[ 1 ] ).replace( /%20/g, '+' );
+
+			return encodeURIComponent( pair[ 0 ] ) + '=' + ( list ? value.replace( /%2C/gi, ',' ) : value );
+		} );
+
+		return base + ( pairs.length ? ( -1 === base.indexOf( '?' ) ? '?' : '&' ) + pairs.join( '&' ) : '' );
 	}
 
 	// Shows the chosen category's own choices; the others are switched off.
@@ -1464,9 +1497,105 @@
 		} );
 	}
 
+	function still() {
+		return window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
+	}
+
+	// More filters slide open and shut, and the bar counts the ones chosen for the category.
+	function setUpMore( form ) {
+		var more = form.querySelector( '[data-crc-more]' );
+		var bar = more ? more.querySelector( '.crc-filters-more-toggle' ) : null;
+		var body = more ? more.querySelector( '.crc-filters-more-body' ) : null;
+		var count = more ? more.querySelector( '.crc-filters-more-count' ) : null;
+
+		if ( ! more || more.crcMore || ! bar || ! body ) {
+			return;
+		}
+
+		more.crcMore = true;
+
+		function slide( open ) {
+			var from = more.open ? body.getBoundingClientRect().height : 0;
+			var motion;
+			var to;
+
+			function done() {
+				// Only the latest motion finishes.
+				if ( more.crcMotion !== motion ) {
+					return;
+				}
+
+				more.crcMotion = null;
+				more.classList.remove( 'is-closing', 'is-moving' );
+
+				if ( ! open ) {
+					more.open = false;
+				}
+			}
+
+			// Tapped again while it moves: it turns back from where it is.
+			if ( more.crcMotion ) {
+				more.crcMotion.cancel();
+				more.crcMotion = null;
+			}
+
+			more.classList.toggle( 'is-closing', ! open );
+
+			if ( ! body.animate || still() ) {
+				more.open = open;
+				more.classList.remove( 'is-closing', 'is-moving' );
+				return;
+			}
+
+			more.open = true;
+			more.classList.add( 'is-moving' );
+			to = open ? body.getBoundingClientRect().height : 0;
+
+			motion = body.animate(
+				[ { height: from + 'px', opacity: from ? 1 : 0 }, { height: to + 'px', opacity: to ? 1 : 0 } ],
+				{ duration: 350, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' }
+			);
+			more.crcMotion = motion;
+
+			if ( motion.finished && motion.finished.then ) {
+				motion.finished.then( done, function () {} );
+			} else {
+				motion.onfinish = done;
+			}
+		}
+
+		function recount() {
+			var chosen = 0;
+
+			each( more.querySelectorAll( 'input, select' ), function ( field ) {
+				if ( '' !== valueOf( field ) ) {
+					chosen++;
+				}
+			} );
+
+			if ( count ) {
+				count.textContent = chosen.toLocaleString();
+				count.hidden = ! chosen;
+			}
+		}
+
+		bar.addEventListener( 'click', function ( event ) {
+			event.preventDefault();
+			slide( ! more.open || more.classList.contains( 'is-closing' ) );
+		} );
+
+		// − and + change their number without a change event.
+		form.addEventListener( 'change', recount );
+		more.addEventListener( 'click', recount );
+		more.addEventListener( 'keyup', recount );
+
+		more.crcSync = recount;
+		recount();
+	}
+
 	function refresh( form ) {
 		showGroups( form );
-		each( form.querySelectorAll( '[data-crc-range], [data-crc-stepper], [data-crc-combo], [data-crc-dropdown]' ), function ( part ) {
+		each( form.querySelectorAll( '[data-crc-range], [data-crc-stepper], [data-crc-combo], [data-crc-dropdown], [data-crc-more]' ), function ( part ) {
 			if ( part.crcSync ) {
 				part.crcSync();
 			}
@@ -1533,6 +1662,7 @@
 		each( form.querySelectorAll( '[data-crc-typing]' ), typing );
 
 		if ( form.hasAttribute( 'data-crc-filters' ) ) {
+			setUpMore( form );
 			foldable( form );
 			sticky( form );
 			form.classList.add( 'is-ready' );
