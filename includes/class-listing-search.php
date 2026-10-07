@@ -282,9 +282,10 @@ final class Listing_Search {
 
 	/**
 	 * A rounded box to type in, with a list to choose from under it. A click
-	 * lets people type: a number is offered as a choice of its own (an
-	 * amount, a size or a number of bedrooms), and other words narrow the
-	 * list down. What is chosen shows in the box.
+	 * empties the box for typing, with a hint such as "Type an amount, e.g.
+	 * 25m" and the blinking cursor: a number is offered as a choice of its
+	 * own (an amount, a size or a number of bedrooms), and other words narrow
+	 * the list down. What is chosen shows in the box.
 	 *
 	 * @param string   $id      Start of the IDs.
 	 * @param string   $label   What it is, shown until something is chosen.
@@ -292,7 +293,8 @@ final class Listing_Search {
 	 * @param string[] $names   Field names: one, or the least's and the most's.
 	 * @param string[] $values  Values chosen now, as $names.
 	 * @param array    $options Value => text, "Any" first with an empty value. With two fields a value is "least-most".
-	 * @param string[] $texts   Words for what is typed, with %s where the amount, size or number goes.
+	 * @param string[] $texts   Words for what is typed, with %s where the amount, size or number goes,
+	 *                          and 'hint', shown while the box is typed in.
 	 * @return string
 	 */
 	private static function combo( $id, $label, $kind, array $names, array $values, array $options, array $texts = array() ) {
@@ -301,6 +303,7 @@ final class Listing_Search {
 		$key    = 1 === count( $names ) ? $values[0] : ( '' === $values[0] && '' === $values[1] ? '' : $values[0] . '-' . $values[1] );
 		$text   = '' === $key ? '' : ( isset( $options[ $key ] ) ? (string) $options[ $key ] : self::combo_text( $kind, $values, $texts ) );
 		$texts += array(
+			'hint'     => __( 'Type or choose', 'crc-real-estate' ),
 			'none'     => __( 'No matches', 'crc-real-estate' ),
 			'currency' => Price_Card::currency(),
 		);
@@ -313,7 +316,7 @@ final class Listing_Search {
 		}
 
 		return sprintf(
-			'<div class="crc-dropdown crc-combo" data-crc-combo data-kind="%1$s" data-fields="%2$s" data-texts="%3$s"><div class="crc-pill crc-combo-pill%4$s"><input type="text" class="crc-combo-input" id="%5$s" value="%6$s" placeholder="%7$s" aria-label="%7$s" role="combobox" aria-expanded="false" aria-controls="%8$s" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" data-value="%9$s">%10$s</div><ul class="crc-dropdown-list" id="%8$s" role="listbox" aria-label="%7$s" hidden>%11$s</ul>%12$s</div>',
+			'<div class="crc-dropdown crc-combo" data-crc-combo data-kind="%1$s" data-fields="%2$s" data-texts="%3$s"><div class="crc-pill crc-combo-pill%4$s"><input type="text" class="crc-combo-input" id="%5$s" value="%6$s" placeholder="%7$s" aria-label="%7$s" role="combobox" aria-expanded="false" aria-controls="%8$s" aria-autocomplete="list" autocomplete="off" autocapitalize="off" spellcheck="false" data-value="%9$s" data-hint="%13$s">%10$s</div><ul class="crc-dropdown-list" id="%8$s" role="listbox" aria-label="%7$s" hidden>%11$s</ul>%12$s</div>',
 			esc_attr( $kind ),
 			esc_attr( wp_json_encode( $ids ) ),
 			esc_attr( wp_json_encode( $texts ) ),
@@ -325,7 +328,8 @@ final class Listing_Search {
 			esc_attr( $key ),
 			Icons::svg( 'chevron-down', 'crc-pill-icon' ),
 			self::list_options( $list, $options, $key ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped there.
-			$fields // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			$fields, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			esc_attr( $texts['hint'] )
 		);
 	}
 
@@ -356,6 +360,7 @@ final class Listing_Search {
 				array( $filters['size_min'], $filters['size_max'] ),
 				array( '' => __( 'Any size', 'crc-real-estate' ) ) + Listing_Query::size_ranges(),
 				array(
+					'hint'    => __( 'Type perches, e.g. 20', 'crc-real-estate' ),
 					'upTo'    => $up_to,
 					/* translators: %s: size, e.g. "20 perches". */
 					'from'    => __( 'From %s', 'crc-real-estate' ),
@@ -389,6 +394,7 @@ final class Listing_Search {
 				array( $filters['beds'] ? $filters['beds'] : '', $filters['beds_max'] ? $filters['beds_max'] : '' ),
 				$beds,
 				array(
+					'hint'    => __( 'Type a number, e.g. 2-4', 'crc-real-estate' ),
 					'upTo'    => $up_to,
 					/* translators: %s: number of bedrooms; "2+ bedrooms" means 2 or more. */
 					'from'    => __( '%s+ bedrooms', 'crc-real-estate' ),
@@ -410,7 +416,10 @@ final class Listing_Search {
 				array( 'per_perch_max' ),
 				array( $filters['per_perch_max'] ),
 				array( '' => __( 'Any price', 'crc-real-estate' ) ) + self::money_options( Listing_Query::per_perch_prices(), $up_to ),
-				array( 'upTo' => $up_to )
+				array(
+					'hint' => __( 'Type an amount, e.g. 5 lakhs', 'crc-real-estate' ),
+					'upTo' => $up_to,
+				)
 			);
 		} elseif ( in_array( 'price_max', $fields, true ) ) {
 			$rent  = 'properties-for-rent' === $category;
@@ -421,7 +430,10 @@ final class Listing_Search {
 				array( 'price_max' ),
 				array( $filters['price_max'] ),
 				array( '' => $rent ? __( 'Any rent', 'crc-real-estate' ) : __( 'Any price', 'crc-real-estate' ) ) + self::money_options( Listing_Query::prices( $category ), $up_to ),
-				array( 'upTo' => $up_to )
+				array(
+					'hint' => $rent ? __( 'Type an amount, e.g. 75,000', 'crc-real-estate' ) : __( 'Type an amount, e.g. 25m', 'crc-real-estate' ),
+					'upTo' => $up_to,
+				)
 			);
 		}
 
@@ -439,7 +451,8 @@ final class Listing_Search {
 					'text',
 					array( 'type' ),
 					array( $filters['type'] ),
-					array( '' => __( 'Any type', 'crc-real-estate' ) ) + array_combine( $types, $types )
+					array( '' => __( 'Any type', 'crc-real-estate' ) ) + array_combine( $types, $types ),
+					array( 'hint' => __( 'Type to search, e.g. House', 'crc-real-estate' ) )
 				);
 			}
 		}

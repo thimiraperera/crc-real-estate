@@ -557,9 +557,12 @@
 		var fields = json( box.getAttribute( 'data-fields' ), [] ).map( function ( id ) {
 			return document.getElementById( id );
 		} ).filter( Boolean );
+		var label = input ? input.getAttribute( 'placeholder' ) || '' : '';
+		var hint = input ? input.getAttribute( 'data-hint' ) || label : '';
 		var presets = [];
 		var shown = [];
 		var active = -1;
+		var edited = false;
 		var chosen;
 
 		if ( box.crcCombo || ! input || ! pill || ! list || ! fields.length ) {
@@ -796,9 +799,17 @@
 			} );
 
 			chosen = { value: item.value, label: item.value ? item.label : '' };
+			edited = false;
 			input.value = chosen.label;
 			pill.classList.toggle( 'has-value', '' !== chosen.value );
 			close();
+
+			// Chosen with the keys: typing again starts afresh.
+			if ( document.activeElement === input ) {
+				try {
+					input.setSelectionRange( 0, input.value.length );
+				} catch ( error ) {}
+			}
 		}
 
 		// Leaving the box: what was typed is used if it can be, or the box shows what is chosen again.
@@ -806,7 +817,16 @@
 			var typed = input.value.trim();
 			var items;
 
+			// Clicked in, but nothing typed: what is chosen stays.
+			if ( ! edited ) {
+				input.value = chosen.label;
+				return;
+			}
+
+			edited = false;
+
 			if ( typed === chosen.label ) {
+				input.value = chosen.label;
 				return;
 			}
 
@@ -840,21 +860,19 @@
 			pill.classList.toggle( 'has-value', '' !== value );
 		}
 
+		// A click empties the box for typing: the hint shows with the blinking
+		// cursor, and the list shows every choice, what is chosen ticked.
 		input.addEventListener( 'focus', function () {
+			edited = false;
+			input.value = '';
+			input.placeholder = hint;
 			showAll();
-
-			// What is in the box is picked, so typing starts afresh.
-			window.setTimeout( function () {
-				if ( document.activeElement === input ) {
-					try {
-						input.setSelectionRange( 0, input.value.length );
-					} catch ( error ) {}
-				}
-			}, 0 );
 		} );
 
 		input.addEventListener( 'input', function () {
 			var items = typedChoices( input.value );
+
+			edited = true;
 
 			if ( null === items ) {
 				items = narrowed( input.value );
@@ -893,13 +911,15 @@
 			} else if ( 'Escape' === event.key && ! list.hidden ) {
 				event.preventDefault();
 				event.stopPropagation();
-				input.value = chosen.label;
+				edited = false;
+				input.value = '';
 				close();
 			}
 		} );
 
 		input.addEventListener( 'blur', function () {
 			commit();
+			input.placeholder = label;
 			close();
 		} );
 
@@ -929,11 +949,13 @@
 			event.preventDefault();
 		} );
 
+		// A choice clicked or tapped is set and the box is left, which also closes a phone's keyboard.
 		list.addEventListener( 'click', function ( event ) {
 			var option = event.target.closest( '[role="option"]' );
 
 			if ( option && shown[ parseInt( option.getAttribute( 'data-index' ), 10 ) ] ) {
 				choose( shown[ parseInt( option.getAttribute( 'data-index' ), 10 ) ] );
+				input.blur();
 			}
 		} );
 

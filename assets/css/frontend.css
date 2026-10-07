@@ -1153,6 +1153,7 @@
 	font: inherit;
 	line-height: 24px;
 	text-overflow: ellipsis;
+	caret-color: var(--e-global-color-primary);
 	cursor: text;
 }
 

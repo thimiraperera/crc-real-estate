@@ -45,6 +45,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.28.4 =
+* Search box: a click in a box empties it for typing, with the blinking cursor in the site's colour and a hint of what to type: "Type perches, e.g. 20", "Type a number, e.g. 2-4", "Type an amount, e.g. 25m" (5 lakhs for the price per perch, 75,000 for rent) or "Type to search, e.g. House". Leaving without typing keeps what was chosen, and a choice tapped in the list closes a phone's keyboard.
+
 = 0.28.3 =
 * Search box: the boxes under the card are as wide as the card again, with 12px corners. A box being typed in has a light green background and a soft green border, without a ring or an outline.
 
