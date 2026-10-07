@@ -316,13 +316,15 @@ final class Listing_Carousel {
 				);
 			}
 
+			// On phones the tabs show their icons, and the open one its name too.
 			$tabs .= sprintf(
-				'<span class="crc-listing-tab" role="tab" id="%1$s-tab-%2$d" aria-controls="%1$s-panel-%2$d" aria-selected="%3$s" tabindex="%4$d">%5$s</span>',
+				'<span class="crc-listing-tab" role="tab" id="%1$s-tab-%2$d" aria-controls="%1$s-panel-%2$d" aria-selected="%3$s" aria-label="%5$s" tabindex="%4$d">%6$s<span class="crc-listing-tab-text">%5$s</span></span>',
 				esc_attr( $id ),
 				$i,
 				0 === $i ? 'true' : 'false',
 				0 === $i ? 0 : -1,
-				esc_html( $term->name )
+				esc_html( $term->name ),
+				Icons::svg( isset( $details[ $term->slug ]['icon'] ) ? $details[ $term->slug ]['icon'] : 'land-plots', 'crc-listing-tab-icon' )
 			);
 
 			// With one category there are no tabs, so its panel is just a box.

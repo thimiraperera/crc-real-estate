@@ -621,10 +621,10 @@
 	width: 100%;
 }
 
-/* Tabs: one for each category, the open one underlined. */
+/* Tabs: one for each category, the open one underlined, 32px above the cards. */
 .crc-listings .crc-listing-tabs {
 	display: flex;
-	margin: 0 0 48px;
+	margin: 0 0 32px;
 }
 
 .crc-listings .crc-listing-tab {
@@ -661,8 +661,34 @@
 	outline-offset: 2px;
 }
 
+/* Each tab's icon shows on phones only. */
+.crc-listings .crc-listing-tab-icon {
+	display: none;
+}
+
 .crc-listings .crc-listing-panel[hidden] {
 	display: none;
+}
+
+/* The chosen category's cards fade in. */
+.crc-listings .crc-listing-panel {
+	animation: crc-fade-in 0.4s ease backwards;
+}
+
+@keyframes crc-fade-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-listings .crc-listing-panel {
+		animation: none;
+	}
 }
 
 /* Cards: as tall as each other, with the button at the bottom. */
@@ -2401,9 +2427,10 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 		--crc-testimonials-padding: 24px 16px;
 	}
 
-	/* Listing tabs side by side, swiped when they don't fit. */
+	/* Listing tabs: icons, the open one with its name too, sharing the width.
+	   A grey line under the others, green under the open one. 24px above the cards. */
 	.crc-listings .crc-listing-tabs {
-		margin-bottom: 32px;
+		margin-bottom: 24px;
 		overflow-x: auto;
 		scrollbar-width: none;
 	}
@@ -2413,7 +2440,52 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 	}
 
 	.crc-listings .crc-listing-tab {
-		padding: 0 14px 8px;
+		display: flex;
+		flex: 1 1 auto;
+		align-items: center;
+		justify-content: center;
+		padding: 0 12px 10px;
+		border-bottom-color: color-mix(in srgb, var(--e-global-color-1ead78b) 12%, var(--e-global-color-3581a59));
+		color: var(--e-global-color-text);
+		transition: border-color 0.4s ease, color 0.4s ease;
+	}
+
+	.crc-listings .crc-listing-tab[aria-selected="true"] {
+		border-bottom-color: var(--e-global-color-primary);
+		color: var(--e-global-color-6e3d619);
+	}
+
+	.crc-listings .crc-listing-tab-icon {
+		display: block;
+		flex: none;
+		width: 20px;
+		height: 20px;
+		fill: currentColor;
+		transition: fill 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	.crc-listings .crc-listing-tab[aria-selected="true"] .crc-listing-tab-icon {
+		fill: var(--e-global-color-primary);
+		transform: scale(1.08);
+	}
+
+	.crc-listings .crc-listing-tab-text {
+		max-width: 0;
+		overflow: hidden;
+		opacity: 0;
+		margin-inline-start: 0;
+		transition: max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1), margin 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
+	}
+
+	.crc-listings .crc-listing-tab[aria-selected="true"] .crc-listing-tab-text {
+		max-width: 240px;
+		opacity: 1;
+		margin-inline-start: 8px;
+	}
+
+	/* The listing cards' photos are 4 / 3. */
+	.crc-carousel.crc-carousel-listings .crc-listing-card-media {
+		aspect-ratio: 4 / 3;
 	}
 
 	.crc-carousel .crc-listing-card-body,

@@ -46,6 +46,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.31.0 =
+* Listing carousel on phones: each tab is an icon (plots for Lands, a house for sale, a key for rent), and the open tab shows its name too, opening out smoothly. The other tabs have a grey line under them and the open one the green line. The cards' photos are 4 / 3.
+* The tabs are 32px above the cards (24px on phones), and the chosen category's cards fade in.
+
 = 0.30.0 =
 * Scroll down hint: [crc_scroll_hint] is a small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. style="arrows" (three arrows lighting up one after another, the top one the faintest), style="mouse" (a mouse with its wheel moving down) or style="line" (a light running down a thin line), in white fading to clear, or dark grey with color="dark".
 * In a Shortcode widget anywhere in the section it sits at the bottom, in the middle, 24px up (bottom="…" changes it; pin="no" keeps it where it is placed). A click or tap scrolls smoothly to what is under the section, or to target="#…", stopping short by offset="…" pixels for a header that stays at the top. It fades away once the page has been scrolled and comes back at the top.

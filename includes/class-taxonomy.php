@@ -56,6 +56,7 @@ final class Taxonomy {
 					'label'       => __( 'Land for sale', 'crc-real-estate' ),
 					'period'      => '',
 					'per_perch'   => true,
+					'icon'        => 'land-plots',
 				),
 				'properties-for-sale' => array(
 					'name'        => __( 'Properties for Sale', 'crc-real-estate' ),
@@ -63,6 +64,7 @@ final class Taxonomy {
 					'label'       => __( 'Property for sale', 'crc-real-estate' ),
 					'period'      => '',
 					'per_perch'   => false,
+					'icon'        => 'home',
 				),
 				'properties-for-rent' => array(
 					'name'        => __( 'Properties for Rent', 'crc-real-estate' ),
@@ -70,6 +72,7 @@ final class Taxonomy {
 					'label'       => __( 'Property for rent', 'crc-real-estate' ),
 					'period'      => __( '/month', 'crc-real-estate' ),
 					'per_perch'   => false,
+					'icon'        => 'key',
 				),
 			)
 		);
