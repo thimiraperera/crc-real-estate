@@ -18,6 +18,7 @@ final class Taxonomy {
 
 	const NAME          = 'crc_listing_category';
 	const TEXTS_OPTION  = 'crc_re_category_texts';
+	const NAMES_OPTION  = 'crc_re_category_names';
 	const CAPTION_META  = '_crc_caption';
 	const CAPTION_NONCE = 'crc_caption_nonce';
 
@@ -57,14 +58,14 @@ final class Taxonomy {
 					'per_perch'   => true,
 				),
 				'properties-for-sale' => array(
-					'name'        => __( 'Properties for sale', 'crc-real-estate' ),
+					'name'        => __( 'Properties for Sale', 'crc-real-estate' ),
 					'description' => __( 'Houses, apartments and villas for sale.', 'crc-real-estate' ),
 					'label'       => __( 'Property for sale', 'crc-real-estate' ),
 					'period'      => '',
 					'per_perch'   => false,
 				),
 				'properties-for-rent' => array(
-					'name'        => __( 'Properties for rent', 'crc-real-estate' ),
+					'name'        => __( 'Properties for Rent', 'crc-real-estate' ),
 					'description' => __( 'Houses, annexes, apartments and rooms to rent.', 'crc-real-estate' ),
 					'label'       => __( 'Property for rent', 'crc-real-estate' ),
 					'period'      => __( '/month', 'crc-real-estate' ),
@@ -202,9 +203,13 @@ final class Taxonomy {
 	/**
 	 * Creates any category that doesn't exist yet. The short descriptions are
 	 * filled in once; after that, edits made on the Listing Categories screen stay.
+	 * Once, a name that only differs from the plugin's in its capitals takes
+	 * the plugin's ("Properties for sale" becomes "Properties for Sale"); a
+	 * name changed in other ways stays as it is.
 	 */
 	public static function create_terms() {
 		$fill_texts     = ! get_option( self::TEXTS_OPTION );
+		$fix_names      = 2 > (int) get_option( self::NAMES_OPTION );
 		self::$creating = true;
 
 		foreach ( self::terms() as $slug => $term ) {
@@ -219,8 +224,14 @@ final class Taxonomy {
 						'description' => $term['description'],
 					)
 				);
-			} elseif ( $fill_texts && '' === $existing->description && '' !== $term['description'] ) {
-				wp_update_term( $existing->term_id, self::NAME, array( 'description' => $term['description'] ) );
+			} else {
+				if ( $fill_texts && '' === $existing->description && '' !== $term['description'] ) {
+					wp_update_term( $existing->term_id, self::NAME, array( 'description' => $term['description'] ) );
+				}
+
+				if ( $fix_names && $existing->name !== $term['name'] && strtolower( $existing->name ) === strtolower( $term['name'] ) ) {
+					wp_update_term( $existing->term_id, self::NAME, array( 'name' => $term['name'] ) );
+				}
 			}
 		}
 
@@ -228,6 +239,10 @@ final class Taxonomy {
 
 		if ( $fill_texts ) {
 			update_option( self::TEXTS_OPTION, 1 );
+		}
+
+		if ( $fix_names ) {
+			update_option( self::NAMES_OPTION, 2 );
 		}
 	}
 

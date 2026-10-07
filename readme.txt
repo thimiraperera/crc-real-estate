@@ -45,6 +45,13 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.29.0 =
+* Search box: until someone clicks in it, the place box types out places with listings as examples ("Search Kandy", "Search Colombo 7" and so on), deletes each and types the next, with a blinking bar for the cursor. Visitors whose device asks for less motion see the box's own hint.
+* Search, and Show Listings in the filters, show a spinning circle while the results load.
+* The categories are named Lands, Properties for Sale and Properties for Rent. A site whose category names only differ in their capitals takes the new names once; names changed in other ways stay.
+* The search box's choices are named Land Size, Bedrooms, Max Price Per Perch, Max Price, Max Rent Per Month and Property Type.
+* The place box's row has 6px padding and 22px corners.
+
 = 0.28.4 =
 * Search box: a click in a box empties it for typing, with the blinking cursor in the site's colour and a hint of what to type: "Type perches, e.g. 20", "Type a number, e.g. 2-4", "Type an amount, e.g. 25m" (5 lakhs for the price per perch, 75,000 for rent) or "Type to search, e.g. House". Leaving without typing keeps what was chosen, and a choice tapped in the list closes a phone's keyboard.
 

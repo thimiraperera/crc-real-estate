@@ -1213,6 +1213,121 @@
 		form.crcPopups = { close: close };
 	}
 
+	/*
+	 * The search box's place box types out places with listings as examples,
+	 * deletes each and types the next, with a blinking bar for the cursor,
+	 * until someone clicks in it. Visitors whose device asks for less motion
+	 * see the box's own hint.
+	 */
+	function typing( box ) {
+		var input = box.querySelector( '[data-crc-place]' );
+		var words = json( box.getAttribute( 'data-crc-typing' ), [] );
+		var pattern = box.getAttribute( 'data-crc-typing-format' ) || '%s';
+		var still = input ? input.getAttribute( 'placeholder' ) || '' : '';
+		var word = 0;
+		var at = 0;
+		var timer = 0;
+		var running = false;
+		var i;
+		var swap;
+		var keep;
+
+		if ( box.crcTyping || ! input || ! Array.isArray( words ) || ! words.length || ( window.matchMedia && window.matchMedia( '(prefers-reduced-motion: reduce)' ).matches ) ) {
+			return;
+		}
+
+		box.crcTyping = true;
+
+		// A different order each time.
+		for ( i = words.length - 1; i > 0; i-- ) {
+			swap = Math.floor( Math.random() * ( i + 1 ) );
+			keep = words[ i ];
+			words[ i ] = words[ swap ];
+			words[ swap ] = keep;
+		}
+
+		function show( bar ) {
+			input.setAttribute( 'placeholder', format( pattern, String( words[ word ] ).slice( 0, at ) ) + ( bar ? '|' : '' ) );
+		}
+
+		function later( next, wait ) {
+			timer = window.setTimeout( next, wait );
+		}
+
+		// The bar blinks while a place shows in full, then it is deleted.
+		function pause() {
+			var flips = 4;
+			var on = true;
+
+			function flip() {
+				if ( ! running ) {
+					return;
+				}
+
+				on = ! on;
+				show( on );
+				later( --flips > 0 ? flip : erase, 450 );
+			}
+
+			later( flip, 450 );
+		}
+
+		function type() {
+			if ( ! running ) {
+				return;
+			}
+
+			at++;
+			show( true );
+
+			if ( at < String( words[ word ] ).length ) {
+				later( type, 80 + Math.random() * 80 );
+			} else {
+				pause();
+			}
+		}
+
+		function erase() {
+			if ( ! running ) {
+				return;
+			}
+
+			at = Math.max( 0, at - 1 );
+			show( true );
+
+			if ( at > 0 ) {
+				later( erase, 40 );
+			} else {
+				word = ( word + 1 ) % words.length;
+				later( type, 500 );
+			}
+		}
+
+		function start() {
+			if ( running || '' !== input.value || document.activeElement === input ) {
+				return;
+			}
+
+			running = true;
+			at = 0;
+			show( true );
+			later( type, 600 );
+		}
+
+		function stop() {
+			running = false;
+			window.clearTimeout( timer );
+			input.setAttribute( 'placeholder', still );
+		}
+
+		input.addEventListener( 'focus', stop );
+		input.addEventListener( 'blur', function () {
+			window.setTimeout( start, 1500 );
+		} );
+
+		start();
+	}
+
 	// On phones the filters fold away behind the Filters bar.
 	function foldable( form ) {
 		var toggle = form.querySelector( '[data-crc-filters-toggle]' );
@@ -1339,14 +1454,28 @@
 			}
 		} );
 
+		// Searching: a spinning circle on the button while the results load.
 		form.addEventListener( 'submit', function ( event ) {
 			event.preventDefault();
+
+			if ( form.classList.contains( 'is-searching' ) ) {
+				return;
+			}
+
+			form.classList.add( 'is-searching' );
+			form.setAttribute( 'aria-busy', 'true' );
+			window.setTimeout( function () {
+				form.classList.remove( 'is-searching' );
+				form.removeAttribute( 'aria-busy' );
+			}, 15000 );
 			window.location.href = address( form );
 		} );
 
 		if ( input ) {
 			places( form, input );
 		}
+
+		each( form.querySelectorAll( '[data-crc-typing]' ), typing );
 
 		if ( form.hasAttribute( 'data-crc-filters' ) ) {
 			foldable( form );
@@ -1432,7 +1561,11 @@
 	// Back to a page kept by the browser: its choices show again as they were left.
 	window.addEventListener( 'pageshow', function ( event ) {
 		if ( event.persisted ) {
-			each( document.querySelectorAll( '[data-crc-search], [data-crc-filters]' ), refresh );
+			each( document.querySelectorAll( '[data-crc-search], [data-crc-filters]' ), function ( form ) {
+				form.classList.remove( 'is-searching' );
+				form.removeAttribute( 'aria-busy' );
+				refresh( form );
+			} );
 		}
 	} );
 

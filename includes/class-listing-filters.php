@@ -381,7 +381,7 @@ final class Listing_Filters {
 			Listing_Search::place_field( $id . '-location', $place, __( 'Town, district or Colombo zone', 'crc-real-estate' ), $id . '-places' ),
 			esc_attr__( 'Places', 'crc-real-estate' ),
 			$fields, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in fields().
-			sprintf( $label, esc_html( $atts['button'] ) ),
+			'<span class="elementor-button-content-wrapper"><span class="elementor-button-text">' . esc_html( $atts['button'] ) . '</span><span class="crc-search-spinner" aria-hidden="true"></span></span>',
 			esc_url( Listing_Archive::base_url() ),
 			sprintf( $label, esc_html( $atts['clear'] ) )
 		);

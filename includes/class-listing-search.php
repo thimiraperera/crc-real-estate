@@ -54,7 +54,7 @@ final class Listing_Search {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search box', 'crc-real-estate' ),
-				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings from three letters, and a Search button in the site\'s button style. Under it are the chosen category\'s own choices as rounded boxes: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Each opens a list to choose from, and people can also type in it: an amount such as 25,000,000 or 25m, a size such as 25 perches, or bedrooms such as 2-4. On phones the categories are a dropdown and the Search button takes the whole width. Search opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
+				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings from three letters, and a Search button in the site\'s button style. Under it are the chosen category\'s own choices as rounded boxes: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Each opens a list to choose from, and people can also type in it: an amount such as 25,000,000 or 25m, a size such as 25 perches, or bedrooms such as 2-4. On phones the categories are a dropdown and the Search button takes the whole width. Until someone clicks in it, the place box types out places with listings as examples. Search shows a spinning circle while the results load, and opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories'  => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
@@ -354,7 +354,7 @@ final class Listing_Search {
 		if ( in_array( 'size_min', $fields, true ) ) {
 			$html .= self::combo(
 				$id . '-size',
-				__( 'Land size', 'crc-real-estate' ),
+				__( 'Land Size', 'crc-real-estate' ),
 				'size',
 				array( 'size_min', 'size_max' ),
 				array( $filters['size_min'], $filters['size_max'] ),
@@ -411,7 +411,7 @@ final class Listing_Search {
 		if ( in_array( 'per_perch_max', $fields, true ) ) {
 			$html .= self::combo(
 				$id . '-per-perch',
-				__( 'Max price per perch', 'crc-real-estate' ),
+				__( 'Max Price Per Perch', 'crc-real-estate' ),
 				'money',
 				array( 'per_perch_max' ),
 				array( $filters['per_perch_max'] ),
@@ -425,7 +425,7 @@ final class Listing_Search {
 			$rent  = 'properties-for-rent' === $category;
 			$html .= self::combo(
 				$id . '-price',
-				$rent ? __( 'Max rent per month', 'crc-real-estate' ) : __( 'Max price', 'crc-real-estate' ),
+				$rent ? __( 'Max Rent Per Month', 'crc-real-estate' ) : __( 'Max Price', 'crc-real-estate' ),
 				'money',
 				array( 'price_max' ),
 				array( $filters['price_max'] ),
@@ -447,7 +447,7 @@ final class Listing_Search {
 			if ( $types ) {
 				$html .= self::combo(
 					$id . '-type',
-					__( 'Property type', 'crc-real-estate' ),
+					__( 'Property Type', 'crc-real-estate' ),
 					'text',
 					array( 'type' ),
 					array( $filters['type'] ),
@@ -458,6 +458,57 @@ final class Listing_Search {
 		}
 
 		return '' === $html ? '' : '<div class="crc-pills">' . $html . '</div>';
+	}
+
+	/**
+	 * Places for the place box to type out as examples: the towns and
+	 * districts with the most listings, at most 8. Well-known places fill in
+	 * while there are only a few.
+	 *
+	 * @return string[]
+	 */
+	public static function examples() {
+		$facets = Listing_Index::facets( '' );
+		$counts = array();
+		$towns  = (array) $facets['towns'];
+		$all    = District::districts();
+
+		arsort( $towns );
+
+		foreach ( array_slice( $towns, 0, 8, true ) as $term_id => $count ) {
+			$term = get_term( (int) $term_id, Town::NAME );
+
+			if ( $term && ! is_wp_error( $term ) ) {
+				$counts[ (string) $term->name ] = (int) $count;
+			}
+		}
+
+		foreach ( (array) $facets['districts'] as $slug => $count ) {
+			if ( isset( $all[ $slug ] ) && ! isset( $counts[ $all[ $slug ]['name'] ] ) ) {
+				$counts[ $all[ $slug ]['name'] ] = (int) $count;
+			}
+		}
+
+		arsort( $counts );
+
+		$places = array_map( 'strval', array_slice( array_keys( $counts ), 0, 8 ) );
+
+		foreach ( array( 'Colombo 7', 'Kandy', 'Galle', 'Negombo', 'Nugegoda', 'Kurunegala', 'Matara', 'Battaramulla' ) as $place ) {
+			if ( count( $places ) >= 5 ) {
+				break;
+			}
+
+			if ( ! in_array( $place, $places, true ) ) {
+				$places[] = $place;
+			}
+		}
+
+		/**
+		 * Filters the places the search box types out as examples.
+		 *
+		 * @param string[] $places Place names.
+		 */
+		return array_values( array_map( 'strval', (array) apply_filters( 'crc_re_search_examples', $places ) ) );
 	}
 
 	/**
@@ -543,7 +594,7 @@ final class Listing_Search {
 		);
 
 		return sprintf(
-			'<form class="crc-search" id="%1$s" role="search" method="get" action="%2$s" aria-label="%3$s" data-crc-search><div class="crc-search-card"><div class="crc-search-tabs" role="radiogroup" aria-label="%4$s">%5$s</div>%6$s<div class="crc-search-row"><div class="crc-search-place">%7$s<label class="crc-sr" for="%1$s-location">%8$s</label>%9$s</div><button type="submit" class="elementor-button crc-search-submit"><span class="elementor-button-content-wrapper"><span class="elementor-button-text crc-search-submit-text">%10$s</span>%11$s</span></button><ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div>%13$s</form>',
+			'<form class="crc-search" id="%1$s" role="search" method="get" action="%2$s" aria-label="%3$s" data-crc-search><div class="crc-search-card"><div class="crc-search-tabs" role="radiogroup" aria-label="%4$s">%5$s</div>%6$s<div class="crc-search-row"><div class="crc-search-place" data-crc-typing="%14$s" data-crc-typing-format="%15$s">%7$s<label class="crc-sr" for="%1$s-location">%8$s</label>%9$s</div><button type="submit" class="elementor-button crc-search-submit"><span class="elementor-button-content-wrapper"><span class="elementor-button-text crc-search-submit-text">%10$s</span>%11$s<span class="crc-search-spinner" aria-hidden="true"></span></span></button><ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div>%13$s</form>',
 			esc_attr( $id ),
 			esc_url( Listing_Archive::page_url() ),
 			esc_attr__( 'Search listings', 'crc-real-estate' ),
@@ -556,7 +607,10 @@ final class Listing_Search {
 			esc_html( $atts['button'] ),
 			Icons::svg( 'search', 'crc-search-submit-icon' ),
 			esc_attr__( 'Places', 'crc-real-estate' ),
-			$pills // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in pills().
+			$pills, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in pills().
+			esc_attr( wp_json_encode( self::examples() ) ),
+			/* translators: %s: a place being typed out as an example, e.g. "Kandy". */
+			esc_attr__( 'Search %s', 'crc-real-estate' )
 		);
 	}
 

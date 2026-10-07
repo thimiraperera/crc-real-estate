@@ -928,9 +928,9 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
-	padding: 7px;
+	padding: 6px;
 	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 14%, var(--e-global-color-3581a59));
-	border-radius: 24px;
+	border-radius: 22px;
 	background: var(--e-global-color-3581a59);
 	transition: border-color 0.25s ease;
 }
@@ -1022,6 +1022,48 @@
 @media (hover: hover) {
 	.crc-search .crc-search-row .crc-search-submit:hover .crc-search-submit-icon {
 		transform: translateX(3px);
+	}
+}
+
+/* Searching: a spinning circle on Search (and on Show Listings in the
+   filters) while the results load, in place of the magnifier. */
+.crc-search .crc-search-spinner,
+.crc-filters .crc-search-spinner {
+	display: none;
+	flex: none;
+	box-sizing: border-box;
+	width: 18px;
+	height: 18px;
+	border: 2px solid currentColor;
+	border-right-color: var(--e-global-color-bb33687);
+	border-radius: 50%;
+	animation: crc-spin 0.7s linear infinite;
+}
+
+.crc-search.is-searching .crc-search-submit-icon {
+	display: none;
+}
+
+.crc-search.is-searching .crc-search-spinner,
+.crc-filters.is-searching .crc-search-spinner {
+	display: block;
+}
+
+.crc-search.is-searching .crc-search-submit,
+.crc-filters.is-searching .crc-filters-submit {
+	cursor: progress;
+}
+
+.crc-filters .crc-filters-submit .elementor-button-content-wrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+
+@keyframes crc-spin {
+	to {
+		transform: rotate(360deg);
 	}
 }
 
