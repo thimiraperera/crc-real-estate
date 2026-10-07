@@ -12,15 +12,23 @@ defined( 'ABSPATH' ) || exit;
 /**
  * [crc_scroll_hint]: a small moving sign without words that tells visitors
  * there is more below, such as at the bottom of a hero section that only has
- * a title on phones. Arrows that light up one after another, a mouse with a
- * moving wheel, or a line with a light running down it, in white fading to
- * clear. In an Elementor widget it sits at the bottom of its section, in the
- * middle. A click or tap scrolls smoothly to what is under the section, and
- * it fades away once the page has been scrolled.
+ * a title on phones. Three arrows light up one after another, downwards,
+ * inside one line shaped like a U along the bottom of the section: it draws
+ * itself from the bottom middle out to both sides and up, in white fading to
+ * clear. In an Elementor widget it sits at the bottom of its section. A click
+ * or tap scrolls smoothly to what is under the section, and it fades away
+ * once the page has been scrolled.
  */
 final class Scroll_Hint {
 
 	const SHORTCODE = 'crc_scroll_hint';
+
+	/**
+	 * Hints on the page so far, for their ids.
+	 *
+	 * @var int
+	 */
+	private static $count = 0;
 
 	/**
 	 * Registers hooks.
@@ -41,11 +49,23 @@ final class Scroll_Hint {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Scroll down hint', 'crc-real-estate' ),
-				'description' => __( 'A small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. It can be arrows that light up one after another, a round button with an arrow dropping through it, a mouse with its wheel scrolling down and two small arrows under it, or a line with a light running down it, in white that fades to clear. Put it in a Shortcode widget anywhere in the section: it sits at the bottom of the section, in the middle, by itself. A click or tap scrolls smoothly to what is under the section, and it fades away once the page has been scrolled. To show it on phones only, hide the widget on desktop and tablet in Elementor (Advanced, then Responsive). Visitors whose device asks for less motion see it standing still.', 'crc-real-estate' ),
+				'description' => __( 'A small moving sign without words that tells visitors there is more below, for example at the bottom of a hero section that only has a title and a subtitle on phones. Three arrows light up one after another, downwards, inside one line shaped like a U along the bottom of the section: the line draws itself from the bottom middle out to both sides and up them, in white that fades to clear at the top, in time with the arrows. Put it in a Shortcode widget anywhere in the section: it sits at the bottom of the section by itself, 10px in from its edges, with 42px corners, so it follows a section with 32px corners. A click or tap scrolls smoothly to what is under the section, and it fades away once the page has been scrolled. To show it on phones only, hide the widget on desktop and tablet in Elementor (Advanced, then Responsive). Visitors whose device asks for less motion see it standing still.', 'crc-real-estate' ),
 				'attributes'  => array(
-					'style'  => array(
-						'default'     => 'arrows',
-						'description' => __( 'arrows (three arrows lighting up one after another, downwards), circle (a round, see-through button with an arrow dropping through it and a soft ring spreading out from it), mouse (a mouse with its wheel scrolling down and two small arrows under it) or line (a thin line with a light running down it).', 'crc-real-estate' ),
+					'gap'    => array(
+						'default'     => '10',
+						'description' => __( 'How far in from the left, right and bottom edges of the section the line runs, in pixels.', 'crc-real-estate' ),
+					),
+					'height' => array(
+						'default'     => '48',
+						'description' => __( 'How tall the line is at the sides, in pixels.', 'crc-real-estate' ),
+					),
+					'radius' => array(
+						'default'     => '42',
+						'description' => __( 'How round the line\'s two bottom corners are, in pixels. The section\'s own corner rounding plus the gap keeps them even with its corners.', 'crc-real-estate' ),
+					),
+					'frame'  => array(
+						'default'     => 'yes',
+						'description' => __( 'no to show the arrows on their own, without the line.', 'crc-real-estate' ),
 					),
 					'color'  => array(
 						'default'     => 'light',
@@ -53,11 +73,7 @@ final class Scroll_Hint {
 					),
 					'pin'    => array(
 						'default'     => 'yes',
-						'description' => __( 'yes to sit at the bottom of its section, in the middle, wherever the widget is placed in it; no to stay where it is placed.', 'crc-real-estate' ),
-					),
-					'bottom' => array(
-						'default'     => '24',
-						'description' => __( 'How far above the bottom of the section it sits, in pixels.', 'crc-real-estate' ),
+						'description' => __( 'yes to sit at the bottom of its section, wherever the widget is placed in it; no to stay where it is placed.', 'crc-real-estate' ),
 					),
 					'target' => array(
 						'default'     => '',
@@ -74,9 +90,8 @@ final class Scroll_Hint {
 				),
 				'examples'    => array(
 					'[' . self::SHORTCODE . ']',
-					'[' . self::SHORTCODE . ' style="circle"]',
-					'[' . self::SHORTCODE . ' style="mouse"]',
-					'[' . self::SHORTCODE . ' style="line" bottom="32"]',
+					'[' . self::SHORTCODE . ' gap="16" radius="48"]',
+					'[' . self::SHORTCODE . ' frame="no"]',
 					'[' . self::SHORTCODE . ' target="#search" offset="80"]',
 				),
 			)
@@ -124,32 +139,35 @@ final class Scroll_Hint {
 	 */
 	public function render( $atts ) {
 		$atts   = Shortcodes::atts( self::SHORTCODE, $atts );
-		$style  = in_array( $atts['style'], array( 'arrows', 'circle', 'mouse', 'line' ), true ) ? $atts['style'] : 'arrows';
-		$bottom = max( 0, min( 400, (int) $atts['bottom'] ) );
+		$gap    = max( 0, min( 200, (int) $atts['gap'] ) );
+		$height = max( 24, min( 200, (int) $atts['height'] ) );
+		$radius = max( 0, min( 200, (int) $atts['radius'] ) );
 		$offset = max( 0, min( 400, (int) $atts['offset'] ) );
+		$frame  = Shortcodes::is_on( $atts['frame'] );
+		$id     = 'crc-scroll-hint-' . ( ++self::$count );
 
 		$this->enqueue_script();
 
-		if ( 'circle' === $style ) {
-			$inner = '<span class="crc-scroll-hint-circle"><span class="crc-scroll-hint-drop"></span></span>';
-		} elseif ( 'mouse' === $style ) {
-			$inner = '<span class="crc-scroll-hint-mouse"><span class="crc-scroll-hint-wheel"></span></span><span class="crc-scroll-hint-arrow"></span><span class="crc-scroll-hint-arrow"></span>';
-		} elseif ( 'line' === $style ) {
-			$inner = '<span class="crc-scroll-hint-track"><span class="crc-scroll-hint-light"></span></span>';
-		} else {
-			$inner = str_repeat( '<span class="crc-scroll-hint-arrow"></span>', 3 );
-		}
+		// One line in two halves, each from the bottom middle out and up a side; scroll-hint.js draws them to the width.
+		$lines = $frame ? sprintf(
+			'<svg class="crc-scroll-hint-lines" aria-hidden="true" focusable="false"><defs><linearGradient id="%1$s-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity="0"/><stop offset="0.7" stop-color="currentColor" stop-opacity="0.85"/><stop offset="1" stop-color="currentColor"/></linearGradient></defs><path class="crc-scroll-hint-line" pathLength="1" stroke="url(#%1$s-fade)"/><path class="crc-scroll-hint-line" pathLength="1" stroke="url(#%1$s-fade)"/></svg>',
+			esc_attr( $id )
+		) : '';
 
 		return sprintf(
-			'<div class="crc-scroll-hint-wrap%1$s%2$s" style="--crc-scroll-hint-bottom: %3$dpx;" data-target="%4$s" data-offset="%5$d"><div class="crc-scroll-hint is-%6$s" role="button" tabindex="0" aria-label="%7$s" data-crc-scroll-hint>%8$s</div></div>',
+			'<div class="crc-scroll-hint-wrap%1$s%2$s%3$s" id="%4$s" style="--crc-scroll-hint-gap: %5$dpx; --crc-scroll-hint-height: %6$dpx;" data-radius="%7$d" data-target="%8$s" data-offset="%9$d"><div class="crc-scroll-hint-frame">%10$s<div class="crc-scroll-hint" role="button" tabindex="0" aria-label="%11$s" data-crc-scroll-hint>%12$s</div></div></div>',
 			Shortcodes::is_on( $atts['pin'] ) ? ' is-pinned' : '',
 			'dark' === strtolower( trim( (string) $atts['color'] ) ) ? ' is-dark' : '',
-			$bottom,
+			$frame ? ' has-frame' : '',
+			esc_attr( $id ),
+			$gap,
+			$height,
+			$radius,
 			esc_attr( trim( (string) $atts['target'] ) ),
 			$offset,
-			esc_attr( $style ),
+			$lines, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			esc_attr( $atts['label'] ),
-			$inner
+			str_repeat( '<span class="crc-scroll-hint-arrow"></span>', 3 )
 		);
 	}
 }

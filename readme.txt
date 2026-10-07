@@ -29,7 +29,7 @@ Real estate listing tools for WordPress.
 * Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
-* Scroll down hint: a small moving sign without words (arrows, a round button, a mouse or a line, in white fading to clear) that sits at the bottom of a hero section and scrolls to what is under it
+* Scroll down hint: a small moving sign without words, three arrows inside a U-shaped line that draws itself from the bottom middle out and up both sides, in white fading to clear, at the bottom of a hero section; a tap scrolls to what is under it
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
 * Search: a search box for any page with a tab for each category, town and district suggestions from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
@@ -45,6 +45,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.33.0 =
+* Scroll down hint: one design. The three arrows sit inside one line shaped like a U along the bottom of the section, 10px in from its left, right and bottom edges (gap="…"), 48px tall at the sides (height="…") with 42px corners (radius="…"), so it follows a section with 32px corners. The line draws itself from the bottom middle out along the bottom, round the corners and up both sides, in white fading to clear at the top, in time with the arrows, then fades and starts again. frame="no" shows the arrows on their own.
+* The round button, mouse and line designs are gone; a page that still asks for one shows this design.
 
 = 0.32.0 =
 * Scroll down hint: style="circle" is a round, see-through button with an arrow dropping through it, over and over, and a soft ring spreading out from it.

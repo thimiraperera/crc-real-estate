@@ -58,8 +58,40 @@
 		} );
 	}
 
+	/*
+	 * The U-shaped line: two halves, each from the bottom middle out along the
+	 * bottom, round the corner and up its side, drawn to the line's width so
+	 * the corners keep their rounding however wide the section is.
+	 */
+	function drawLine( wrap ) {
+		var svg = wrap.querySelector( '.crc-scroll-hint-lines' );
+		var halves = svg ? svg.querySelectorAll( 'path' ) : [];
+		var box = svg ? svg.getBoundingClientRect() : null;
+		var edge = 1;
+		var width;
+		var height;
+		var bottom;
+		var middle;
+		var round;
+
+		if ( halves.length < 2 || ! box || box.width < 4 || box.height < 4 ) {
+			return;
+		}
+
+		width = Math.round( box.width );
+		height = Math.round( box.height );
+		bottom = height - edge;
+		middle = width / 2;
+		round = Math.max( 0, Math.min( parseFloat( wrap.getAttribute( 'data-radius' ) ) || 0, middle - edge, bottom - edge ) );
+
+		svg.setAttribute( 'viewBox', '0 0 ' + width + ' ' + height );
+		halves[ 0 ].setAttribute( 'd', 'M' + middle + ' ' + bottom + 'H' + ( edge + round ) + 'A' + round + ' ' + round + ' 0 0 1 ' + edge + ' ' + ( bottom - round ) + 'V' + edge );
+		halves[ 1 ].setAttribute( 'd', 'M' + middle + ' ' + bottom + 'H' + ( width - edge - round ) + 'A' + round + ' ' + round + ' 0 0 0 ' + ( width - edge ) + ' ' + ( bottom - round ) + 'V' + edge );
+	}
+
 	function setUp( hint ) {
 		var wrap = hint.closest( '.crc-scroll-hint-wrap' );
+		var waitingLine = 0;
 
 		if ( hint.crcHint ) {
 			return;
@@ -69,6 +101,24 @@
 
 		if ( wrap ) {
 			wraps.push( wrap );
+
+			if ( wrap.classList.contains( 'has-frame' ) ) {
+				drawLine( wrap );
+
+				// Drawn again when the section changes width.
+				if ( window.ResizeObserver ) {
+					new window.ResizeObserver( function () {
+						drawLine( wrap );
+					} ).observe( wrap );
+				} else {
+					window.addEventListener( 'resize', function () {
+						window.clearTimeout( waitingLine );
+						waitingLine = window.setTimeout( function () {
+							drawLine( wrap );
+						}, 100 );
+					} );
+				}
+			}
 		}
 
 		hint.addEventListener( 'click', function () {
