@@ -45,6 +45,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.28.1 =
+* Search box: on phones the Search button shows its caption with the magnifier.
+* The boxes under the search card are all as wide as each other, and in line with the place box and the button inside the card. On phones they are one under another.
+* The chosen category's boxes come in smoothly one after another, the Search button sinks a little when pressed, and its magnifier nudges under the mouse. Visitors whose device asks for less motion get none of it.
+
 = 0.28.0 =
 * Search box: the sliders are gone. Land size, bedrooms, the highest price per perch, price or rent, and the property type are rounded boxes with a list to choose from.
 * A click in a box lets people type. A number becomes a choice of its own: an amount such as 25000000, 25,000,000, 25m, 2.5 million or 45 lakhs; a size such as 25, 25 perches or 2 acres (up to it, or from it); or bedrooms such as 3 (3 or more, exactly 3, or up to 3) or 2-4. Other words narrow the list down, such as "house" for the property type. What is chosen shows in the box.

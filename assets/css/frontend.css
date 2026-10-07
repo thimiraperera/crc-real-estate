@@ -998,12 +998,23 @@
 	outline-offset: 2px;
 }
 
+.crc-search .crc-search-row .crc-search-submit:active {
+	transform: scale(0.98);
+}
+
 .crc-search .crc-search-submit-icon {
 	display: block;
 	flex: none;
 	width: 18px;
 	height: 18px;
 	fill: currentColor;
+	transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+	.crc-search .crc-search-row .crc-search-submit:hover .crc-search-submit-icon {
+		transform: translateX(3px);
+	}
 }
 
 /* The category's own choices, as rounded boxes under the card. Each opens a
@@ -1011,16 +1022,35 @@
    chosen shows in the box. */
 .crc-search .crc-search-filters {
 	margin-top: 24px;
+	padding: 0 16px;
 }
 
 .crc-search .crc-search-filters[hidden] {
 	display: none;
 }
 
+/* The boxes are all as wide as each other, also on a line of their own. */
 .crc-search .crc-pills {
-	display: flex;
-	flex-wrap: wrap;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 	gap: 8px;
+}
+
+/* The chosen category's boxes come in smoothly, one after another. */
+.crc-search .crc-search-filters:not([hidden]) .crc-pills > * {
+	animation: crc-fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+.crc-search .crc-pills > :nth-child(2) {
+	animation-delay: 0.06s;
+}
+
+.crc-search .crc-pills > :nth-child(3) {
+	animation-delay: 0.12s;
+}
+
+.crc-search .crc-pills > :nth-child(4) {
+	animation-delay: 0.18s;
 }
 
 .crc-search .crc-pill {
@@ -1093,11 +1123,7 @@
 }
 
 /* A box to choose from or type in: it looks like the rounded buttons, and a
-   click lets people type. The boxes share the row. */
-.crc-search .crc-pills > .crc-combo {
-	flex: 1 1 180px;
-}
-
+   click lets people type. */
 .crc-search .crc-combo .crc-combo-pill {
 	cursor: text;
 }
@@ -1282,6 +1308,18 @@
 	max-width: none;
 }
 
+@keyframes crc-fade-up {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
 @keyframes crc-drop-in {
 	from {
 		opacity: 0;
@@ -1297,14 +1335,20 @@
 @media (prefers-reduced-motion: reduce) {
 	.crc-search .crc-pill,
 	.crc-search .crc-pill-icon,
-	.crc-search .crc-search-category-icon {
+	.crc-search .crc-search-category-icon,
+	.crc-search .crc-search-submit-icon {
 		transition: none;
 	}
 
 	.crc-search .crc-dropdown-list,
 	.crc-search .crc-places,
-	.crc-filters .crc-places {
+	.crc-filters .crc-places,
+	.crc-search .crc-search-filters:not([hidden]) .crc-pills > * {
 		animation: none;
+	}
+
+	.crc-search .crc-search-row .crc-search-submit:active {
+		transform: none;
 	}
 }
 
@@ -2051,7 +2095,9 @@
 	}
 
 	/* Search box: the categories as a list, the place box the whole width,
-	   and under it the Search button as wide, showing its magnifier only. */
+	   and under it the Search button as wide, with its caption and magnifier.
+	   The boxes under the card are one under another, as wide as the fields
+	   in the card. */
 	.crc-search .crc-search-card {
 		padding: 16px 12px 12px;
 	}
@@ -2097,17 +2143,12 @@
 		top: 58px;
 	}
 
-	.crc-search .crc-search-submit-text {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0, 0, 0, 0);
-		white-space: nowrap;
+	.crc-search .crc-search-filters {
+		padding: 0 12px;
 	}
 
-	.crc-search .crc-pills > .crc-combo {
-		flex: 1 1 100%;
+	.crc-search .crc-pills {
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.crc-search .crc-dropdown-list {
