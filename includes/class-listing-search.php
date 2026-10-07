@@ -12,10 +12,11 @@ use CRC\RealEstate\Sections\Price_Card;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * [crc_listing_search]: a tab for each category, a place box that suggests
- * towns and districts with listings as you type, a Search button, and under
- * it the category's own filters as rounded dropdowns. Search opens the
- * category's archive (such as /listings/lands/) with the filters chosen.
+ * [crc_listing_search]: a tab for each category (a dropdown on phones), a
+ * place box that suggests towns and districts with listings as you type, a
+ * Search button, and under it the category's own filters as rounded buttons
+ * that open sliders and lists. Search opens the category's archive (such as
+ * /listings/lands/) with the filters chosen.
  * Also loads the search's script and answers the place box's suggestions
  * for every search part.
  */
@@ -53,7 +54,7 @@ final class Listing_Search {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search box', 'crc-real-estate' ),
-				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings as people type, and a Search button. Under it are the chosen category\'s own choices as rounded dropdowns: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Search opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
+				'description' => __( 'A search for any page: a tab for each listing category, named as the categories are, a place box that suggests towns and districts with listings from three letters, and a Search button in the site\'s button style. Under it are the chosen category\'s own choices as rounded buttons: land size, the highest price per perch and the property type for land; bedrooms, the highest price or rent and the property type for homes. Each opens a slider under the buttons, as wide as the search box (bedrooms also have boxes for the fewest and the most), and the property type opens a list. On phones the categories are a dropdown and the Search button takes the whole width. Search opens the category\'s archive, such as /listings/lands/, with those choices made.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories'  => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
@@ -69,7 +70,7 @@ final class Listing_Search {
 					),
 					'filters'     => array(
 						'default'     => 'yes',
-						'description' => __( 'no to leave out the rounded dropdowns under the box.', 'crc-real-estate' ),
+						'description' => __( 'no to leave out the rounded buttons under the box.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(
@@ -207,75 +208,393 @@ final class Listing_Search {
 	}
 
 	/**
-	 * One rounded dropdown: the chosen choice's text with an arrow, over an
-	 * invisible dropdown that opens the browser's own list.
+	 * A rounded button for one of a category's choices: what it is, or what
+	 * is chosen, with an arrow. It opens its panel or its list.
 	 *
-	 * @param string $name     Field name.
+	 * @param string $controls ID of the panel or list it opens.
 	 * @param string $label    What it is, shown until something is chosen.
-	 * @param array  $options  Value => label.
-	 * @param string $selected Selected value.
+	 * @param string $text     What is chosen, or empty.
+	 * @param bool   $list     Whether it opens a list to choose from.
 	 * @return string
 	 */
-	private static function pill( $name, $label, array $options, $selected ) {
-		$selected = isset( $options[ (string) $selected ] ) ? (string) $selected : '';
-
+	private static function pill( $controls, $label, $text, $list = false ) {
 		return sprintf(
-			'<div class="crc-pill%1$s"><span class="crc-pill-text" aria-hidden="true">%2$s</span>%3$s<select class="crc-pill-select" name="%4$s" aria-label="%5$s"><option value="">%5$s</option>%6$s</select></div>',
-			'' !== $selected ? ' has-value' : '',
-			esc_html( '' !== $selected ? $options[ $selected ] : $label ),
-			Icons::svg( 'chevron-down', 'crc-pill-icon' ),
-			esc_attr( $name ),
+			'<div class="crc-pill%1$s" role="button" tabindex="0" aria-expanded="false" aria-controls="%2$s" aria-label="%3$s"%4$s data-crc-toggle><span class="crc-pill-text" data-empty="%5$s">%6$s</span>%7$s</div>',
+			'' !== $text ? ' has-value' : '',
+			esc_attr( $controls ),
+			esc_attr( '' !== $text ? $label . ': ' . $text : $label ),
+			$list ? ' aria-haspopup="listbox"' : '',
 			esc_attr( $label ),
-			self::options( $options, $selected )
+			esc_html( '' !== $text ? $text : $label ),
+			Icons::svg( 'chevron-down', 'crc-pill-icon' )
 		);
 	}
 
 	/**
-	 * A category's rounded dropdowns: land size, the highest price per
-	 * perch and the property type for land; bedrooms, the highest price or
-	 * rent and the property type for homes.
+	 * What a slider is set to, in words: "Up to Rs. 5,000,000", "From 20
+	 * perches" or "2 – 4 bedrooms". Empty when it is set to anything.
+	 *
+	 * @param array $slider 'range', 'labels', 'short' and 'texts', as in slider().
+	 * @param int   $low    The lowest handle's step; 0 is no least.
+	 * @param int   $high   The highest handle's step.
+	 * @param int   $last   The last step, which is no most.
+	 * @return string
+	 */
+	private static function describe( array $slider, $low, $high, $last ) {
+		$no_min = ! $slider['range'] || $low <= 0;
+		$no_max = $high >= $last;
+
+		if ( $no_min && $no_max ) {
+			return '';
+		}
+
+		if ( $no_min ) {
+			return sprintf( $slider['texts']['upTo'], $slider['labels'][ $high ] );
+		}
+
+		if ( $no_max ) {
+			return sprintf( $slider['texts']['from'], $slider['short'][ $low ] );
+		}
+
+		if ( $low === $high ) {
+			return $slider['labels'][ $low ];
+		}
+
+		return sprintf( $slider['texts']['between'], $slider['short'][ $low ], $slider['short'][ $high ] );
+	}
+
+	/**
+	 * A rounded button that opens a slider in a panel under the buttons, as
+	 * wide as the search box. One handle sets the most; two set the least
+	 * and the most.
+	 *
+	 * @param string $id    Start of the IDs.
+	 * @param string $label What it is, e.g. "Land size".
+	 * @param array  $args  {
+	 *     @type bool     $range  Two handles, or one for the most.
+	 *     @type array    $steps  Amounts, smallest first. The last is no most; with two handles the first is 0, no least.
+	 *     @type string[] $labels Each step in words, e.g. "20 perches".
+	 *     @type string[] $short  Shorter words for "from" and "between", e.g. "2". Optional.
+	 *     @type string[] $texts  'any', 'from', 'upTo' and 'between', with %s where the words go.
+	 *     @type string[] $names  The least's and the most's field names; '' for none.
+	 *     @type array    $values The least and the most chosen now, or ''.
+	 *     @type string[] $aria   What each handle sets, for screen readers.
+	 *     @type string[] $boxes  Labels of the boxes to type the least and the most in, or none.
+	 * }
+	 * @return string[] 'pill' and 'panel'.
+	 */
+	private static function slider( $id, $label, array $args ) {
+		$args = wp_parse_args(
+			$args,
+			array(
+				'range'  => false,
+				'steps'  => array(),
+				'labels' => array(),
+				'short'  => array(),
+				'texts'  => array(),
+				'names'  => array( '', '' ),
+				'values' => array( '', '' ),
+				'aria'   => array( '', '' ),
+				'boxes'  => array(),
+			)
+		);
+
+		$args['steps']  = array_values( $args['steps'] );
+		$args['labels'] = array_values( $args['labels'] );
+		$args['short']  = $args['short'] ? array_values( $args['short'] ) : $args['labels'];
+		$args['texts'] += array(
+			'any'     => '',
+			'from'    => '%s',
+			'upTo'    => '%s',
+			'between' => '%1$s – %2$s',
+		);
+
+		$last   = count( $args['steps'] ) - 1;
+		$least  = $args['range'] ? (string) $args['values'][0] : '';
+		$most   = (string) $args['values'][1];
+		$high   = '' !== $most && (float) $most > 0 ? Listing_Filters::step_of( $args['steps'], (float) $most, true ) : $last;
+		$low    = '' !== $least && (float) $least > 0 ? min( $high, Listing_Filters::step_of( $args['steps'], (float) $least, false ) ) : 0;
+		$text   = self::describe( $args, $low, $high, $last );
+		$panel  = $id . '-panel';
+		$fields = '';
+		$boxes  = array();
+
+		foreach ( array( 0, 1 ) as $end ) {
+			if ( '' === (string) $args['names'][ $end ] ) {
+				continue;
+			}
+
+			$field = $id . ( $end ? '-max' : '-min' );
+			$value = $end ? $most : $least;
+
+			if ( $args['boxes'] ) {
+				$boxes[] = sprintf(
+					'<div class="crc-pill-panel-field"><label class="crc-pill-panel-label" for="%1$s">%2$s</label><input type="text" class="crc-pill-panel-input" id="%1$s" name="%3$s" value="%4$s" placeholder="%5$s" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="%6$s"></div>',
+					esc_attr( $field ),
+					esc_html( $args['boxes'][ $end ] ),
+					esc_attr( $args['names'][ $end ] ),
+					esc_attr( $value ),
+					esc_attr__( 'Any', 'crc-real-estate' ),
+					esc_attr( $args['aria'][ $end ] )
+				);
+			} else {
+				$fields .= sprintf( '<input type="hidden" id="%1$s" name="%2$s" value="%3$s">', esc_attr( $field ), esc_attr( $args['names'][ $end ] ), esc_attr( $value ) );
+			}
+		}
+
+		$side = $boxes
+			? implode( '<span class="crc-pill-panel-dash" aria-hidden="true">–</span>', $boxes )
+			: sprintf( '<span class="crc-pill-panel-value" data-crc-readout>%s</span>', esc_html( '' !== $text ? $text : $args['texts']['any'] ) );
+
+		$input  = '<input type="range" class="crc-slider-input crc-slider-%1$s" min="0" max="%2$d" step="1" value="%3$d" aria-label="%4$s">';
+		$inputs = ( $args['range'] ? sprintf( $input, 'min', $last, $low, esc_attr( $args['aria'][0] ) ) : '' ) . sprintf( $input, 'max', $last, $high, esc_attr( $args['aria'][1] ) );
+
+		$slider = sprintf(
+			'<div class="crc-slider" data-crc-slider data-mode="%1$s" data-steps="%2$s" data-labels="%3$s" data-short="%4$s" data-texts="%5$s" data-min-field="%6$s" data-max-field="%7$s" style="--crc-slider-from: %8$s%%; --crc-slider-to: %9$s%%;"><div class="crc-slider-track"><div class="crc-slider-fill"></div></div>%10$s</div>',
+			$args['range'] ? 'range' : 'max',
+			esc_attr( wp_json_encode( $args['steps'] ) ),
+			esc_attr( wp_json_encode( $args['labels'] ) ),
+			esc_attr( wp_json_encode( $args['short'] ) ),
+			esc_attr(
+				wp_json_encode(
+					$args['texts'] + array(
+						'noMin' => __( 'No min', 'crc-real-estate' ),
+						'noMax' => __( 'No max', 'crc-real-estate' ),
+					)
+				)
+			),
+			esc_attr( $args['range'] ? $id . '-min' : '' ),
+			esc_attr( $id . '-max' ),
+			esc_attr( (string) round( $last ? $low / $last * 100 : 0, 2 ) ),
+			esc_attr( (string) round( $last ? $high / $last * 100 : 100, 2 ) ),
+			$inputs // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+		);
+
+		return array(
+			'pill'  => self::pill( $panel, $label, $text ),
+			'panel' => sprintf(
+				'<div class="crc-pill-panel" id="%1$s" role="group" aria-labelledby="%1$s-title" inert data-crc-panel><div class="crc-pill-panel-inner"><div class="crc-pill-panel-box"><div class="crc-pill-panel-head"><span class="crc-pill-panel-title" id="%1$s-title">%2$s</span><div class="crc-pill-panel-side">%3$s</div></div>%4$s%5$s</div></div></div>',
+				esc_attr( $panel ),
+				esc_html( $label ),
+				$side, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+				$slider, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+				$fields // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			),
+		);
+	}
+
+	/**
+	 * A list's choices, the chosen one ticked.
+	 *
+	 * @param string $id       The list's ID, the start of its choices' IDs.
+	 * @param array  $options  Value => text.
+	 * @param string $selected Value chosen now.
+	 * @return string
+	 */
+	private static function list_options( $id, array $options, $selected ) {
+		$html = '';
+		$i    = 0;
+
+		foreach ( $options as $value => $text ) {
+			$on    = (string) $value === (string) $selected;
+			$html .= sprintf(
+				'<li class="crc-dropdown-option%1$s" id="%2$s" role="option" aria-selected="%3$s" data-value="%4$s"><span class="crc-dropdown-option-text">%5$s</span>%6$s</li>',
+				$on ? ' is-selected' : '',
+				esc_attr( $id . '-' . $i ),
+				$on ? 'true' : 'false',
+				esc_attr( (string) $value ),
+				esc_html( $text ),
+				Icons::svg( 'check', 'crc-dropdown-option-icon' )
+			);
+			++$i;
+		}
+
+		return $html;
+	}
+
+	/**
+	 * A rounded button that opens a list to choose from under it, for the
+	 * property type: any, then each choice.
+	 *
+	 * @param string $id       Start of the IDs.
+	 * @param string $name     Field name.
+	 * @param string $label    What it is, shown until something is chosen.
+	 * @param string $any      The choice for any.
+	 * @param array  $options  Value => text.
+	 * @param string $selected Value chosen now.
+	 * @return string[] 'pill' and 'panel' (none).
+	 */
+	private static function dropdown( $id, $name, $label, $any, array $options, $selected ) {
+		$selected = isset( $options[ (string) $selected ] ) ? (string) $selected : '';
+		$list     = $id . '-list';
+
+		return array(
+			'pill'  => sprintf(
+				'<div class="crc-dropdown" data-crc-dropdown>%1$s<ul class="crc-dropdown-list" id="%2$s" role="listbox" tabindex="-1" aria-label="%3$s" hidden data-crc-list>%4$s</ul><input type="hidden" name="%5$s" value="%6$s"></div>',
+				self::pill( $list, $label, '' !== $selected ? (string) $options[ $selected ] : '', true ),
+				esc_attr( $list ),
+				esc_attr( $label ),
+				self::list_options( $list, array( '' => $any ) + $options, $selected ),
+				esc_attr( $name ),
+				esc_attr( $selected )
+			),
+			'panel' => '',
+		);
+	}
+
+	/**
+	 * Amounts written as money, e.g. "Rs. 5,000,000".
+	 *
+	 * @param int[] $amounts Amounts in rupees.
+	 * @return string[]
+	 */
+	private static function money_labels( array $amounts ) {
+		$labels = array();
+
+		foreach ( $amounts as $amount ) {
+			$labels[] = Price_Card::money( (string) $amount );
+		}
+
+		return $labels;
+	}
+
+	/**
+	 * A category's choices as rounded buttons: land size, the highest price
+	 * per perch and the property type for land; bedrooms, the highest price
+	 * or rent and the property type for homes. The sliders open in panels
+	 * under the buttons, as wide as the search box; the property type opens
+	 * a list.
 	 *
 	 * @param string $category Category slug.
 	 * @param array  $filters  Filters chosen now.
+	 * @param string $id       Start of the IDs.
 	 * @return string
 	 */
-	public static function pills( $category, array $filters ) {
-		$fields = Listing_Query::fields_for( $category );
-		$html   = '';
+	public static function pills( $category, array $filters, $id = 'crc-search' ) {
+		$fields   = Listing_Query::fields_for( $category );
+		$filters += Listing_Query::blank();
+		$parts    = array();
+		/* translators: %s: amount, e.g. "Rs. 5,000,000", size, e.g. "40 perches", or bedrooms, e.g. "4 bedrooms". */
+		$up_to = __( 'Up to %s', 'crc-real-estate' );
 
 		if ( in_array( 'size_min', $fields, true ) ) {
-			$html .= self::pill( 'size', __( 'Land size (perches)', 'crc-real-estate' ), Listing_Query::size_ranges(), $filters['size_min'] . '-' . $filters['size_max'] );
+			$labels = array( '' );
+
+			foreach ( Listing_Query::sizes() as $size ) {
+				$labels[] = Listing_Query::size_label( $size );
+			}
+
+			$parts[] = self::slider(
+				$id . '-size',
+				__( 'Land size', 'crc-real-estate' ),
+				array(
+					'range'  => true,
+					'steps'  => array_merge( array( 0 ), Listing_Query::sizes() ),
+					'labels' => $labels,
+					'texts'  => array(
+						'any'     => __( 'Any size', 'crc-real-estate' ),
+						/* translators: %s: size, e.g. "20 perches". */
+						'from'    => __( 'From %s', 'crc-real-estate' ),
+						'upTo'    => $up_to,
+						/* translators: 1: smallest size, 2: largest size, e.g. "10 perches – 1 acre". */
+						'between' => __( '%1$s – %2$s', 'crc-real-estate' ),
+					),
+					'names'  => array( 'size_min', 'size_max' ),
+					'values' => array( $filters['size_min'], $filters['size_max'] ),
+					'aria'   => array( __( 'Smallest land size', 'crc-real-estate' ), __( 'Largest land size', 'crc-real-estate' ) ),
+				)
+			);
 		}
 
 		if ( in_array( 'beds', $fields, true ) ) {
-			$beds = array();
+			$labels = array( '' );
+			$short  = array( '' );
 
-			foreach ( range( 1, 5 ) as $number ) {
+			foreach ( range( 1, 10 ) as $number ) {
 				/* translators: %s: number of bedrooms. */
-				$beds[ $number ] = sprintf( _n( '%s+ bedroom', '%s+ bedrooms', $number, 'crc-real-estate' ), number_format_i18n( $number ) );
+				$labels[] = sprintf( _n( '%s bedroom', '%s bedrooms', $number, 'crc-real-estate' ), number_format_i18n( $number ) );
+				$short[]  = number_format_i18n( $number );
 			}
 
-			$html .= self::pill( 'beds', __( 'Bedrooms', 'crc-real-estate' ), $beds, $filters['beds'] ? $filters['beds'] : '' );
+			$parts[] = self::slider(
+				$id . '-beds',
+				__( 'Bedrooms', 'crc-real-estate' ),
+				array(
+					'range'  => true,
+					'steps'  => range( 0, 10 ),
+					'labels' => $labels,
+					'short'  => $short,
+					'texts'  => array(
+						'any'     => __( 'Any number', 'crc-real-estate' ),
+						/* translators: %s: number of bedrooms; "2+ bedrooms" means 2 or more. */
+						'from'    => __( '%s+ bedrooms', 'crc-real-estate' ),
+						'upTo'    => $up_to,
+						/* translators: 1: fewest bedrooms, 2: most bedrooms. */
+						'between' => __( '%1$s – %2$s bedrooms', 'crc-real-estate' ),
+					),
+					'names'  => array( 'beds', 'beds_max' ),
+					'values' => array( $filters['beds'] ? (string) $filters['beds'] : '', $filters['beds_max'] ? (string) $filters['beds_max'] : '' ),
+					'aria'   => array( __( 'Minimum bedrooms', 'crc-real-estate' ), __( 'Maximum bedrooms', 'crc-real-estate' ) ),
+					'boxes'  => array( __( 'Minimum', 'crc-real-estate' ), __( 'Maximum', 'crc-real-estate' ) ),
+				)
+			);
 		}
 
 		if ( in_array( 'per_perch_max', $fields, true ) ) {
-			/* translators: %s: amount, e.g. "Rs. 500,000". */
-			$html .= self::pill( 'per_perch_max', __( 'Max price per perch', 'crc-real-estate' ), self::money_options( Listing_Query::per_perch_prices(), __( 'Up to %s', 'crc-real-estate' ) ), $filters['per_perch_max'] );
+			$steps   = Listing_Query::per_perch_prices();
+			$parts[] = self::slider(
+				$id . '-per-perch',
+				__( 'Max price per perch', 'crc-real-estate' ),
+				array(
+					'steps'  => $steps,
+					'labels' => self::money_labels( $steps ),
+					'texts'  => array(
+						'any'  => __( 'Any price', 'crc-real-estate' ),
+						'upTo' => $up_to,
+					),
+					'names'  => array( '', 'per_perch_max' ),
+					'values' => array( '', $filters['per_perch_max'] ),
+					'aria'   => array( '', __( 'Max price per perch', 'crc-real-estate' ) ),
+				)
+			);
 		} elseif ( in_array( 'price_max', $fields, true ) ) {
-			$label = 'properties-for-rent' === $category ? __( 'Max rent per month', 'crc-real-estate' ) : __( 'Max price', 'crc-real-estate' );
-			/* translators: %s: amount, e.g. "Rs. 5,000,000". */
-			$html .= self::pill( 'price_max', $label, self::money_options( Listing_Query::prices( $category ), __( 'Up to %s', 'crc-real-estate' ) ), $filters['price_max'] );
+			$rent    = 'properties-for-rent' === $category;
+			$steps   = array_values( array_slice( Listing_Query::price_steps( $category ), 1 ) );
+			$label   = $rent ? __( 'Max rent per month', 'crc-real-estate' ) : __( 'Max price', 'crc-real-estate' );
+			$parts[] = self::slider(
+				$id . '-price',
+				$label,
+				array(
+					'steps'  => $steps,
+					'labels' => self::money_labels( $steps ),
+					'texts'  => array(
+						'any'  => $rent ? __( 'Any rent', 'crc-real-estate' ) : __( 'Any price', 'crc-real-estate' ),
+						'upTo' => $up_to,
+					),
+					'names'  => array( '', 'price_max' ),
+					'values' => array( '', $filters['price_max'] ),
+					'aria'   => array( '', $label ),
+				)
+			);
 		}
 
 		if ( in_array( 'type', $fields, true ) ) {
 			$types = self::property_types( $category );
 
+			if ( '' !== $filters['type'] && ! in_array( $filters['type'], $types, true ) ) {
+				$types[] = $filters['type'];
+			}
+
 			if ( $types ) {
-				$html .= self::pill( 'type', __( 'Property type', 'crc-real-estate' ), array_combine( $types, $types ), $filters['type'] );
+				$parts[] = self::dropdown( $id . '-type', 'type', __( 'Property type', 'crc-real-estate' ), __( 'Any type', 'crc-real-estate' ), array_combine( $types, $types ), $filters['type'] );
 			}
 		}
 
-		return $html;
+		if ( ! $parts ) {
+			return '';
+		}
+
+		return '<div class="crc-pills">' . implode( '', array_column( $parts, 'pill' ) ) . '</div>' . implode( '', array_column( $parts, 'panel' ) );
 	}
 
 	/**
@@ -325,6 +644,7 @@ final class Listing_Search {
 
 		$place = '' !== $filters['location'] ? $filters['location'] : Listing_Archive::place_name( $filters );
 		$tabs  = '';
+		$names = array();
 		$pills = '';
 
 		foreach ( $terms as $term ) {
@@ -338,8 +658,10 @@ final class Listing_Search {
 				esc_html( $term->name )
 			);
 
+			$names[ $term->slug ] = $term->name;
+
 			if ( Shortcodes::is_on( $atts['filters'] ) ) {
-				$group = self::pills( $term->slug, $on ? $filters : Listing_Query::blank() );
+				$group = self::pills( $term->slug, $on ? $filters : Listing_Query::blank(), $id . '-' . $term->slug );
 
 				if ( '' !== $group ) {
 					$pills .= sprintf( '<div class="crc-search-filters" data-for="%1$s"%2$s>%3$s</div>', esc_attr( $term->slug ), $on ? '' : ' hidden', $group );
@@ -347,13 +669,24 @@ final class Listing_Search {
 			}
 		}
 
+		// On phones the categories are a dropdown instead of tabs; it sets the same tabs.
+		$category = sprintf(
+			'<div class="crc-dropdown crc-search-category" data-crc-dropdown data-radios="category"><div class="crc-search-category-button" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="%1$s" aria-label="%2$s" data-crc-toggle><span class="crc-search-category-text" data-crc-dropdown-text>%3$s</span>%4$s</div><ul class="crc-dropdown-list" id="%1$s" role="listbox" tabindex="-1" aria-label="%2$s" hidden data-crc-list>%5$s</ul></div>',
+			esc_attr( $id . '-category' ),
+			esc_attr__( 'What you are looking for', 'crc-real-estate' ),
+			esc_html( $names[ $chosen ] ),
+			Icons::svg( 'chevron-down', 'crc-search-category-icon' ),
+			self::list_options( $id . '-category', $names, $chosen )
+		);
+
 		return sprintf(
-			'<form class="crc-search" id="%1$s" role="search" method="get" action="%2$s" aria-label="%3$s" data-crc-search><div class="crc-search-card"><div class="crc-search-tabs" role="radiogroup" aria-label="%4$s">%5$s</div><div class="crc-search-row"><div class="crc-search-place">%6$s<label class="crc-sr" for="%1$s-location">%7$s</label>%8$s</div><button type="submit" class="crc-search-submit"><span class="crc-search-submit-text">%9$s</span>%10$s</button><ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%11$s" hidden></ul></div></div>%12$s</form>',
+			'<form class="crc-search" id="%1$s" role="search" method="get" action="%2$s" aria-label="%3$s" data-crc-search><div class="crc-search-card"><div class="crc-search-tabs" role="radiogroup" aria-label="%4$s">%5$s</div>%6$s<div class="crc-search-row"><div class="crc-search-place">%7$s<label class="crc-sr" for="%1$s-location">%8$s</label>%9$s</div><button type="submit" class="elementor-button crc-search-submit"><span class="elementor-button-content-wrapper"><span class="elementor-button-text crc-search-submit-text">%10$s</span>%11$s</span></button><ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div>%13$s</form>',
 			esc_attr( $id ),
 			esc_url( Listing_Archive::page_url() ),
 			esc_attr__( 'Search listings', 'crc-real-estate' ),
 			esc_attr__( 'What you are looking for', 'crc-real-estate' ),
 			$tabs, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			$category, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			Icons::svg( 'pin', 'crc-search-place-icon' ),
 			esc_html__( 'Town, district or Colombo zone', 'crc-real-estate' ),
 			self::place_field( $id . '-location', $place, $atts['placeholder'], $id . '-places' ),

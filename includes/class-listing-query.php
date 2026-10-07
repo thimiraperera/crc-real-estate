@@ -36,6 +36,7 @@ final class Listing_Query {
 	 * - size_min:      smallest land extent, in perches.
 	 * - size_max:      largest land extent, in perches.
 	 * - beds:          fewest bedrooms.
+	 * - beds_max:      most bedrooms.
 	 * - baths:         fewest bathrooms.
 	 * - furnishing:    furnished, semi_furnished or unfurnished.
 	 * - sort:          order, see sorts().
@@ -56,6 +57,7 @@ final class Listing_Query {
 			'size_min'      => '',
 			'size_max'      => '',
 			'beds'          => 0,
+			'beds_max'      => 0,
 			'baths'         => 0,
 			'furnishing'    => '',
 			'sort'          => 'newest',
@@ -84,7 +86,7 @@ final class Listing_Query {
 		if ( '' === $category ) {
 			$fields = array( 'location', 'type' );
 		} elseif ( self::homes( $category ) ) {
-			$fields = array( 'location', 'type', 'price_min', 'price_max', 'beds', 'baths', 'furnishing' );
+			$fields = array( 'location', 'type', 'price_min', 'price_max', 'beds', 'beds_max', 'baths', 'furnishing' );
 		} else {
 			$fields = array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max' );
 		}
@@ -368,8 +370,9 @@ final class Listing_Query {
 			}
 		}
 
-		$filters['beds']  = min( 10, absint( self::text( $get, 'beds', 3 ) ) );
-		$filters['baths'] = min( 10, absint( self::text( $get, 'baths', 3 ) ) );
+		$filters['beds']     = min( 10, absint( self::text( $get, 'beds', 3 ) ) );
+		$filters['beds_max'] = min( 10, absint( self::text( $get, 'beds_max', 3 ) ) );
+		$filters['baths']    = min( 10, absint( self::text( $get, 'baths', 3 ) ) );
 
 		$furnishing            = sanitize_key( self::text( $get, 'furnishing', 30 ) );
 		$filters['furnishing'] = isset( self::furnishings()[ $furnishing ] ) ? $furnishing : '';
@@ -383,7 +386,7 @@ final class Listing_Query {
 		$fields = self::fields_for( $filters['category'] );
 		$blank  = self::blank();
 
-		foreach ( array( 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'baths', 'furnishing' ) as $key ) {
+		foreach ( array( 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing' ) as $key ) {
 			if ( ! in_array( $key, $fields, true ) ) {
 				$filters[ $key ] = $blank[ $key ];
 			}
@@ -396,6 +399,12 @@ final class Listing_Query {
 				$filters[ $pair[1] ] = $filters[ $pair[0] ];
 				$filters[ $pair[0] ] = $low;
 			}
+		}
+
+		if ( $filters['beds'] && $filters['beds_max'] && $filters['beds'] > $filters['beds_max'] ) {
+			$low                 = $filters['beds_max'];
+			$filters['beds_max'] = $filters['beds'];
+			$filters['beds']     = $low;
 		}
 
 		return $filters;
@@ -413,7 +422,7 @@ final class Listing_Query {
 		$params = array();
 		$blank  = self::blank();
 
-		foreach ( array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'baths', 'furnishing', 'sort', 'page' ) as $key ) {
+		foreach ( array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing', 'sort', 'page' ) as $key ) {
 			if ( in_array( $key, $skip, true ) || ! isset( $filters[ $key ] ) || $blank[ $key ] === $filters[ $key ] || '' === (string) $filters[ $key ] ) {
 				continue;
 			}
@@ -575,6 +584,10 @@ final class Listing_Query {
 
 		if ( $filters['beds'] ) {
 			$number( '_crc_bedrooms', (int) $filters['beds'], '>=' );
+		}
+
+		if ( ! empty( $filters['beds_max'] ) ) {
+			$number( '_crc_bedrooms', (int) $filters['beds_max'], '<=' );
 		}
 
 		if ( $filters['baths'] ) {

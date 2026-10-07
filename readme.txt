@@ -31,7 +31,7 @@ Real estate listing tools for WordPress.
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
-* Search: a search box for any page with a tab for each category, town and district suggestions from three letters and rounded dropdowns for size, price and rooms; filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
+* Search: a search box for any page with a tab for each category, town and district suggestions from three letters, and rounded buttons that open sliders for land size, price and bedrooms and a list for the property type (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
@@ -44,6 +44,14 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.27.0 =
+* Search box: the rounded dropdowns are now rounded buttons. Land size, bedrooms, the highest price per perch, the highest price and the highest rent each open a slider in a panel under the buttons, as wide as the search box, that opens and closes smoothly. What is chosen shows on the button as it moves, such as "Up to Rs. 25,000,000" or "2 – 4 bedrooms".
+* Bedrooms: two handles, for the fewest and the most, with Minimum and Maximum boxes in the panel's corner to type them in. The listings can now be searched by the most bedrooms too.
+* Property type: a list of its own under its button instead of the browser's dropdown, with the chosen type ticked.
+* The Search button uses the site's own button style (.elementor-button).
+* Phones: the categories are a dropdown instead of tabs, the place box takes the whole width, and the Search button sits under it as wide, showing its magnifier.
+* The lists and the place suggestions open with a short fade. Visitors whose device asks for less motion get none.
 
 = 0.26.0 =
 * Filters: in the same white card as the price box (crc-card and crc-listing-price). Beside the results, they stay in view while the listings scroll, and scroll on their own when taller than the window; Listings → Widgets → Search sets the space above them (32px to start with), for sites whose header stays at the top.

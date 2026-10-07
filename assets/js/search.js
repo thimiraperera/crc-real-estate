@@ -3,7 +3,10 @@
  * ([crc_listing_filters]) and the results ([crc_listing_results]).
  *
  * The place box suggests towns and districts with listings once three
- * letters are typed. The chosen category shows its own choices. The price and
+ * letters are typed. The chosen category shows its own choices: in the search
+ * box, rounded buttons that open a slider in a panel as wide as the box, or a
+ * list for the property type; on phones the categories are a list too. In the
+ * filters, the price and
  * rent have two boxes and a slider that move together; bedrooms, bathrooms
  * and furnishing have − and +. Search and Show Listings open the category's
  * archive with only the choices that were made in its address, and Sort by
@@ -110,16 +113,28 @@
 		} );
 	}
 
-	// A rounded dropdown shows the chosen choice's text.
-	function syncPill( select ) {
-		var pill = select.closest( '.crc-pill' );
-		var label = pill ? pill.querySelector( '.crc-pill-text' ) : null;
-		var option = select.options[ select.selectedIndex ];
+	// "%s", or "%1$s" and "%2$s", filled in with words.
+	function format( pattern, first, second ) {
+		return String( pattern || '%s' ).replace( '%1$s', function () {
+			return first;
+		} ).replace( '%2$s', function () {
+			return second;
+		} ).replace( '%s', function () {
+			return first;
+		} );
+	}
 
-		if ( label && option ) {
-			label.textContent = option.text;
-			pill.classList.toggle( 'has-value', '' !== select.value );
+	// A rounded button shows what is chosen, or what it is when nothing is.
+	function setPill( pill, words ) {
+		var label = pill.querySelector( '.crc-pill-text' );
+		var empty = label ? label.getAttribute( 'data-empty' ) || '' : '';
+
+		if ( label ) {
+			label.textContent = words || empty;
 		}
+
+		pill.classList.toggle( 'has-value', '' !== words );
+		pill.setAttribute( 'aria-label', words ? empty + ': ' + words : empty );
 	}
 
 	// The place box: suggestions from the site once three letters are typed.
@@ -503,6 +518,431 @@
 		sync();
 	}
 
+	/*
+	 * The search box's sliders: one handle for the most (the price, the rent
+	 * or the price per perch), or two for the least and the most (land size,
+	 * bedrooms). The last step is no most, and with two handles the first is
+	 * no least. Each writes its fields, the words in its panel and its
+	 * button; the bedrooms' boxes move the handles as they are typed in.
+	 */
+	function setUpSlider( slider ) {
+		var form = slider.closest( 'form' );
+		var steps = json( slider.getAttribute( 'data-steps' ), [] );
+		var labels = json( slider.getAttribute( 'data-labels' ), [] );
+		var short = json( slider.getAttribute( 'data-short' ), null ) || labels;
+		var texts = json( slider.getAttribute( 'data-texts' ), {} ) || {};
+		var range = 'range' === slider.getAttribute( 'data-mode' );
+		var low = slider.querySelector( '.crc-slider-min' );
+		var high = slider.querySelector( '.crc-slider-max' );
+		var lowField = document.getElementById( slider.getAttribute( 'data-min-field' ) || '' );
+		var highField = document.getElementById( slider.getAttribute( 'data-max-field' ) || '' );
+		var panel = slider.closest( '[data-crc-panel]' );
+		var pill = panel && form ? form.querySelector( '[aria-controls="' + panel.id + '"]' ) : null;
+		var readout = panel ? panel.querySelector( '[data-crc-readout]' ) : null;
+		var last = steps.length - 1;
+
+		if ( slider.crcSlider || last < 1 || ! high || ! highField || ( range && ( ! low || ! lowField ) ) ) {
+			return;
+		}
+
+		slider.crcSlider = true;
+
+		// The step an amount is at: at or under it for the least, at or over it for the most.
+		function stepOf( amount, up ) {
+			var at = 0;
+			var i;
+
+			if ( up ) {
+				for ( i = 0; i <= last; i++ ) {
+					if ( steps[ i ] >= amount ) {
+						return i;
+					}
+				}
+
+				return last;
+			}
+
+			for ( i = 0; i <= last; i++ ) {
+				if ( steps[ i ] <= amount ) {
+					at = i;
+				}
+			}
+
+			return at;
+		}
+
+		function describe( from, to ) {
+			var noMin = ! range || from <= 0;
+			var noMax = to >= last;
+
+			if ( noMin && noMax ) {
+				return '';
+			}
+
+			if ( noMin ) {
+				return format( texts.upTo, labels[ to ] );
+			}
+
+			if ( noMax ) {
+				return format( texts.from, short[ from ] );
+			}
+
+			if ( from === to ) {
+				return labels[ from ];
+			}
+
+			return format( texts.between, short[ from ], short[ to ] );
+		}
+
+		function paint() {
+			var from = range ? parseInt( low.value, 10 ) : 0;
+			var to = parseInt( high.value, 10 );
+			var words = describe( from, to );
+
+			slider.style.setProperty( '--crc-slider-from', ( from / last * 100 ) + '%' );
+			slider.style.setProperty( '--crc-slider-to', ( to / last * 100 ) + '%' );
+			high.setAttribute( 'aria-valuetext', to < last ? labels[ to ] : ( texts.noMax || 'No max' ) );
+
+			if ( range ) {
+				low.setAttribute( 'aria-valuetext', from > 0 ? labels[ from ] : ( texts.noMin || 'No min' ) );
+
+				// Both handles at the far end: the least goes on top, so it can be moved back.
+				low.classList.toggle( 'is-on-top', from === to && to === last );
+			}
+
+			if ( readout ) {
+				readout.textContent = words || texts.any || '';
+			}
+
+			if ( pill ) {
+				setPill( pill, words );
+			}
+		}
+
+		function fromSlider( moved ) {
+			var from = range ? parseInt( low.value, 10 ) : 0;
+			var to = parseInt( high.value, 10 );
+
+			// The handles never cross.
+			if ( range && from > to ) {
+				if ( moved === low ) {
+					low.value = to;
+					from = to;
+				} else {
+					high.value = from;
+					to = from;
+				}
+			}
+
+			if ( range ) {
+				lowField.value = from > 0 ? String( steps[ from ] ) : '';
+			}
+
+			highField.value = to < last ? String( steps[ to ] ) : '';
+			paint();
+		}
+
+		function amount( field ) {
+			var value = String( field.value || '' ).replace( /[^\d.]/g, '' );
+
+			return value ? parseFloat( value ) || 0 : 0;
+		}
+
+		function fromFields() {
+			var least = range ? amount( lowField ) : 0;
+			var most = amount( highField );
+			var to = most ? stepOf( most, true ) : last;
+			var from = least ? stepOf( least, false ) : 0;
+
+			if ( range ) {
+				low.value = Math.min( from, to );
+			}
+
+			high.value = to;
+			paint();
+		}
+
+		if ( range ) {
+			low.addEventListener( 'input', function () {
+				fromSlider( low );
+			} );
+		}
+
+		high.addEventListener( 'input', function () {
+			fromSlider( high );
+		} );
+
+		// Boxes to type in, for bedrooms: the handles follow what is typed.
+		[ lowField, highField ].forEach( function ( field ) {
+			if ( ! field || 'hidden' === field.type ) {
+				return;
+			}
+
+			field.addEventListener( 'input', fromFields );
+			field.addEventListener( 'blur', function () {
+				var value = Math.round( amount( field ) );
+
+				field.value = value > 0 ? String( value ) : '';
+				fromFields();
+			} );
+		} );
+
+		slider.crcSync = fromFields;
+		fromFields();
+	}
+
+	// A list to choose from, under its button: the property type, or the category on phones.
+	function setUpDropdown( box, form ) {
+		var toggle = box.querySelector( '[data-crc-toggle]' );
+		var list = box.querySelector( '[data-crc-list]' );
+		var field = box.querySelector( 'input[type="hidden"]' );
+		var radios = box.getAttribute( 'data-radios' );
+		var options = list ? list.querySelectorAll( '[role="option"]' ) : [];
+		var active = -1;
+
+		if ( box.crcDropdown || ! toggle || ! list || ! options.length || ( ! field && ! radios ) ) {
+			return;
+		}
+
+		box.crcDropdown = true;
+
+		function value() {
+			var checked;
+
+			if ( field ) {
+				return field.value;
+			}
+
+			checked = form.querySelector( 'input[name="' + radios + '"]:checked' );
+
+			return checked ? checked.value : '';
+		}
+
+		function setActive( index ) {
+			active = index;
+
+			each( options, function ( option, i ) {
+				option.classList.toggle( 'is-active', i === index );
+			} );
+
+			if ( index >= 0 && options[ index ] ) {
+				list.setAttribute( 'aria-activedescendant', options[ index ].id );
+				options[ index ].scrollIntoView( { block: 'nearest' } );
+			} else {
+				list.removeAttribute( 'aria-activedescendant' );
+			}
+		}
+
+		function sync() {
+			var now = value();
+			var text = toggle.querySelector( '[data-crc-dropdown-text]' );
+			var chosen = null;
+			var words;
+
+			each( options, function ( option ) {
+				var on = option.getAttribute( 'data-value' ) === now;
+
+				option.classList.toggle( 'is-selected', on );
+				option.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+
+				if ( on ) {
+					chosen = option;
+				}
+			} );
+
+			words = chosen ? chosen.textContent.trim() : '';
+
+			if ( text ) {
+				text.textContent = words;
+			} else {
+				setPill( toggle, '' !== now ? words : '' );
+			}
+		}
+
+		function choose( option ) {
+			var picked = option.getAttribute( 'data-value' ) || '';
+			var radio = null;
+
+			if ( form.crcPopups ) {
+				form.crcPopups.close( true );
+			}
+
+			if ( field ) {
+				field.value = picked;
+			} else {
+				each( form.querySelectorAll( 'input[name="' + radios + '"]' ), function ( input ) {
+					if ( input.value === picked ) {
+						radio = input;
+					}
+				} );
+
+				if ( radio && ! radio.checked ) {
+					radio.checked = true;
+					radio.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+				}
+			}
+
+			sync();
+		}
+
+		// Opened: the list takes the keys, starting at what is chosen.
+		toggle.crcOpened = function () {
+			var at = 0;
+
+			each( options, function ( option, i ) {
+				if ( option.classList.contains( 'is-selected' ) ) {
+					at = i;
+				}
+			} );
+
+			list.focus( { preventScroll: true } );
+			setActive( at );
+		};
+
+		list.addEventListener( 'keydown', function ( event ) {
+			var count = options.length;
+
+			if ( 'ArrowDown' === event.key || 'ArrowUp' === event.key ) {
+				event.preventDefault();
+				setActive( 'ArrowDown' === event.key ? Math.min( count - 1, active + 1 ) : Math.max( 0, active - 1 ) );
+			} else if ( 'Home' === event.key || 'End' === event.key ) {
+				event.preventDefault();
+				setActive( 'Home' === event.key ? 0 : count - 1 );
+			} else if ( 'Enter' === event.key || ' ' === event.key || 'Spacebar' === event.key ) {
+				event.preventDefault();
+
+				if ( options[ active ] ) {
+					choose( options[ active ] );
+				}
+			} else if ( 'Tab' === event.key && form.crcPopups ) {
+				form.crcPopups.close( false );
+			}
+		} );
+
+		list.addEventListener( 'click', function ( event ) {
+			var option = event.target.closest( '[role="option"]' );
+
+			if ( option ) {
+				choose( option );
+			}
+		} );
+
+		list.addEventListener( 'mousemove', function ( event ) {
+			var option = event.target.closest( '[role="option"]' );
+			var index = option ? Array.prototype.indexOf.call( options, option ) : -1;
+
+			if ( option && index !== active ) {
+				setActive( index );
+			}
+		} );
+
+		box.crcSync = sync;
+		sync();
+	}
+
+	/*
+	 * The search box's rounded buttons, and the category list on phones:
+	 * each opens its panel or its list, one at a time. Escape, or a click or
+	 * tap anywhere else, closes it.
+	 */
+	function setUpPopups( form ) {
+		var toggles = form.querySelectorAll( '[data-crc-toggle]' );
+		var current = null;
+
+		if ( form.crcPopups || ! toggles.length ) {
+			return;
+		}
+
+		function popupOf( toggle ) {
+			return document.getElementById( toggle.getAttribute( 'aria-controls' ) || '' );
+		}
+
+		function show( toggle, on ) {
+			var popup = popupOf( toggle );
+
+			toggle.setAttribute( 'aria-expanded', on ? 'true' : 'false' );
+			toggle.classList.toggle( 'is-open', on );
+
+			if ( ! popup ) {
+				return;
+			}
+
+			if ( popup.hasAttribute( 'data-crc-panel' ) ) {
+				popup.classList.toggle( 'is-open', on );
+
+				if ( on ) {
+					popup.removeAttribute( 'inert' );
+				} else {
+					popup.setAttribute( 'inert', '' );
+				}
+			} else {
+				popup.hidden = ! on;
+			}
+		}
+
+		function close( back ) {
+			var toggle = current;
+
+			if ( ! toggle ) {
+				return;
+			}
+
+			current = null;
+			show( toggle, false );
+
+			if ( back ) {
+				toggle.focus( { preventScroll: true } );
+			}
+		}
+
+		function open( toggle ) {
+			close( false );
+			current = toggle;
+			show( toggle, true );
+
+			if ( toggle.crcOpened ) {
+				toggle.crcOpened();
+			}
+		}
+
+		each( toggles, function ( toggle ) {
+			toggle.addEventListener( 'click', function () {
+				if ( current === toggle ) {
+					close( false );
+				} else {
+					open( toggle );
+				}
+			} );
+
+			toggle.addEventListener( 'keydown', function ( event ) {
+				if ( 'Enter' === event.key || ' ' === event.key || 'Spacebar' === event.key ) {
+					event.preventDefault();
+					toggle.click();
+				} else if ( 'ArrowDown' === event.key && toggle.hasAttribute( 'aria-haspopup' ) ) {
+					event.preventDefault();
+					open( toggle );
+				}
+			} );
+		} );
+
+		form.addEventListener( 'keydown', function ( event ) {
+			if ( 'Escape' === event.key && current ) {
+				event.preventDefault();
+				close( true );
+			}
+		} );
+
+		document.addEventListener( 'click', function ( event ) {
+			var popup = current ? popupOf( current ) : null;
+
+			if ( current && ! current.contains( event.target ) && ! ( popup && popup.contains( event.target ) ) ) {
+				close( false );
+			}
+		} );
+
+		form.crcPopups = { close: close };
+	}
+
 	// On phones the filters fold away behind the Filters bar.
 	function foldable( form ) {
 		var toggle = form.querySelector( '[data-crc-filters-toggle]' );
@@ -586,8 +1026,7 @@
 
 	function refresh( form ) {
 		showGroups( form );
-		each( form.querySelectorAll( '.crc-pill-select' ), syncPill );
-		each( form.querySelectorAll( '[data-crc-range], [data-crc-stepper]' ), function ( part ) {
+		each( form.querySelectorAll( '[data-crc-range], [data-crc-stepper], [data-crc-slider], [data-crc-dropdown]' ), function ( part ) {
 			if ( part.crcSync ) {
 				part.crcSync();
 			}
@@ -604,15 +1043,27 @@
 		form.crcSearch = true;
 		each( form.querySelectorAll( '[data-crc-range]' ), setUpRange );
 		each( form.querySelectorAll( '[data-crc-stepper]' ), setUpStepper );
+		each( form.querySelectorAll( '[data-crc-slider]' ), setUpSlider );
+		each( form.querySelectorAll( '[data-crc-dropdown]' ), function ( box ) {
+			setUpDropdown( box, form );
+		} );
+		setUpPopups( form );
 		refresh( form );
 
+		// Another category: what was open closes, and the category list shows the new one.
 		form.addEventListener( 'change', function ( event ) {
 			if ( 'category' === event.target.name ) {
 				showGroups( form );
-			}
 
-			if ( event.target.classList.contains( 'crc-pill-select' ) ) {
-				syncPill( event.target );
+				if ( form.crcPopups ) {
+					form.crcPopups.close( false );
+				}
+
+				each( form.querySelectorAll( '[data-crc-dropdown]' ), function ( box ) {
+					if ( box.crcSync ) {
+						box.crcSync();
+					}
+				} );
 			}
 		} );
 
