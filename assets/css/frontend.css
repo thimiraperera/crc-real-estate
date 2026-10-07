@@ -1030,7 +1030,7 @@
    chosen shows in the box. */
 .crc-search .crc-search-filters {
 	margin-top: 24px;
-	padding: 0 16px;
+	padding: 0;
 }
 
 .crc-search .crc-search-filters[hidden] {
@@ -1072,7 +1072,7 @@
 	min-height: 50px;
 	padding: 12px 16px 12px 20px;
 	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 14%, var(--e-global-color-3581a59));
-	border-radius: 16px;
+	border-radius: 12px;
 	background: var(--e-global-color-3581a59);
 	color: var(--e-global-color-6e3d619);
 	line-height: 1.5;
@@ -1096,16 +1096,10 @@
 
 .crc-search .crc-pill.is-open {
 	border-color: var(--e-global-color-primary);
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 14%, var(--e-global-color-bb33687));
 }
 
 .crc-search .crc-pill:focus {
 	outline: none;
-}
-
-.crc-search .crc-pill:focus-visible {
-	outline: 2px solid var(--e-global-color-primary);
-	outline-offset: 2px;
 }
 
 .crc-search .crc-pill-text {
@@ -1137,8 +1131,8 @@
 }
 
 .crc-search .crc-combo .crc-combo-pill:focus-within {
-	border-color: var(--e-global-color-primary);
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 14%, var(--e-global-color-bb33687));
+	border-color: color-mix(in srgb, var(--e-global-color-primary) 30%, var(--e-global-color-3581a59));
+	background-color: color-mix(in srgb, var(--e-global-color-primary) 12%, var(--e-global-color-3581a59));
 }
 
 /* The typing box itself is plain: the rounded box around it is the field. */
@@ -2186,8 +2180,7 @@
 
 	/* Search box: the categories as a list, the place box the whole width,
 	   and under it the Search button as wide, with its caption and magnifier.
-	   The boxes under the card are one under another, as wide as the fields
-	   in the card. */
+	   The boxes under the card are one under another. */
 	.crc-search .crc-search-card {
 		padding: 16px 12px 12px;
 	}
@@ -2231,10 +2224,6 @@
 	/* The suggestions open right under the place box, over the button. */
 	.crc-search .crc-search-row .crc-places {
 		top: 58px;
-	}
-
-	.crc-search .crc-search-filters {
-		padding: 0 12px;
 	}
 
 	.crc-search .crc-pills {

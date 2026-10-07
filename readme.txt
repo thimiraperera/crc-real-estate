@@ -45,6 +45,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.28.3 =
+* Search box: the boxes under the card are as wide as the card again, with 12px corners. A box being typed in has a light green background and a soft green border, without a ring or an outline.
+
 = 0.28.2 =
 * Search box: a box's list opens right under it as wide as the whole row of boxes, and its choices stay on one line.
 * Place suggestions are on one line too: the name, then its district or area in grey.
