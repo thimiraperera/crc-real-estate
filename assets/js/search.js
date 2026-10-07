@@ -4,9 +4,9 @@
  *
  * The place box suggests towns and districts with listings once three
  * letters are typed. The chosen category shows its own choices: in the search
- * box, rounded buttons that open a slider in a panel as wide as the box, or a
- * list for the property type; on phones the categories are a list too. In the
- * filters, the price and
+ * box, rounded boxes with a list to choose from, that can be typed in too
+ * ("25m", "25 perches", "2-4"); on phones the categories are a list too. In
+ * the filters, the price and
  * rent have two boxes and a slider that move together; bedrooms, bathrooms
  * and furnishing have − and +. Search and Show Listings open the category's
  * archive with only the choices that were made in its address, and Sort by
@@ -518,177 +518,438 @@
 		sync();
 	}
 
-	/*
-	 * The search box's sliders: one handle for the most (the price, the rent
-	 * or the price per perch), or two for the least and the most (land size,
-	 * bedrooms). The last step is no most, and with two handles the first is
-	 * no least. Each writes its fields, the words in its panel and its
-	 * button; the bedrooms' boxes move the handles as they are typed in.
-	 */
-	function setUpSlider( slider ) {
-		var form = slider.closest( 'form' );
-		var steps = json( slider.getAttribute( 'data-steps' ), [] );
-		var labels = json( slider.getAttribute( 'data-labels' ), [] );
-		var short = json( slider.getAttribute( 'data-short' ), null ) || labels;
-		var texts = json( slider.getAttribute( 'data-texts' ), {} ) || {};
-		var range = 'range' === slider.getAttribute( 'data-mode' );
-		var low = slider.querySelector( '.crc-slider-min' );
-		var high = slider.querySelector( '.crc-slider-max' );
-		var lowField = document.getElementById( slider.getAttribute( 'data-min-field' ) || '' );
-		var highField = document.getElementById( slider.getAttribute( 'data-max-field' ) || '' );
-		var panel = slider.closest( '[data-crc-panel]' );
-		var pill = panel && form ? form.querySelector( '[aria-controls="' + panel.id + '"]' ) : null;
-		var readout = panel ? panel.querySelector( '[data-crc-readout]' ) : null;
-		var last = steps.length - 1;
+	// An amount as typed: "25000000", "25,000,000", "25m", "2.5 million", "45 lakhs" or "500k".
+	function typedAmount( typed ) {
+		var match = String( typed || '' ).toLowerCase().replace( /,/g, '' ).match( /(\d+(?:\.\d+)?)\s*(k|thousand|l|lakh|lakhs|lac|lacs|m|mn|million|millions|b|bn|billion)?/ );
+		var times = { k: 1e3, thousand: 1e3, l: 1e5, lakh: 1e5, lakhs: 1e5, lac: 1e5, lacs: 1e5, m: 1e6, mn: 1e6, million: 1e6, millions: 1e6, b: 1e9, bn: 1e9, billion: 1e9 };
 
-		if ( slider.crcSlider || last < 1 || ! high || ! highField || ( range && ( ! low || ! lowField ) ) ) {
+		return match ? Math.round( parseFloat( match[ 1 ] ) * ( match[ 2 ] ? times[ match[ 2 ] ] : 1 ) ) : 0;
+	}
+
+	// A land size as typed, in perches: "25", "25 perches", "2 acres" or "1.5 ha".
+	function typedSize( typed ) {
+		var match = String( typed || '' ).toLowerCase().replace( /,/g, '' ).match( /(\d+(?:\.\d+)?)\s*(a|ac|acre|acres|h|ha|hectare|hectares)?/ );
+		var number;
+
+		if ( ! match ) {
+			return 0;
+		}
+
+		number = parseFloat( match[ 1 ] ) * ( ! match[ 2 ] ? 1 : ( 'a' === match[ 2 ].charAt( 0 ) ? 160 : 395.37 ) );
+
+		return Math.round( number * 100 ) / 100;
+	}
+
+	/*
+	 * The search box's boxes to choose from or type in: land size, bedrooms,
+	 * the highest price per perch, price or rent, and the property type. A
+	 * click lets people type. A number is offered as a choice of its own
+	 * ("Up to Rs. 25,000,000", "From 25 perches", "2 – 4 bedrooms"), and
+	 * other words narrow the list down. What is chosen shows in the box, and
+	 * goes in its fields: one, or the least and the most ("least-most").
+	 */
+	function setUpCombo( box, form ) {
+		var input = box.querySelector( '.crc-combo-input' );
+		var pill = box.querySelector( '.crc-combo-pill' );
+		var list = box.querySelector( '.crc-dropdown-list' );
+		var kind = box.getAttribute( 'data-kind' ) || 'text';
+		var texts = json( box.getAttribute( 'data-texts' ), {} ) || {};
+		var fields = json( box.getAttribute( 'data-fields' ), [] ).map( function ( id ) {
+			return document.getElementById( id );
+		} ).filter( Boolean );
+		var presets = [];
+		var shown = [];
+		var active = -1;
+		var chosen;
+
+		if ( box.crcCombo || ! input || ! pill || ! list || ! fields.length ) {
 			return;
 		}
 
-		slider.crcSlider = true;
+		box.crcCombo = true;
 
-		// The step an amount is at: at or under it for the least, at or over it for the most.
-		function stepOf( amount, up ) {
-			var at = 0;
-			var i;
+		each( list.querySelectorAll( '[role="option"]' ), function ( option ) {
+			presets.push( {
+				value: option.getAttribute( 'data-value' ) || '',
+				label: option.textContent.trim()
+			} );
+		} );
 
-			if ( up ) {
-				for ( i = 0; i <= last; i++ ) {
-					if ( steps[ i ] >= amount ) {
-						return i;
-					}
-				}
-
-				return last;
-			}
-
-			for ( i = 0; i <= last; i++ ) {
-				if ( steps[ i ] <= amount ) {
-					at = i;
-				}
-			}
-
-			return at;
+		function number( value ) {
+			return Number( value ).toLocaleString( 'en-US' );
 		}
 
-		function describe( from, to ) {
-			var noMin = ! range || from <= 0;
-			var noMax = to >= last;
+		function sizeWords( perches ) {
+			if ( perches >= 160 && 0 === perches % 160 ) {
+				return format( 160 === perches ? texts.acre : texts.acres, number( perches / 160 ) );
+			}
 
-			if ( noMin && noMax ) {
+			return format( 1 === perches ? texts.one : texts.many, number( perches ) );
+		}
+
+		function roomWords( rooms ) {
+			return format( 1 === rooms ? texts.one : texts.many, number( rooms ) );
+		}
+
+		// A choice in words: its own in the list, or written the way the site writes it.
+		function words( value ) {
+			var parts;
+			var least;
+			var most;
+			var i;
+
+			if ( '' === value ) {
 				return '';
 			}
 
-			if ( noMin ) {
-				return format( texts.upTo, labels[ to ] );
-			}
-
-			if ( noMax ) {
-				return format( texts.from, short[ from ] );
-			}
-
-			if ( from === to ) {
-				return labels[ from ];
-			}
-
-			return format( texts.between, short[ from ], short[ to ] );
-		}
-
-		function paint() {
-			var from = range ? parseInt( low.value, 10 ) : 0;
-			var to = parseInt( high.value, 10 );
-			var words = describe( from, to );
-
-			slider.style.setProperty( '--crc-slider-from', ( from / last * 100 ) + '%' );
-			slider.style.setProperty( '--crc-slider-to', ( to / last * 100 ) + '%' );
-			high.setAttribute( 'aria-valuetext', to < last ? labels[ to ] : ( texts.noMax || 'No max' ) );
-
-			if ( range ) {
-				low.setAttribute( 'aria-valuetext', from > 0 ? labels[ from ] : ( texts.noMin || 'No min' ) );
-
-				// Both handles at the far end: the least goes on top, so it can be moved back.
-				low.classList.toggle( 'is-on-top', from === to && to === last );
-			}
-
-			if ( readout ) {
-				readout.textContent = words || texts.any || '';
-			}
-
-			if ( pill ) {
-				setPill( pill, words );
-			}
-		}
-
-		function fromSlider( moved ) {
-			var from = range ? parseInt( low.value, 10 ) : 0;
-			var to = parseInt( high.value, 10 );
-
-			// The handles never cross.
-			if ( range && from > to ) {
-				if ( moved === low ) {
-					low.value = to;
-					from = to;
-				} else {
-					high.value = from;
-					to = from;
+			for ( i = 0; i < presets.length; i++ ) {
+				if ( presets[ i ].value === value ) {
+					return presets[ i ].label;
 				}
 			}
 
-			if ( range ) {
-				lowField.value = from > 0 ? String( steps[ from ] ) : '';
+			if ( 'money' === kind ) {
+				return format( texts.upTo, ( texts.currency ? texts.currency + ' ' : '' ) + number( value ) );
 			}
 
-			highField.value = to < last ? String( steps[ to ] ) : '';
-			paint();
-		}
-
-		function amount( field ) {
-			var value = String( field.value || '' ).replace( /[^\d.]/g, '' );
-
-			return value ? parseFloat( value ) || 0 : 0;
-		}
-
-		function fromFields() {
-			var least = range ? amount( lowField ) : 0;
-			var most = amount( highField );
-			var to = most ? stepOf( most, true ) : last;
-			var from = least ? stepOf( least, false ) : 0;
-
-			if ( range ) {
-				low.value = Math.min( from, to );
+			if ( 'size' !== kind && 'beds' !== kind ) {
+				return value;
 			}
 
-			high.value = to;
-			paint();
+			parts = value.split( '-' );
+			least = parts[ 0 ] ? parseFloat( parts[ 0 ] ) : 0;
+			most = parts[ 1 ] ? parseFloat( parts[ 1 ] ) : 0;
+
+			if ( 'size' === kind ) {
+				if ( least && most ) {
+					return format( texts.between, sizeWords( least ), sizeWords( most ) );
+				}
+
+				return most ? format( texts.upTo, sizeWords( most ) ) : format( texts.from, sizeWords( least ) );
+			}
+
+			if ( least && most ) {
+				return least === most ? roomWords( least ) : format( texts.between, number( least ), number( most ) );
+			}
+
+			return most ? format( texts.upTo, roomWords( most ) ) : format( texts.from, number( least ) );
 		}
 
-		if ( range ) {
-			low.addEventListener( 'input', function () {
-				fromSlider( low );
+		function choice( value ) {
+			return { value: value, label: words( value ) };
+		}
+
+		// What a number typed offers; null for words, which narrow the list down instead.
+		function typedChoices( typed ) {
+			var text = String( typed || '' ).toLowerCase().replace( /,/g, '' ).trim();
+			var pair;
+			var amount;
+
+			if ( ! /\d/.test( text ) || 'text' === kind ) {
+				return null;
+			}
+
+			if ( 'money' === kind ) {
+				amount = typedAmount( text );
+
+				return amount > 0 ? [ choice( String( amount ) ) ] : [];
+			}
+
+			if ( 'size' === kind ) {
+				amount = typedSize( text );
+
+				return amount > 0 ? [ choice( '-' + amount ), choice( amount + '-' ) ] : [];
+			}
+
+			// Bedrooms: "2-4" or "2 to 4" for the fewest and the most, or one number.
+			pair = text.match( /(\d+)\s*(?:-|–|to)\s*(\d+)/ );
+
+			if ( pair ) {
+				amount = [ Math.min( 10, parseInt( pair[ 1 ], 10 ) ), Math.min( 10, parseInt( pair[ 2 ], 10 ) ) ].sort( function ( a, b ) {
+					return a - b;
+				} );
+
+				if ( amount[ 1 ] <= 0 ) {
+					return [];
+				}
+
+				return [ choice( ( amount[ 0 ] > 0 ? amount[ 0 ] : '' ) + '-' + amount[ 1 ] ) ];
+			}
+
+			amount = Math.min( 10, parseInt( text.match( /\d+/ )[ 0 ], 10 ) );
+
+			return amount > 0 ? [ choice( amount + '-' ), choice( amount + '-' + amount ), choice( '-' + amount ) ] : [];
+		}
+
+		function narrowed( typed ) {
+			var text = String( typed || '' ).toLowerCase().trim();
+
+			return text ? presets.filter( function ( item ) {
+				return -1 !== item.label.toLowerCase().indexOf( text );
+			} ) : presets.slice();
+		}
+
+		function current() {
+			if ( fields.length > 1 ) {
+				return fields[ 0 ].value || fields[ 1 ].value ? fields[ 0 ].value + '-' + fields[ 1 ].value : '';
+			}
+
+			return fields[ 0 ].value;
+		}
+
+		function setActive( index ) {
+			var items = list.querySelectorAll( '[role="option"]' );
+
+			active = index;
+
+			each( items, function ( item, i ) {
+				item.classList.toggle( 'is-active', i === index );
+			} );
+
+			if ( index >= 0 && items[ index ] ) {
+				input.setAttribute( 'aria-activedescendant', items[ index ].id );
+				items[ index ].scrollIntoView( { block: 'nearest' } );
+			} else {
+				input.removeAttribute( 'aria-activedescendant' );
+			}
+		}
+
+		function render( items ) {
+			var empty;
+
+			shown = items;
+			list.innerHTML = '';
+
+			if ( ! items.length ) {
+				empty = document.createElement( 'li' );
+				empty.className = 'crc-dropdown-empty';
+				empty.textContent = texts.none || '';
+				list.appendChild( empty );
+			}
+
+			items.forEach( function ( item, i ) {
+				var li = document.createElement( 'li' );
+				var span = document.createElement( 'span' );
+				var on = item.value === chosen.value;
+
+				li.id = list.id + '-' + i;
+				li.className = 'crc-dropdown-option' + ( on ? ' is-selected' : '' );
+				li.setAttribute( 'role', 'option' );
+				li.setAttribute( 'aria-selected', on ? 'true' : 'false' );
+				li.setAttribute( 'data-index', String( i ) );
+				span.className = 'crc-dropdown-option-text';
+				span.textContent = item.label;
+				li.appendChild( span );
+
+				if ( text.check ) {
+					li.insertAdjacentHTML( 'beforeend', text.check );
+				}
+
+				list.appendChild( li );
 			} );
 		}
 
-		high.addEventListener( 'input', function () {
-			fromSlider( high );
-		} );
+		function chosenIndex() {
+			var i;
 
-		// Boxes to type in, for bedrooms: the handles follow what is typed.
-		[ lowField, highField ].forEach( function ( field ) {
-			if ( ! field || 'hidden' === field.type ) {
+			for ( i = 0; i < shown.length; i++ ) {
+				if ( shown[ i ].value === chosen.value ) {
+					return i;
+				}
+			}
+
+			return -1;
+		}
+
+		function open() {
+			if ( ! list.hidden ) {
 				return;
 			}
 
-			field.addEventListener( 'input', fromFields );
-			field.addEventListener( 'blur', function () {
-				var value = Math.round( amount( field ) );
+			if ( form.crcPopups ) {
+				form.crcPopups.close( false );
+			}
 
-				field.value = value > 0 ? String( value ) : '';
-				fromFields();
+			list.hidden = false;
+			pill.classList.add( 'is-open' );
+			input.setAttribute( 'aria-expanded', 'true' );
+		}
+
+		function close() {
+			list.hidden = true;
+			pill.classList.remove( 'is-open' );
+			input.setAttribute( 'aria-expanded', 'false' );
+			setActive( -1 );
+		}
+
+		function showAll() {
+			render( presets );
+			open();
+			setActive( chosenIndex() );
+		}
+
+		function choose( item ) {
+			var parts = fields.length > 1 ? item.value.split( '-' ) : [ item.value ];
+
+			fields.forEach( function ( field, i ) {
+				field.value = parts[ i ] || '';
 			} );
+
+			chosen = { value: item.value, label: item.value ? item.label : '' };
+			input.value = chosen.label;
+			pill.classList.toggle( 'has-value', '' !== chosen.value );
+			close();
+		}
+
+		// Leaving the box: what was typed is used if it can be, or the box shows what is chosen again.
+		function commit() {
+			var typed = input.value.trim();
+			var items;
+
+			if ( typed === chosen.label ) {
+				return;
+			}
+
+			if ( '' === typed ) {
+				choose( { value: '', label: '' } );
+				return;
+			}
+
+			items = typedChoices( typed );
+
+			if ( items && items.length ) {
+				choose( items[ 0 ] );
+				return;
+			}
+
+			items = narrowed( typed );
+
+			if ( 1 === items.length ) {
+				choose( items[ 0 ] );
+				return;
+			}
+
+			input.value = chosen.label;
+		}
+
+		function sync() {
+			var value = current();
+
+			chosen = { value: value, label: words( value ) };
+			input.value = chosen.label;
+			pill.classList.toggle( 'has-value', '' !== value );
+		}
+
+		input.addEventListener( 'focus', function () {
+			showAll();
+
+			// What is in the box is picked, so typing starts afresh.
+			window.setTimeout( function () {
+				if ( document.activeElement === input ) {
+					try {
+						input.setSelectionRange( 0, input.value.length );
+					} catch ( error ) {}
+				}
+			}, 0 );
 		} );
 
-		slider.crcSync = fromFields;
-		fromFields();
+		input.addEventListener( 'input', function () {
+			var items = typedChoices( input.value );
+
+			if ( null === items ) {
+				items = narrowed( input.value );
+			}
+
+			render( items );
+			open();
+			setActive( items.length ? 0 : -1 );
+		} );
+
+		input.addEventListener( 'keydown', function ( event ) {
+			var count = shown.length;
+
+			if ( 'ArrowDown' === event.key || 'ArrowUp' === event.key ) {
+				event.preventDefault();
+
+				if ( list.hidden ) {
+					showAll();
+				} else if ( count ) {
+					setActive( 'ArrowDown' === event.key ? ( active + 1 ) % count : ( active <= 0 ? count - 1 : active - 1 ) );
+				}
+			} else if ( 'Enter' === event.key ) {
+				// Enter picks from the open list; with the list closed, it searches.
+				if ( ! list.hidden ) {
+					event.preventDefault();
+
+					if ( shown[ active ] ) {
+						choose( shown[ active ] );
+					} else {
+						commit();
+						close();
+					}
+				} else {
+					commit();
+				}
+			} else if ( 'Escape' === event.key && ! list.hidden ) {
+				event.preventDefault();
+				event.stopPropagation();
+				input.value = chosen.label;
+				close();
+			}
+		} );
+
+		input.addEventListener( 'blur', function () {
+			commit();
+			close();
+		} );
+
+		// A click anywhere on the box lets people type; on the arrow, while typing, it opens or closes the list.
+		pill.addEventListener( 'mousedown', function ( event ) {
+			if ( event.target === input ) {
+				if ( document.activeElement === input && list.hidden ) {
+					showAll();
+				}
+
+				return;
+			}
+
+			event.preventDefault();
+
+			if ( document.activeElement !== input ) {
+				input.focus();
+			} else if ( list.hidden ) {
+				showAll();
+			} else {
+				close();
+			}
+		} );
+
+		// Clicking a choice keeps the cursor in the box, then picks it.
+		list.addEventListener( 'mousedown', function ( event ) {
+			event.preventDefault();
+		} );
+
+		list.addEventListener( 'click', function ( event ) {
+			var option = event.target.closest( '[role="option"]' );
+
+			if ( option && shown[ parseInt( option.getAttribute( 'data-index' ), 10 ) ] ) {
+				choose( shown[ parseInt( option.getAttribute( 'data-index' ), 10 ) ] );
+			}
+		} );
+
+		list.addEventListener( 'mousemove', function ( event ) {
+			var option = event.target.closest( '[role="option"]' );
+			var index = option ? parseInt( option.getAttribute( 'data-index' ), 10 ) : -1;
+
+			if ( option && index !== active ) {
+				setActive( index );
+			}
+		} );
+
+		box.crcSync = sync;
+		chosen = { value: input.getAttribute( 'data-value' ) || '', label: input.value };
+		shown = presets.slice();
+		sync();
 	}
 
 	// A list to choose from, under its button: the property type, or the category on phones.
@@ -841,9 +1102,8 @@
 	}
 
 	/*
-	 * The search box's rounded buttons, and the category list on phones:
-	 * each opens its panel or its list, one at a time. Escape, or a click or
-	 * tap anywhere else, closes it.
+	 * The category list on phones opens from its button. Escape, or a click
+	 * or tap anywhere else, closes it.
 	 */
 	function setUpPopups( form ) {
 		var toggles = form.querySelectorAll( '[data-crc-toggle]' );
@@ -863,19 +1123,7 @@
 			toggle.setAttribute( 'aria-expanded', on ? 'true' : 'false' );
 			toggle.classList.toggle( 'is-open', on );
 
-			if ( ! popup ) {
-				return;
-			}
-
-			if ( popup.hasAttribute( 'data-crc-panel' ) ) {
-				popup.classList.toggle( 'is-open', on );
-
-				if ( on ) {
-					popup.removeAttribute( 'inert' );
-				} else {
-					popup.setAttribute( 'inert', '' );
-				}
-			} else {
+			if ( popup ) {
 				popup.hidden = ! on;
 			}
 		}
@@ -1026,7 +1274,7 @@
 
 	function refresh( form ) {
 		showGroups( form );
-		each( form.querySelectorAll( '[data-crc-range], [data-crc-stepper], [data-crc-slider], [data-crc-dropdown]' ), function ( part ) {
+		each( form.querySelectorAll( '[data-crc-range], [data-crc-stepper], [data-crc-combo], [data-crc-dropdown]' ), function ( part ) {
 			if ( part.crcSync ) {
 				part.crcSync();
 			}
@@ -1043,8 +1291,10 @@
 		form.crcSearch = true;
 		each( form.querySelectorAll( '[data-crc-range]' ), setUpRange );
 		each( form.querySelectorAll( '[data-crc-stepper]' ), setUpStepper );
-		each( form.querySelectorAll( '[data-crc-slider]' ), setUpSlider );
-		each( form.querySelectorAll( '[data-crc-dropdown]' ), function ( box ) {
+		each( form.querySelectorAll( '[data-crc-combo]' ), function ( box ) {
+			setUpCombo( box, form );
+		} );
+		each( form.querySelectorAll( '[data-crc-dropdown]:not([data-crc-combo])' ), function ( box ) {
 			setUpDropdown( box, form );
 		} );
 		setUpPopups( form );
@@ -1059,7 +1309,7 @@
 					form.crcPopups.close( false );
 				}
 
-				each( form.querySelectorAll( '[data-crc-dropdown]' ), function ( box ) {
+				each( form.querySelectorAll( '[data-crc-dropdown]:not([data-crc-combo])' ), function ( box ) {
 					if ( box.crcSync ) {
 						box.crcSync();
 					}

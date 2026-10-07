@@ -1006,9 +1006,9 @@
 	fill: currentColor;
 }
 
-/* The category's own choices, as rounded buttons under the card. Each opens
-   a slider in a panel under the buttons, as wide as the search box, or a list
-   (the property type). What is chosen shows on the button. */
+/* The category's own choices, as rounded boxes under the card. Each opens a
+   list to choose from, and a click lets people type their own. What is
+   chosen shows in the box. */
 .crc-search .crc-search-filters {
 	margin-top: 24px;
 }
@@ -1092,130 +1092,28 @@
 	transform: rotate(180deg);
 }
 
-/* A slider's panel: it opens downwards smoothly, as wide as the search box. */
-.crc-search .crc-pill-panel {
-	display: grid;
-	grid-template-rows: 0fr;
-	visibility: hidden;
-	opacity: 0;
-	transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease, visibility 0s linear 0.4s;
+/* A box to choose from or type in: it looks like the rounded buttons, and a
+   click lets people type. The boxes share the row. */
+.crc-search .crc-pills > .crc-combo {
+	flex: 1 1 180px;
 }
 
-.crc-search .crc-pill-panel.is-open {
-	grid-template-rows: 1fr;
-	visibility: visible;
-	opacity: 1;
-	transition: grid-template-rows 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease, visibility 0s linear 0s;
+.crc-search .crc-combo .crc-combo-pill {
+	cursor: text;
 }
 
-.crc-search .crc-pill-panel-inner {
-	min-height: 0;
-	overflow: hidden;
+.crc-search .crc-combo .crc-combo-pill:focus-within {
+	border-color: var(--e-global-color-primary);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 14%, var(--e-global-color-bb33687));
 }
 
-.crc-search .crc-pill-panel-box {
-	box-sizing: border-box;
-	margin-top: 12px;
-	padding: 20px 24px 24px;
-	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 14%, var(--e-global-color-3581a59));
-	border-radius: 20px;
-	background: var(--e-global-color-3581a59);
-	transform: translateY(-12px);
-	transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.crc-search .crc-pill-panel.is-open .crc-pill-panel-box {
-	transform: none;
-}
-
-/* The panel's heading, and on its right what is chosen, or the boxes to type it in. */
-.crc-search .crc-pill-panel-head {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px 24px;
-}
-
-.crc-search .crc-pill-panel-title {
-	color: var(--e-global-color-6e3d619);
-	font-weight: 500;
-}
-
-.crc-search .crc-pill-panel-side {
-	display: flex;
-	align-items: flex-end;
-	gap: 8px;
-	margin-inline-start: auto;
-}
-
-.crc-search .crc-pill-panel-value {
-	color: var(--e-global-color-primary);
-	font-weight: 600;
-}
-
-.crc-search .crc-pill-panel-field {
-	display: flex;
-	flex-direction: column;
-	gap: 4px;
-	width: 96px;
-}
-
-.crc-search .crc-pill-panel-label {
-	margin: 0;
-}
-
-.crc-search .crc-pill-panel-input {
+/* The typing box itself is plain: the rounded box around it is the field. */
+.crc-search .crc-combo .crc-combo-input:not([type="button"]):not([type="submit"]) {
+	flex: 1 1 auto;
 	box-sizing: border-box;
 	width: 100%;
-	max-width: 100%;
-	text-align: center;
-}
-
-.crc-search .crc-pill-panel-dash {
-	align-self: flex-end;
-	padding-bottom: 12px;
-	color: var(--e-global-color-text);
-}
-
-/* The slider: one or two handles on one track, big enough to move with a thumb. */
-.crc-search .crc-slider {
-	--crc-slider-from: 0%;
-	--crc-slider-to: 100%;
-	position: relative;
-	height: 32px;
-	margin: 20px 12px 0;
-}
-
-.crc-search .crc-slider-track {
-	position: absolute;
-	top: 13px;
-	right: 0;
-	left: 0;
-	height: 6px;
-	border-radius: 6px;
-	background: color-mix(in srgb, var(--e-global-color-1ead78b) 10%, var(--e-global-color-3581a59));
-}
-
-.crc-search .crc-slider-fill {
-	position: absolute;
-	top: 0;
-	right: calc(100% - var(--crc-slider-to));
-	bottom: 0;
-	left: var(--crc-slider-from);
-	border-radius: 6px;
-	background: var(--e-global-color-primary);
-}
-
-/* Each handle's own slider is see-through and as wide as the track plus a
-   handle, so the handles' middles reach the track's ends. */
-.crc-search .crc-slider input.crc-slider-input:not([type="button"]):not([type="submit"]) {
-	position: absolute;
-	top: 0;
-	left: -12px;
-	box-sizing: border-box;
-	width: calc(100% + 24px);
-	height: 32px;
+	min-width: 0;
+	height: 24px;
 	margin: 0;
 	padding: 0;
 	border: 0;
@@ -1223,85 +1121,23 @@
 	background: none;
 	box-shadow: none;
 	outline: none;
-	cursor: pointer;
-	pointer-events: none;
-	-webkit-appearance: none;
-	appearance: none;
+	color: var(--e-global-color-6e3d619);
+	font: inherit;
+	line-height: 24px;
+	text-overflow: ellipsis;
+	cursor: text;
 }
 
-/* With one handle, a tap anywhere on the track moves it there. */
-.crc-search .crc-slider[data-mode="max"] input.crc-slider-input:not([type="button"]):not([type="submit"]) {
-	pointer-events: auto;
+.crc-search .crc-combo .crc-combo-input::placeholder {
+	color: var(--e-global-color-6e3d619);
+	opacity: 1;
 }
 
-.crc-search .crc-slider input.crc-slider-input.is-on-top {
-	z-index: 2;
+.crc-search .crc-combo .crc-combo-input:focus::placeholder {
+	color: var(--e-global-color-text);
 }
 
-.crc-search .crc-slider .crc-slider-input::-webkit-slider-runnable-track {
-	height: 32px;
-	border: 0;
-	background: none;
-}
-
-.crc-search .crc-slider .crc-slider-input::-moz-range-track {
-	height: 32px;
-	border: 0;
-	background: none;
-}
-
-.crc-search .crc-slider .crc-slider-input::-webkit-slider-thumb {
-	box-sizing: border-box;
-	width: 24px;
-	height: 24px;
-	margin-top: 4px;
-	border: 2px solid var(--e-global-color-primary);
-	border-radius: 50%;
-	background: var(--e-global-color-3581a59);
-	box-shadow: 0 2px 8px color-mix(in srgb, var(--e-global-color-1ead78b) 18%, var(--e-global-color-bb33687));
-	cursor: grab;
-	pointer-events: auto;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
-	-webkit-appearance: none;
-	appearance: none;
-}
-
-.crc-search .crc-slider .crc-slider-input::-moz-range-thumb {
-	box-sizing: border-box;
-	width: 24px;
-	height: 24px;
-	border: 2px solid var(--e-global-color-primary);
-	border-radius: 50%;
-	background: var(--e-global-color-3581a59);
-	box-shadow: 0 2px 8px color-mix(in srgb, var(--e-global-color-1ead78b) 18%, var(--e-global-color-bb33687));
-	cursor: grab;
-	pointer-events: auto;
-	transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.crc-search .crc-slider .crc-slider-input:active::-webkit-slider-thumb {
-	box-shadow: 0 0 0 6px color-mix(in srgb, var(--e-global-color-primary) 16%, var(--e-global-color-bb33687));
-	cursor: grabbing;
-	transform: scale(1.12);
-}
-
-.crc-search .crc-slider .crc-slider-input:active::-moz-range-thumb {
-	box-shadow: 0 0 0 6px color-mix(in srgb, var(--e-global-color-primary) 16%, var(--e-global-color-bb33687));
-	cursor: grabbing;
-	transform: scale(1.12);
-}
-
-.crc-search .crc-slider .crc-slider-input:focus-visible::-webkit-slider-thumb {
-	outline: 2px solid var(--e-global-color-primary);
-	outline-offset: 2px;
-}
-
-.crc-search .crc-slider .crc-slider-input:focus-visible::-moz-range-thumb {
-	outline: 2px solid var(--e-global-color-primary);
-	outline-offset: 2px;
-}
-
-/* A list under its button: the property type, and the category on phones. */
+/* A list under its box: the search box's choices, and the category on phones. */
 .crc-search .crc-dropdown {
 	position: relative;
 	display: flex;
@@ -1321,9 +1157,9 @@
 	width: max-content;
 	min-width: 100%;
 	max-width: 320px;
-	max-height: 320px;
+	max-height: 264px;
 	margin: 0;
-	padding: 8px;
+	padding: 6px;
 	overflow-y: auto;
 	border: 1px solid color-mix(in srgb, var(--e-global-color-1ead78b) 8%, var(--e-global-color-3581a59));
 	border-radius: 16px;
@@ -1345,8 +1181,8 @@
 	justify-content: space-between;
 	gap: 16px;
 	margin: 0;
-	padding: 10px 12px;
-	border-radius: 12px;
+	padding: 7px 12px;
+	border-radius: 10px;
 	color: var(--e-global-color-6e3d619);
 	line-height: 1.3;
 	cursor: pointer;
@@ -1355,6 +1191,14 @@
 
 .crc-search .crc-dropdown-option.is-active {
 	background: var(--e-global-color-f5fd1b7);
+}
+
+/* Nothing in the list fits what is typed. */
+.crc-search .crc-dropdown-empty {
+	margin: 0;
+	padding: 7px 12px;
+	color: var(--e-global-color-text);
+	line-height: 1.3;
 }
 
 .crc-search .crc-dropdown-option.is-selected {
@@ -1453,9 +1297,6 @@
 @media (prefers-reduced-motion: reduce) {
 	.crc-search .crc-pill,
 	.crc-search .crc-pill-icon,
-	.crc-search .crc-pill-panel,
-	.crc-search .crc-pill-panel.is-open,
-	.crc-search .crc-pill-panel-box,
 	.crc-search .crc-search-category-icon {
 		transition: none;
 	}
@@ -1500,7 +1341,7 @@
 	align-items: center;
 	gap: 12px;
 	margin: 0;
-	padding: 10px 12px;
+	padding: 7px 12px;
 	border-radius: 12px;
 	color: var(--e-global-color-6e3d619);
 	line-height: 1.3;
@@ -2265,19 +2106,14 @@
 		white-space: nowrap;
 	}
 
-	.crc-search .crc-pills > .crc-pill,
-	.crc-search .crc-pills > .crc-dropdown {
-		flex: 1 1 auto;
+	.crc-search .crc-pills > .crc-combo {
+		flex: 1 1 100%;
 	}
 
 	.crc-search .crc-dropdown-list {
 		right: 0;
 		width: auto;
 		max-width: none;
-	}
-
-	.crc-search .crc-pill-panel-box {
-		padding: 16px 16px 20px;
 	}
 
 	/* Filters fold away behind the Filters bar. */

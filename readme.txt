@@ -31,7 +31,7 @@ Real estate listing tools for WordPress.
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
-* Search: a search box for any page with a tab for each category, town and district suggestions from three letters, and rounded buttons that open sliders for land size, price and bedrooms and a list for the property type (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
+* Search: a search box for any page with a tab for each category, town and district suggestions from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
@@ -44,6 +44,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.28.0 =
+* Search box: the sliders are gone. Land size, bedrooms, the highest price per perch, price or rent, and the property type are rounded boxes with a list to choose from.
+* A click in a box lets people type. A number becomes a choice of its own: an amount such as 25000000, 25,000,000, 25m, 2.5 million or 45 lakhs; a size such as 25, 25 perches or 2 acres (up to it, or from it); or bedrooms such as 3 (3 or more, exactly 3, or up to 3) or 2-4. Other words narrow the list down, such as "house" for the property type. What is chosen shows in the box.
+* The rows in the lists and in the place suggestions are shorter, and the lists are not as tall.
+* Phones: each box takes the whole width.
 
 = 0.27.1 =
 * Search box: a container with the class crc-listing-search gets the search box's white background, 24px padding, 16px corners and a width of at most 680px. The search card has 16px corners, and the choices sit 24px under it on every screen.
