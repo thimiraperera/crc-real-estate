@@ -90,6 +90,28 @@
 	color: var(--e-global-color-6e3d619);
 }
 
+/* Sold, or Rented, under the price. */
+.crc-price .crc-price-status {
+	display: inline-flex;
+	align-items: center;
+	margin: 12px 0 0;
+	padding: 6px 16px;
+	border-radius: 100px;
+	background: var(--e-global-color-6e3d619);
+	color: var(--e-global-color-3581a59);
+	font-weight: 500;
+	line-height: 1.5;
+}
+
+.crc-price .crc-price-status-rented {
+	background: var(--e-global-color-primary);
+}
+
+.crc-price.is-gone .crc-price-amount,
+.crc-price.is-gone .crc-price-per-perch {
+	color: var(--e-global-color-text);
+}
+
 /* Contact for inquiries */
 .crc-price .crc-price-contact {
 	width: 100%;

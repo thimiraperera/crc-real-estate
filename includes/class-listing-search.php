@@ -811,6 +811,12 @@ final class Listing_Search {
 
 			// The price, which the title doesn't have; its place otherwise.
 			$note = '' !== $price && '0' !== $price ? Price_Card::money( $price ) . ( $details && ! empty( $details['period'] ) ? $details['period'] : '' ) : $where;
+			$gone = Listing_Status::gone( $post_id );
+
+			// A listing that has gone says so first: "Sold · Rs. 25,000,000".
+			if ( $gone ) {
+				$note = '' !== $note ? $gone['label'] . ' · ' . $note : $gone['label'];
+			}
 
 			$found[] = array(
 				'name'  => html_entity_decode( get_the_title( $post_id ), ENT_QUOTES, 'UTF-8' ),

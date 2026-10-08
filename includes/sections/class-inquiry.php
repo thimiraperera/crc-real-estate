@@ -9,6 +9,7 @@ namespace CRC\RealEstate\Sections;
 
 use CRC\RealEstate\Icons;
 use CRC\RealEstate\Inquiries;
+use CRC\RealEstate\Listing_Status;
 use CRC\RealEstate\Phone;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Settings;
@@ -904,7 +905,8 @@ final class Inquiry {
 	}
 
 	/**
-	 * The listing an inquiry is about, if it's a published listing.
+	 * The listing an inquiry is about, if it's on the website or switched
+	 * off (unlisted): someone may send the form from a page opened just before.
 	 *
 	 * @param int $id Listing ID.
 	 * @return int Listing ID, or 0.
@@ -912,7 +914,7 @@ final class Inquiry {
 	private static function valid_listing( $id ) {
 		$post = $id ? get_post( (int) $id ) : null;
 
-		return $post && Post_Type::NAME === $post->post_type && 'publish' === $post->post_status ? (int) $post->ID : 0;
+		return $post && Post_Type::NAME === $post->post_type && in_array( $post->post_status, array( 'publish', Listing_Status::OFF ), true ) ? (int) $post->ID : 0;
 	}
 
 	/**

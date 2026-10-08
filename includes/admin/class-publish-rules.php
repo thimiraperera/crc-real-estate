@@ -143,12 +143,29 @@ final class Publish_Rules {
 	}
 
 	/**
+	 * What a saved listing still needs before it can go on the website.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return string[] "image" and/or "category"; empty when it has both.
+	 */
+	public static function missing( $post_id ) {
+		return array_keys(
+			array_filter(
+				array(
+					'image'    => (int) get_post_thumbnail_id( $post_id ) < 1,
+					'category' => ! self::saved_category( (int) $post_id ),
+				)
+			)
+		);
+	}
+
+	/**
 	 * Explains what is missing.
 	 *
 	 * @param string[] $missing "image" and/or "category".
 	 * @return string
 	 */
-	private static function message( $missing ) {
+	public static function message( $missing ) {
 		if ( array( 'image', 'category' ) === $missing ) {
 			return __( 'Add a main photo and choose a category to publish this listing.', 'crc-real-estate' );
 		}

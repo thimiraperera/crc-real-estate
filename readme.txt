@@ -19,7 +19,7 @@ Real estate listing tools for WordPress.
 * Location map with the area around the property, while the exact place stays in the admin
 * Inquiry form that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
 * FAQs that open smoothly, one at a time, set for each category and each listing, with FAQ structured data for search engines
-* Import & Export: add or change many listings at once from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing, with buttons for them on All Listings
+* Import & Export: add or change many listings at once from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing that can be changed in a spreadsheet and imported again, with buttons for them on All Listings
 * Download listing: a zip file with a page of all the listing's details, its photos in full size and the inquiries about it
 * Owner details kept privately with each listing, never shown on the website
 * Photo privacy: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
@@ -34,6 +34,7 @@ Real estate listing tools for WordPress.
 * Listing carousel: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
 * Search: a search box for any page with a tab for each category, a free search that understands places, property types, bedrooms, prices, sizes and any words, with suggestions of places, types and listings from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and More filters for features, the price and terms, floor area, parking, the road, water and electricity, availability, who listed it and when, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
+* On the website switch and Sold or Rented: on All Listings, a switch hides a listing from the website without deleting anything, and one click marks it Sold, or Rented for rentals, shown on its cards and under its price
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -45,6 +46,14 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.39.0 =
+* Import & Export: a file downloaded with Export can be changed in Excel or Google Sheets and imported again. Rows with an ID change those listings with what is in the file now, and a short guide on the Import page shows how. With "Empty cells take things off" (ticked to start with), a cell you emptied takes that detail off the listing; the title, status, category and main photo are always kept. The listing's own questions become exactly the ones in the file.
+* Photos already on the website are used as they are, never downloaded again, even when their links are a smaller copy or come through a CDN. When some photo links can't be used, the listing keeps the photos it had. Rows that didn't change leave their listing as it was, so nothing is saved or unpublished for nothing.
+* A second row with the same ID is skipped, numbers whose first 0 a spreadsheet dropped keep the saved number, renamed districts and the towns already used read back as they are, and a file that wasn't saved as CSV UTF-8 gets a warning. The status column also takes unlisted.
+* All Listings has two new columns. On the website is a switch: turning it off unlists the listing, so it disappears from the website (search, listing pages, carousels and its own page) and stays in wp-admin with everything in it. Turning it on brings it back in the same place; a listing needs a main photo and a category for that. Availability shows Sold, Rented or what it is now, with a Mark as Sold button (Mark as Rented for properties for rent, chosen from the category) and Mark as available to go back. Both change straight away, and Bulk actions do the same for many listings at once.
+* A listing marked Sold or Rented stays on the website with a Sold or Rented label on its photo, a quieter price, a note under its price on its own page, and the word in the search suggestions.
+* Search filters: the place or keyword box is at the top, and Looking for is a row of rounded buttons. Every dropdown in the filters is the plugin's own: a soft grey box that turns white while open, with a list that falls open under it, slim scrollbars, and letters typed to jump through it.
 
 = 0.38.0 =
 * Search filters: More filters, a bar under the property type that slides open. People can tick features as rounded choices in their groups (legal papers such as a clear deed or Verified by CRC, the category's own features such as a garden, a swimming pool, CCTV or flat land, and nearby places such as schools or the beach), and choose a price that can be negotiated, a bank loan for homes for sale, bills included and the most advance for rentals, the floor area and parking spaces for homes, the road type and its width, electricity (three-phase too) and water, the availability, who listed it and how recently it was listed.

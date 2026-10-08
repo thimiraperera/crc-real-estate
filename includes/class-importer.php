@@ -74,9 +74,10 @@ final class Importer {
 	 *
 	 * @param string $path    Uploaded file.
 	 * @param int    $user_id Person importing.
-	 * @return array|\WP_Error 'total' rows, 'unknown' column names that will be left out, and 'run', the import's ID.
+	 * @param bool   $clear   Whether an empty cell in a row with an ID takes that detail off the listing.
+	 * @return array|\WP_Error 'total' rows, 'unknown' column names that will be left out, 'notes' (warnings about the whole file), and 'run', the import's ID.
 	 */
-	public static function start( $path, $user_id ) {
+	public static function start( $path, $user_id, $clear = false ) {
 		$csv = Csv::read( $path );
 
 		if ( is_wp_error( $csv ) ) {
@@ -106,19 +107,40 @@ final class Importer {
 			)
 		);
 
-		// Empty cells leave a listing as it is, just as missing columns do, so they aren't kept.
-		$rows = array();
+		$notes = array();
+
+		if ( ! empty( $csv['converted'] ) ) {
+			// The page asks about it before the first listing is changed.
+			$notes[] = __( 'This file wasn\'t saved as CSV UTF-8, so letters such as Sinhala or Tamil may have been lost (they show as ?). Nothing has been changed yet. If the file has them, press Cancel, then in Excel choose File → Save As → CSV UTF-8 (Comma delimited) and import that file instead. Press OK to import it as it is.', 'crc-real-estate' );
+		}
+
+		// Empty cells leave a listing as it is, just as missing columns do, so they aren't kept;
+		// unless they take things off, in the rows that change listings already on the site.
+		$rows  = array();
+		$first = array();
 
 		foreach ( $csv['rows'] as $row ) {
-			$rows[] = array(
+			$id   = isset( $row['cells']['id'] ) ? trim( (string) $row['cells']['id'] ) : '';
+			$item = array(
 				'line'  => (int) $row['line'],
-				'cells' => array_filter(
+				'cells' => ( $clear && '' !== $id ) ? $row['cells'] : array_filter(
 					$row['cells'],
 					function ( $value ) {
 						return '' !== trim( (string) $value );
 					}
 				),
 			);
+
+			// A second row for the same listing would undo what the first did, so it is skipped.
+			if ( ctype_digit( $id ) && absint( $id ) ) {
+				if ( isset( $first[ absint( $id ) ] ) ) {
+					$item['same'] = $first[ absint( $id ) ];
+				} else {
+					$first[ absint( $id ) ] = $item['line'];
+				}
+			}
+
+			$rows[] = $item;
 		}
 
 		if ( ! self::lock( $user_id ) ) {
@@ -135,7 +157,7 @@ final class Importer {
 				'unfinished',
 				sprintf(
 					/* translators: 1: rows done, 2: all rows. */
-					__( 'An import you started earlier isn\'t finished yet (%1$s of %2$s listings done). Please press Continue the import to finish it, or Stop the import, and then start the new file. Starting again without stopping could add the same listings twice.', 'crc-real-estate' ),
+					__( 'An import you started earlier isn\'t finished yet (%1$s of %2$s listings done). Please press Continue the import to finish it, or Stop the import, and then start the new file. Starting the same file again without stopping could add its new listings (the rows without an ID) twice.', 'crc-real-estate' ),
 					number_format_i18n( $job['at'] ),
 					number_format_i18n( $job['total'] )
 				),
@@ -164,6 +186,7 @@ final class Importer {
 				'counts'  => self::no_counts(),
 				'logged'  => 0,
 				'time'    => time(),
+				'clear'   => (bool) $clear,
 			),
 			false
 		);
@@ -174,6 +197,7 @@ final class Importer {
 		return array(
 			'total'   => count( $rows ),
 			'unknown' => $unknown,
+			'notes'   => $notes,
 			'run'     => $run,
 		);
 	}
@@ -223,7 +247,7 @@ final class Importer {
 				return self::answer( $done['done'], $done['total'], $done['counts'], array(), $done['log'], $seen, true, ! empty( $done['stopped'] ) );
 			}
 
-			return new \WP_Error( 'no_import', __( 'This import has already finished or was stopped. Please check All Listings before importing the same file again, or its listings will be added twice.', 'crc-real-estate' ) );
+			return new \WP_Error( 'no_import', __( 'This import has already finished or was stopped. Please check All Listings before importing the same file again: its rows with an ID only change those listings again, but its rows without an ID would be added twice.', 'crc-real-estate' ) );
 		}
 
 		if ( $run !== $job['run'] ) {
@@ -235,7 +259,7 @@ final class Importer {
 		if ( ! is_array( $rows ) ) {
 			self::clear( $user_id );
 
-			return new \WP_Error( 'no_rows', __( 'The rows of this import are no longer on the site. Please choose the file again, but check All Listings first, as some listings may be there already.', 'crc-real-estate' ) );
+			return new \WP_Error( 'no_rows', __( 'The rows of this import are no longer on the site. Please choose the file again, but check All Listings first: some of its new listings (the rows without an ID) may be there already. Rows with an ID only change their listings again.', 'crc-real-estate' ) );
 		}
 
 		if ( function_exists( 'set_time_limit' ) ) {
@@ -306,7 +330,7 @@ final class Importer {
 	 * An import the person started and didn't finish.
 	 *
 	 * @param int $user_id Person importing.
-	 * @return array|null 'done', 'total', 'counts' and 'run', or null when there is none.
+	 * @return array|null 'done', 'total', 'counts', 'run' and 'clear' (whether empty cells take things off), or null when there is none.
 	 */
 	public static function pending( $user_id ) {
 		$job = get_option( self::JOB_OPTION . (int) $user_id );
@@ -329,7 +353,7 @@ final class Importer {
 	 * How far an unfinished import got.
 	 *
 	 * @param array $job The import.
-	 * @return array 'done', 'total', 'counts' and 'run'.
+	 * @return array 'done', 'total', 'counts', 'run' and 'clear' (whether empty cells take things off).
 	 */
 	private static function pending_info( array $job ) {
 		return array(
@@ -337,6 +361,7 @@ final class Importer {
 			'total'  => (int) $job['total'],
 			'counts' => $job['counts'],
 			'run'    => (string) $job['run'],
+			'clear'  => ! empty( $job['clear'] ),
 		);
 	}
 
@@ -423,8 +448,22 @@ final class Importer {
 		if ( is_array( $job['current'] ) && ! empty( $job['current']['report']['id'] ) ) {
 			$current = $job['current'];
 			$id      = (int) $current['report']['id'];
+			$waiting = false;
 
-			self::place_photos( $current );
+			foreach ( is_array( $current['photos'] ) ? $current['photos'] : array() as $photo ) {
+				$waiting = $waiting || 'more' === $photo['role'];
+			}
+
+			// More photos still waiting to download: a listing already on the site keeps the more photos it had
+			// (a main photo already in is still put on it). A new listing gets the ones downloaded so far.
+			$kept = $waiting && 'updated' === $current['report']['action'];
+
+			if ( $kept ) {
+				$current['more_failed'] = true;
+			}
+
+			$placed = self::place_photos( $current );
+			self::touch( $current );
 
 			$report           = $current['report'];
 			$report['status'] = (string) get_post_status( $id );
@@ -432,10 +471,20 @@ final class Importer {
 
 			if ( null === $current['photos'] ) {
 				$report['warnings'][] = __( 'The import was stopped before this row\'s details (price, category, owner and the rest) and photos were filled in.', 'crc-real-estate' );
+			} elseif ( $kept ) {
+				$report['warnings'][] = __( 'The import was stopped before all its photos were in, so the listing keeps the more photos it had. Its details are in. Import this row again to finish its photos.', 'crc-real-estate' );
 			} elseif ( $current['photos'] ) {
-				$report['warnings'][] = __( 'The import was stopped before all its photos were in; the ones already downloaded are on it.', 'crc-real-estate' );
+				$report['warnings'][] = '' === $placed
+					? __( 'The import was stopped before all its photos were in; the ones already downloaded are on it.', 'crc-real-estate' )
+					: __( 'The import was stopped before all its photos were in.', 'crc-real-estate' );
 			} else {
-				$report['warnings'][] = __( 'The import was stopped just before this row was finished; its details and photos are in.', 'crc-real-estate' );
+				$report['warnings'][] = '' === $placed
+					? __( 'The import was stopped just before this row was finished; its details and photos are in.', 'crc-real-estate' )
+					: __( 'The import was stopped just before this row was finished; its details are in.', 'crc-real-estate' );
+			}
+
+			if ( ! $kept && '' !== $placed ) {
+				$report['warnings'][] = self::photos_note( $placed );
 			}
 
 			if ( 'created' === $report['action'] ) {
@@ -780,7 +829,7 @@ final class Importer {
 		);
 
 		if ( null === $job['current'] ) {
-			$current = self::begin( $row, $job['run'] . ':' . $index );
+			$current = self::begin( $row, $job['run'] . ':' . $index, ! empty( $job['clear'] ) );
 
 			if ( isset( $current['failed'] ) ) {
 				self::next_row( $job );
@@ -814,6 +863,10 @@ final class Importer {
 				/* translators: 1: photo link, 2: why it couldn't be used. */
 				$current['report']['warnings'][] = sprintf( __( 'The photo %1$s couldn\'t be added: %2$s', 'crc-real-estate' ), $photo['url'], self::too_big() );
 
+				if ( 'more' === $photo['role'] ) {
+					$current['more_failed'] = true;
+				}
+
 				return null;
 			}
 
@@ -837,8 +890,15 @@ final class Importer {
 			if ( is_wp_error( $id ) ) {
 				/* translators: 1: photo link, 2: why it couldn't be used. */
 				$current['report']['warnings'][] = sprintf( __( 'The photo %1$s couldn\'t be added: %2$s', 'crc-real-estate' ), $photo['url'], $id->get_error_message() );
+
+				if ( 'more' === $photo['role'] ) {
+					$current['more_failed'] = true;
+				}
 			} elseif ( 'main' === $photo['role'] ) {
 				$current['main'] = $id;
+			} elseif ( isset( $photo['slot'] ) ) {
+				// In the place the row gave it, so the photos keep the row's order.
+				$current['more'][ (int) $photo['slot'] ] = $id;
 			} else {
 				$current['more'][] = $id;
 			}
@@ -867,12 +927,15 @@ final class Importer {
 	 * Adds or changes a row's listing: its title and text. A new listing is
 	 * marked with the row it came from, so if the server stops before this
 	 * is saved, the row finds the same listing again instead of adding it twice.
+	 * A listing already on the site is only saved when its title or text
+	 * really changes, so a row imported again unchanged leaves it as it was.
 	 *
-	 * @param array  $row Row with 'line' and 'cells'.
-	 * @param string $tag The import's ID and the row's number.
+	 * @param array  $row   Row with 'line' and 'cells' ('same' when an earlier row has its ID).
+	 * @param string $tag   The import's ID and the row's number.
+	 * @param bool   $clear Whether empty cells take things off a listing already on the site.
 	 * @return array The work left for the row, or 'failed' with its report.
 	 */
-	private static function begin( array $row, $tag ) {
+	private static function begin( array $row, $tag, $clear = false ) {
 		$cells  = $row['cells'];
 		$cell   = function ( $name ) use ( $cells ) {
 			return isset( $cells[ $name ] ) ? trim( (string) $cells[ $name ] ) : '';
@@ -919,6 +982,12 @@ final class Importer {
 				return $fail( sprintf( __( 'You can\'t change the listing with the ID %d.', 'crc-real-estate' ), $id ) );
 			}
 
+			// Checked after the listing itself, so a repeated row for a listing that can't be changed gets the same reason as the first.
+			if ( ! empty( $row['same'] ) ) {
+				/* translators: 1: listing ID, 2: row number in the spreadsheet. */
+				return $fail( sprintf( __( 'Row %2$d of this file is already for the listing with the ID %1$d, so this row was skipped. Each listing can be changed by one row only. To add this row as a new listing, empty its id cell.', 'crc-real-estate' ), $id, (int) $row['same'] ) );
+			}
+
 			$report['title'] = '' !== $title ? $title : (string) $post->post_title;
 		} elseif ( '' === $title ) {
 			// Named the way the listing screen suggests, e.g. "Bare land for sale in Galle".
@@ -946,7 +1015,8 @@ final class Importer {
 
 		$fields = array( 'post_type' => Post_Type::NAME );
 
-		if ( '' !== $title ) {
+		// A title read back as it is saved, even one WordPress kept with code in it, isn't saved again.
+		if ( '' !== $title && ( ! $post || ( ! self::same_text( $title, $post->post_title ) && ! self::same_text( $cell( 'title' ), $post->post_title ) ) ) ) {
 			$fields['post_title'] = $title;
 		}
 
@@ -955,8 +1025,15 @@ final class Importer {
 		}
 
 		// WordPress removes code that the person importing isn't allowed to add, as on the listing screen.
-		if ( '' !== $cell( 'description' ) ) {
-			$fields['post_content'] = str_replace( array( "\r\n", "\r" ), "\n", $cell( 'description' ) );
+		$text = str_replace( array( "\r\n", "\r" ), "\n", $cell( 'description' ) );
+
+		if ( '' !== $text ) {
+			if ( ! $post || ! self::same_text( $text, $post->post_content ) ) {
+				$fields['post_content'] = $text;
+			}
+		} elseif ( $clear && $post && array_key_exists( 'description', $cells ) && '' !== trim( (string) $post->post_content ) ) {
+			// An emptied description takes the text off.
+			$fields['post_content'] = '';
 		}
 
 		if ( ! $id ) {
@@ -996,72 +1073,133 @@ final class Importer {
 		$report['action'] = $id ? 'updated' : 'created';
 
 		return array(
-			'id'         => $report['id'],
-			'status'     => $status,
-			'photos'     => null,
-			'more_given' => false,
-			'main'       => 0,
-			'more'       => array(),
-			'report'     => $report,
+			'id'          => $report['id'],
+			'status'      => $status,
+			'clear'       => $clear && $id,
+			'photos'      => null,
+			'more_given'  => false,
+			'more_failed' => false,
+			'main'        => 0,
+			'more'        => array(),
+			'report'      => $report,
 		);
 	}
 
 	/**
-	 * Fills in a row's details and lists its photos to download.
+	 * Whether two texts are the same once their line ends are written alike
+	 * and the spaces around them are left out.
+	 *
+	 * @param string $a Text.
+	 * @param string $b Text.
+	 * @return bool
+	 */
+	private static function same_text( $a, $b ) {
+		$plain = function ( $text ) {
+			return trim( str_replace( array( "\r\n", "\r" ), "\n", (string) $text ) );
+		};
+
+		return $plain( $a ) === $plain( $b );
+	}
+
+	/**
+	 * Fills in a row's details and lists its photos to download. Links to
+	 * photos already on this site, the listing's own first, are used as they
+	 * are straight away; only the others wait to be downloaded.
 	 *
 	 * @param array $current The row's work, changed in place.
 	 * @param array $cells   The row's cells.
 	 */
 	private static function fill( array &$current, array $cells ) {
-		$current['report']['warnings'] = array_merge( $current['report']['warnings'], Listing_Data::apply( $current['id'], $cells ) );
+		$clear = ! empty( $current['clear'] );
+
+		// How the listing was, so the end of the row can tell whether it changed.
+		if ( 'updated' === $current['report']['action'] ) {
+			$current['before'] = self::fingerprint( $current['id'] );
+		}
+
+		$current['report']['warnings'] = array_merge( $current['report']['warnings'], Listing_Data::apply( $current['id'], $cells, $clear ) );
 
 		$links  = Listing_Data::photo_links( $cells );
+		$own    = 'updated' === $current['report']['action'] ? self::own_photos( $current['id'] ) : array();
 		$photos = array();
 
 		if ( null !== $links['main'] ) {
-			$photos[] = array(
-				'url'  => $links['main'],
-				'role' => 'main',
-			);
+			$found = self::known_photo( $links['main'], $own );
+
+			if ( $found ) {
+				$current['main'] = $found;
+			} else {
+				$photos[] = array(
+					'url'  => $links['main'],
+					'role' => 'main',
+				);
+			}
 		}
 
-		foreach ( null !== $links['more'] ? $links['more'] : array() as $url ) {
-			$photos[] = array(
-				'url'  => $url,
-				'role' => 'more',
-			);
+		foreach ( null !== $links['more'] ? $links['more'] : array() as $slot => $url ) {
+			$found = self::known_photo( $url, $own );
+
+			if ( $found ) {
+				$current['more'][ $slot ] = $found;
+			} else {
+				$photos[] = array(
+					'url'  => $url,
+					'role' => 'more',
+					'slot' => $slot,
+				);
+			}
 		}
 
-		$current['photos']     = $photos;
-		$current['more_given'] = null !== $links['more'];
+		$current['photos'] = $photos;
+
+		// An emptied more_photos cell takes the more photos off, when empty cells take things off.
+		$current['more_given'] = null !== $links['more'] || ( $clear && array_key_exists( 'more_photos', $cells ) );
 	}
 
 	/**
-	 * Puts a row's downloaded photos on its listing: the main photo, and the
-	 * more photos in their order.
+	 * Puts a row's photos on its listing: the main photo, and the more photos
+	 * in their order. Nothing is saved when they are the photos it has.
 	 *
 	 * @param array $current The row's work.
-	 * @return bool Whether none of the more photos the row gave could be added.
+	 * @return string 'none' when none of the more photos the row gave could be added, 'some' when some couldn't and the listing kept the ones it had, otherwise ''.
 	 */
 	private static function place_photos( array $current ) {
 		$id = (int) $current['id'];
 
-		if ( $current['main'] ) {
+		if ( $current['main'] && (int) get_post_thumbnail_id( $id ) !== (int) $current['main'] ) {
 			set_post_thumbnail( $id, $current['main'] );
 		}
 
 		if ( ! $current['more_given'] ) {
-			return false;
+			return '';
+		}
+
+		$given  = $current['more'];
+		$failed = ! empty( $current['more_failed'] );
+
+		ksort( $given );
+
+		if ( $failed && ! $given ) {
+			return 'none';
+		}
+
+		// Some links couldn't be used: a listing already on the site keeps the more photos it had, rather than losing some.
+		if ( $failed && 'updated' === $current['report']['action'] ) {
+			return 'some';
 		}
 
 		$main = (int) get_post_thumbnail_id( $id );
-		$more = array_values( array_diff( array_unique( array_map( 'intval', $current['more'] ) ), array( $main ) ) );
+		$more = array_values( array_diff( array_unique( array_map( 'intval', $given ) ), array( $main ) ) );
 
 		if ( $more ) {
-			update_post_meta( $id, Gallery::META, $more );
+			if ( Gallery::gallery_ids( $id ) !== $more ) {
+				update_post_meta( $id, Gallery::META, $more );
+			}
+		} elseif ( ! empty( $current['clear'] ) && Gallery::gallery_ids( $id ) ) {
+			delete_post_meta( $id, Gallery::META );
 		}
 
-		return ! $current['more'];
+		return '';
 	}
 
 	/**
@@ -1074,9 +1212,10 @@ final class Importer {
 	private static function finish( array $current ) {
 		$id     = $current['id'];
 		$report = $current['report'];
+		$placed = self::place_photos( $current );
 
-		if ( self::place_photos( $current ) ) {
-			$report['warnings'][] = __( 'None of the more photos could be added, so the listing keeps the ones it had.', 'crc-real-estate' );
+		if ( '' !== $placed ) {
+			$report['warnings'][] = self::photos_note( $placed );
 		}
 
 		$wanted = $current['status'];
@@ -1088,6 +1227,8 @@ final class Importer {
 					'post_status' => $wanted,
 				)
 			);
+		} else {
+			self::touch( $current );
 		}
 
 		$report['status'] = (string) get_post_status( $id );
@@ -1114,6 +1255,65 @@ final class Importer {
 		$report['link'] = (string) get_edit_post_link( $id, 'raw' );
 
 		return $report;
+	}
+
+	/**
+	 * What the report says when the more photos weren't all put on the listing.
+	 *
+	 * @param string $placed From place_photos(): 'none' or 'some'.
+	 * @return string
+	 */
+	private static function photos_note( $placed ) {
+		return 'none' === $placed
+			? __( 'None of the more photos could be added, so the listing keeps the ones it had.', 'crc-real-estate' )
+			: __( 'Some of the more photos\' links couldn\'t be used, so the listing keeps the photos it had. Fix the links and import the row again.', 'crc-real-estate' );
+	}
+
+	/**
+	 * Everything a row can change on a listing, in short, to tell whether it changed.
+	 *
+	 * @param int $id Listing ID.
+	 * @return string
+	 */
+	private static function fingerprint( $id ) {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.serialize_serialize -- Only compared, never read back.
+		return md5( serialize( Listing_Data::row( $id ) ) );
+	}
+
+	/**
+	 * Marks a listing already on the site as changed when the row changed its
+	 * details, photos or questions without the listing itself being saved:
+	 * its last-changed date moves (for "Recently updated"), WordPress lets go
+	 * of the copy it keeps, and LiteSpeed Cache clears the listing's page, so
+	 * visitors see the new details. The listing isn't saved again, which would
+	 * check the publishing rules again and could turn a live listing into a
+	 * draft. A row that changed nothing leaves it as it was.
+	 *
+	 * @param array $current The row's work.
+	 */
+	private static function touch( array $current ) {
+		$id = (int) $current['id'];
+
+		if ( 'updated' !== $current['report']['action'] || empty( $current['before'] ) || self::fingerprint( $id ) === $current['before'] ) {
+			return;
+		}
+
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Only the date, without saving the listing; its cache is cleared below.
+		$wpdb->update(
+			$wpdb->posts,
+			array(
+				'post_modified'     => current_time( 'mysql' ),
+				'post_modified_gmt' => current_time( 'mysql', true ),
+			),
+			array( 'ID' => $id )
+		);
+
+		clean_post_cache( $id );
+
+		// Does nothing without LiteSpeed Cache.
+		do_action( 'litespeed_purge_post', $id );
 	}
 
 	/**
@@ -1194,10 +1394,10 @@ final class Importer {
 			return new \WP_Error( 'bad_link', __( 'it isn\'t a web address starting with https://.', 'crc-real-estate' ) );
 		}
 
-		$id = attachment_url_to_postid( $url );
+		$id = self::local_photo( $url );
 
-		if ( $id && wp_attachment_is_image( $id ) ) {
-			return (int) $id;
+		if ( $id ) {
+			return $id;
 		}
 
 		$found = get_posts(
@@ -1293,6 +1493,270 @@ final class Importer {
 		}
 
 		return (int) $id;
+	}
+
+	/**
+	 * A photo a row links to that is already on this site: one of the
+	 * listing's own photos, in any of its sizes, or another photo in the
+	 * Media Library.
+	 *
+	 * @param string $url Link.
+	 * @param int[]  $own The listing's own photos, from own_photos().
+	 * @return int Attachment ID, or 0 when the photo needs downloading.
+	 */
+	private static function known_photo( $url, array $own ) {
+		$url = esc_url_raw( self::direct_link( trim( (string) $url ) ), array( 'http', 'https' ) );
+
+		if ( '' === $url ) {
+			return 0;
+		}
+
+		$key = self::photo_key( $url );
+
+		return isset( $own[ $key ] ) ? (int) $own[ $key ] : self::local_photo( $url );
+	}
+
+	/**
+	 * A listing's main photo and more photos, found by every link they can
+	 * have: the one WordPress gives (which a CDN plugin may change), and
+	 * where each of their sizes is in the uploads folder.
+	 *
+	 * @param int $post_id Listing ID.
+	 * @return int[] Key from photo_key() => attachment ID.
+	 */
+	private static function own_photos( $post_id ) {
+		$photos = Listing_Data::photo_ids( $post_id );
+		$found  = array();
+
+		foreach ( array_merge( array( $photos['main'] ), $photos['more'] ) as $id ) {
+			if ( ! $id ) {
+				continue;
+			}
+
+			$link = Listing_Data::photo_url( $id );
+
+			foreach ( array( (string) wp_get_attachment_url( $id ), $link ) as $url ) {
+				if ( '' !== $url ) {
+					$found[ self::photo_key( $url ) ] = (int) $id;
+				}
+			}
+
+			$path = self::uploads_path( $link );
+
+			if ( '' === $path ) {
+				continue;
+			}
+
+			$dir = dirname( $path );
+
+			foreach ( self::photo_files( $id ) as $name ) {
+				$found[ strtolower( ( '.' === $dir ? '' : $dir . '/' ) . $name ) ] = (int) $id;
+			}
+		}
+
+		return $found;
+	}
+
+	/**
+	 * How a photo link is compared: where it is in the uploads folder for a
+	 * link to this site, otherwise the link without http:// or https://.
+	 *
+	 * @param string $url Link.
+	 * @return string
+	 */
+	private static function photo_key( $url ) {
+		$path = self::uploads_path( $url );
+
+		return strtolower( '' !== $path ? $path : (string) preg_replace( '#^https?://#i', '', (string) $url ) );
+	}
+
+	/**
+	 * The photo in this site's Media Library that a link leads to. Besides
+	 * the link WordPress gives a photo, this finds it with or without www.,
+	 * with ?… or #… on the end, with spaces or other letters written as %20
+	 * and so on, through a host added with the crc_re_own_photo_hosts filter,
+	 * and as one of its smaller copies or the original of a photo WordPress
+	 * made smaller or turned. Photos in the Trash, or whose file is missing,
+	 * aren't used.
+	 *
+	 * @param string $url Link.
+	 * @return int Attachment ID, or 0.
+	 */
+	private static function local_photo( $url ) {
+		$id = (int) attachment_url_to_postid( $url );
+
+		if ( $id && self::usable_photo( $id ) ) {
+			return $id;
+		}
+
+		$path = self::uploads_path( $url );
+
+		if ( '' === $path ) {
+			return 0;
+		}
+
+		$uploads = wp_get_upload_dir();
+		$id      = (int) attachment_url_to_postid( $uploads['baseurl'] . '/' . $path );
+
+		if ( $id && self::usable_photo( $id ) ) {
+			return $id;
+		}
+
+		// A smaller copy (photo-1024x768.jpg), or the original of photo-scaled.jpg, photo-rotated.jpg or an edited photo-e1700000000000.jpg.
+		$dir  = dirname( $path );
+		$file = wp_basename( $path );
+		$stem = (string) preg_replace( '/(-e\d{13})?(-\d+x\d+|-scaled|-rotated)?(\.[a-z0-9]{3,4}){1,2}$/i', '', $file );
+
+		if ( '' === $stem || $stem === $file ) {
+			return 0;
+		}
+
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Once for a photo link that isn't found otherwise.
+		$found = $wpdb->get_col( $wpdb->prepare( "SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_wp_attached_file' AND meta_value LIKE %s LIMIT 20", $wpdb->esc_like( ( '.' === $dir ? '' : $dir . '/' ) . $stem ) . '%' ) );
+
+		foreach ( (array) $found as $candidate ) {
+			$candidate = (int) $candidate;
+			$attached  = (string) get_post_meta( $candidate, '_wp_attached_file', true );
+
+			if ( dirname( $attached ) === $dir && in_array( strtolower( $file ), array_map( 'strtolower', self::photo_files( $candidate ) ), true ) && self::usable_photo( $candidate ) ) {
+				return $candidate;
+			}
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Where a link to this site's photos leads in the uploads folder, e.g.
+	 * 2024/05/house.jpg.
+	 *
+	 * @param string $url Link.
+	 * @return string '' when it isn't a link to this site's uploads folder.
+	 */
+	private static function uploads_path( $url ) {
+		$uploads = wp_get_upload_dir();
+		$link    = wp_parse_url( (string) $url );
+
+		if ( ! empty( $uploads['error'] ) || empty( $uploads['baseurl'] ) || ! is_array( $link ) || empty( $link['host'] ) || empty( $link['path'] ) || ! in_array( self::bare_host( $link['host'] ), self::own_hosts( $uploads['baseurl'] ), true ) ) {
+			return '';
+		}
+
+		// The path without ?… or #…, with %20 and the like read as the letters they stand for.
+		$path = rawurldecode( $link['path'] );
+		$base = trim( (string) wp_parse_url( $uploads['baseurl'], PHP_URL_PATH ), '/' );
+		$base = '' === $base ? '/' : '/' . $base . '/';
+		$at   = strpos( $path, $base );
+
+		return false === $at ? '' : ltrim( substr( $path, $at + strlen( $base ) ), '/' );
+	}
+
+	/**
+	 * This site's hosts, without www.: the uploads folder's, the site's and
+	 * WordPress's, and any added with the crc_re_own_photo_hosts filter.
+	 *
+	 * @param string $uploads Address of the uploads folder.
+	 * @return string[]
+	 */
+	private static function own_hosts( $uploads ) {
+		$hosts = array();
+
+		foreach ( array( $uploads, home_url(), site_url() ) as $address ) {
+			$host = wp_parse_url( $address, PHP_URL_HOST );
+
+			if ( $host ) {
+				$hosts[] = $host;
+			}
+		}
+
+		/**
+		 * Filters the hosts whose photo links are photos already on this site,
+		 * for example a CDN that serves the uploads folder, so that importing
+		 * a file with those links uses the photos instead of downloading them again.
+		 *
+		 * @param string[] $hosts Hosts, e.g. example.com.
+		 */
+		$hosts = (array) apply_filters( 'crc_re_own_photo_hosts', $hosts );
+
+		return array_values( array_unique( array_filter( array_map( array( __CLASS__, 'bare_host' ), $hosts ), 'strlen' ) ) );
+	}
+
+	/**
+	 * A host in lower case and without www., e.g. example.com. A web address
+	 * gives its host.
+	 *
+	 * @param string $host Host or web address.
+	 * @return string
+	 */
+	private static function bare_host( $host ) {
+		$host = trim( (string) $host );
+
+		if ( false !== strpos( $host, '/' ) ) {
+			$host = (string) wp_parse_url( $host, PHP_URL_HOST );
+		}
+
+		return (string) preg_replace( '/^www\./', '', strtolower( $host ) );
+	}
+
+	/**
+	 * The names of a photo's files: the one WordPress uses, the original of a
+	 * photo it made smaller, and every smaller copy.
+	 *
+	 * @param int $id Attachment ID.
+	 * @return string[]
+	 */
+	private static function photo_files( $id ) {
+		$files = array( wp_basename( (string) get_post_meta( $id, '_wp_attached_file', true ) ) );
+		$meta  = wp_get_attachment_metadata( $id );
+
+		if ( is_array( $meta ) ) {
+			if ( ! empty( $meta['original_image'] ) ) {
+				$files[] = wp_basename( (string) $meta['original_image'] );
+			}
+
+			// The sizes, and other picture types of them that some plugins add (e.g. WebP).
+			$sizes = isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ? $meta['sizes'] : array();
+			$sizes = array_merge( $sizes, array( $meta ) );
+
+			foreach ( $sizes as $size ) {
+				if ( ! is_array( $size ) ) {
+					continue;
+				}
+
+				if ( ! empty( $size['file'] ) && is_string( $size['file'] ) ) {
+					$files[] = wp_basename( $size['file'] );
+				}
+
+				foreach ( isset( $size['sources'] ) && is_array( $size['sources'] ) ? $size['sources'] : array() as $source ) {
+					if ( is_array( $source ) && ! empty( $source['file'] ) && is_string( $source['file'] ) ) {
+						$files[] = wp_basename( $source['file'] );
+					}
+				}
+			}
+		}
+
+		return array_values( array_unique( array_filter( $files, 'strlen' ) ) );
+	}
+
+	/**
+	 * Whether a photo in the Media Library can be used: a picture, not in
+	 * the Trash, with its file still there, or kept elsewhere by an offload
+	 * plugin (which then gives a link, such as s3://… or https://…, for it).
+	 *
+	 * @param int $id Attachment ID.
+	 * @return bool
+	 */
+	private static function usable_photo( $id ) {
+		$post = get_post( $id );
+
+		if ( ! $post || 'attachment' !== $post->post_type || 'trash' === $post->post_status || ! wp_attachment_is_image( $id ) ) {
+			return false;
+		}
+
+		$file = (string) get_attached_file( $id );
+
+		return '' !== $file && ( file_exists( $file ) || preg_match( '#^[a-z][a-z0-9+.-]*://#i', $file ) );
 	}
 
 	/**

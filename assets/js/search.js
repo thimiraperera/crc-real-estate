@@ -10,7 +10,8 @@
  * ("25m", "25 perches", "2-4"); on phones the categories are a list too. In
  * the filters, the price and
  * rent have two boxes and a slider that move together; bedrooms, bathrooms
- * and furnishing have − and +. Search and Show Listings open the category's
+ * and furnishing have − and +; the dropdowns open the plugin's own list in
+ * place, which letters typed jump through. Search and Show Listings open the category's
  * archive with only the choices that were made in its address, and Sort by
  * keeps the search and starts from its first page. The filters' More filters
  * slide open and count the ones chosen; ticked features go in the address as
@@ -1062,14 +1063,49 @@
 		sync();
 	}
 
-	// A list to choose from, under its button: the property type, or the category on phones.
+	// The filters' dropdowns: their list is made from the hidden select's choices.
+	function fillList( list, select ) {
+		each( select.options, function ( choice, i ) {
+			var li = document.createElement( 'li' );
+			var span = document.createElement( 'span' );
+
+			li.id = list.id + '-' + i;
+			li.className = 'crc-dropdown-option';
+			li.setAttribute( 'role', 'option' );
+			li.setAttribute( 'aria-selected', 'false' );
+			li.setAttribute( 'data-value', choice.value );
+			li.setAttribute( 'data-index', String( i ) );
+			span.className = 'crc-dropdown-option-text';
+			span.textContent = choice.textContent;
+			li.appendChild( span );
+
+			if ( text.check ) {
+				li.insertAdjacentHTML( 'beforeend', text.check );
+			}
+
+			list.appendChild( li );
+		} );
+	}
+
+	// A list to choose from, under its button: the property type, the category on phones, or a filter.
 	function setUpDropdown( box, form ) {
 		var toggle = box.querySelector( '[data-crc-toggle]' );
 		var list = box.querySelector( '[data-crc-list]' );
-		var field = box.querySelector( 'input[type="hidden"]' );
+		var field = box.querySelector( 'input[type="hidden"], select' );
 		var radios = box.getAttribute( 'data-radios' );
-		var options = list ? list.querySelectorAll( '[role="option"]' ) : [];
+		var options;
 		var active = -1;
+		var typed = '';
+		var typedAt = 0;
+
+		if ( list && field && 'SELECT' === field.tagName && ! list.querySelector( '[role="option"]' ) ) {
+			fillList( list, field );
+			field.tabIndex = -1;
+			field.setAttribute( 'aria-hidden', 'true' );
+			field.hidden = true;
+		}
+
+		options = list ? list.querySelectorAll( '[role="option"]' ) : [];
 
 		if ( box.crcDropdown || ! toggle || ! list || ! options.length || ( ! field && ! radios ) ) {
 			return;
@@ -1139,7 +1175,11 @@
 			}
 
 			if ( field ) {
-				field.value = picked;
+				// Like a choice in the browser's own list: the form hears about it.
+				if ( field.value !== picked ) {
+					field.value = picked;
+					field.dispatchEvent( new Event( 'change', { bubbles: true } ) );
+				}
 			} else {
 				each( form.querySelectorAll( 'input[name="' + radios + '"]' ), function ( input ) {
 					if ( input.value === picked ) {
@@ -1168,7 +1208,47 @@
 
 			list.focus( { preventScroll: true } );
 			setActive( at );
+
+			// In the filters the list opens in place: all of it comes into view.
+			if ( form.hasAttribute( 'data-crc-filters' ) && list.scrollIntoView ) {
+				list.scrollIntoView( { block: 'nearest' } );
+			}
 		};
+
+		// Typing letters goes to the first choice that starts with them, as in the browser's own list.
+		function jump( key ) {
+			var now = Date.now();
+			var search;
+			var from;
+			var i;
+			var words;
+
+			typed = now - typedAt > 700 ? key : typed + key;
+			typedAt = now;
+
+			// The same letter again ("aaa"): the next choice that starts with it.
+			search = typed === new Array( typed.length + 1 ).join( key ) ? key : typed;
+			from = 1 === search.length ? active + 1 : active;
+
+			for ( i = 0; i < options.length; i++ ) {
+				words = options[ ( from + i ) % options.length ].textContent.trim().toLowerCase();
+
+				if ( 0 === words.indexOf( search ) ) {
+					setActive( ( from + i ) % options.length );
+					return;
+				}
+			}
+		}
+
+		// A click on the field's label opens nothing, but goes to its box.
+		if ( field && field.id ) {
+			each( form.querySelectorAll( 'label[for="' + field.id + '"]' ), function ( label ) {
+				label.addEventListener( 'click', function ( event ) {
+					event.preventDefault();
+					toggle.focus();
+				} );
+			} );
+		}
 
 		list.addEventListener( 'keydown', function ( event ) {
 			var count = options.length;
@@ -1179,6 +1259,10 @@
 			} else if ( 'Home' === event.key || 'End' === event.key ) {
 				event.preventDefault();
 				setActive( 'Home' === event.key ? 0 : count - 1 );
+			} else if ( ( ' ' === event.key || 'Spacebar' === event.key ) && '' !== typed && Date.now() - typedAt <= 700 ) {
+				// A space while letters are being typed is part of the words, e.g. "up to 3".
+				event.preventDefault();
+				jump( ' ' );
 			} else if ( 'Enter' === event.key || ' ' === event.key || 'Spacebar' === event.key ) {
 				event.preventDefault();
 
@@ -1187,6 +1271,8 @@
 				}
 			} else if ( 'Tab' === event.key && form.crcPopups ) {
 				form.crcPopups.close( false );
+			} else if ( 1 === event.key.length && ' ' !== event.key && ! event.ctrlKey && ! event.metaKey && ! event.altKey ) {
+				jump( event.key.toLowerCase() );
 			}
 		} );
 
@@ -1276,7 +1362,7 @@
 				if ( 'Enter' === event.key || ' ' === event.key || 'Spacebar' === event.key ) {
 					event.preventDefault();
 					toggle.click();
-				} else if ( 'ArrowDown' === event.key && toggle.hasAttribute( 'aria-haspopup' ) ) {
+				} else if ( ( 'ArrowDown' === event.key || 'ArrowUp' === event.key ) && toggle.hasAttribute( 'aria-haspopup' ) ) {
 					event.preventDefault();
 					open( toggle );
 				}
@@ -1515,9 +1601,15 @@
 		more.crcMore = true;
 
 		function slide( open ) {
-			var from = more.open ? body.getBoundingClientRect().height : 0;
+			var from;
 			var motion;
 			var to;
+
+			if ( form.crcPopups ) {
+				form.crcPopups.close( false );
+			}
+
+			from = more.open ? body.getBoundingClientRect().height : 0;
 
 			function done() {
 				// Only the latest motion finishes.

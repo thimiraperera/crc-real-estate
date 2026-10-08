@@ -41,6 +41,7 @@ final class Plugin {
 		( new Updater( CRC_RE_FILE ) )->register();
 		( new Assets() )->hooks();
 		( new Post_Type() )->hooks();
+		( new Listing_Status() )->hooks();
 		( new Taxonomy() )->hooks();
 		( new District() )->hooks();
 		( new Town() )->hooks();
@@ -86,6 +87,7 @@ final class Plugin {
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Inquiries_Screen() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
+		( new Admin\Listing_Switch() )->hooks();
 		( new Admin\Listing_Export() )->hooks();
 		( new Admin\Import_Page() )->hooks();
 		( new Admin\Widgets_Page() )->hooks();

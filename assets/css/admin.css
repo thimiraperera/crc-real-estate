@@ -389,6 +389,111 @@
 	color: #646970;
 }
 
+/* All Listings: On the website (a switch) and Availability (Sold or Rented). */
+.fixed .column-crc_live {
+	width: 120px;
+}
+
+.fixed .column-crc_availability {
+	width: 170px;
+}
+
+.crc-switch {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	padding: 2px 0;
+	border: 0;
+	background: none;
+	color: #1d2327;
+	font: inherit;
+	cursor: pointer;
+}
+
+.crc-switch-track {
+	position: relative;
+	display: block;
+	flex: none;
+	width: 36px;
+	height: 20px;
+	border-radius: 10px;
+	background: #8c8f94;
+	transition: background-color 0.2s ease;
+}
+
+.crc-switch-thumb {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	border-radius: 50%;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+	transition: transform 0.2s ease;
+}
+
+.crc-switch[aria-checked="true"] .crc-switch-track {
+	background: #00a32a;
+}
+
+.crc-switch[aria-checked="true"] .crc-switch-thumb {
+	transform: translateX(16px);
+}
+
+.crc-switch:focus {
+	outline: none;
+}
+
+.crc-switch:focus-visible .crc-switch-track {
+	outline: 2px solid #2271b1;
+	outline-offset: 2px;
+}
+
+.crc-switch[disabled] {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.crc-availability {
+	display: block;
+	margin: 0 0 6px;
+}
+
+.crc-availability.is-gone {
+	display: table;
+	padding: 2px 10px;
+	border-radius: 10px;
+	background: #1d2327;
+	color: #fff;
+}
+
+.crc-availability-cell .crc-gone[disabled] {
+	cursor: wait;
+}
+
+.crc-row-error {
+	margin: 6px 0 0;
+	color: #d63638;
+}
+
+.crc-unlisted-note .dashicons {
+	margin-right: 2px;
+	color: #8c8f94;
+}
+
+.crc-unlisted-note .description {
+	margin: 4px 0 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.crc-switch-track,
+	.crc-switch-thumb {
+		transition: none;
+	}
+}
+
 /* Listing Categories screens: this file only loads there for listing categories. */
 .edit-tags-php #col-left .form-wrap,
 .edit-tags-php .inline-edit-row label:has(input[name="slug"]),
@@ -1031,6 +1136,14 @@
 
 .crc-import-file input[type="file"] {
 	max-width: 100%;
+}
+
+.crc-import-clear {
+	margin-bottom: 4px;
+}
+
+.crc-import-clear label {
+	font-weight: 600;
 }
 
 .crc-import-pending {

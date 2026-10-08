@@ -42,7 +42,7 @@ final class Csv {
 	 * Column names are trimmed and lower-cased; empty rows are skipped.
 	 *
 	 * @param string $path File path.
-	 * @return array|\WP_Error 'columns' (names) and 'rows' (each with 'line', the row's line in the file, and 'cells').
+	 * @return array|\WP_Error 'columns' (names), 'rows' (each with 'line', the row's line in the file, and 'cells') and 'converted' (whether the file wasn't in UTF-8 and was converted from the Windows character set).
 	 */
 	public static function read( $path ) {
 		$text = is_readable( $path ) ? (string) file_get_contents( $path ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Local uploaded file.
@@ -61,7 +61,8 @@ final class Csv {
 	 * @return array|\WP_Error See read().
 	 */
 	public static function parse( $text ) {
-		$text = self::to_utf8( $text );
+		$converted = false;
+		$text      = self::to_utf8( $text, $converted );
 		$text = str_replace( array( "\r\n", "\r" ), "\n", $text );
 		$head = strtok( $text, "\n" );
 		$sep  = substr_count( (string) $head, ';' ) > substr_count( (string) $head, ',' ) ? ';' : ',';
@@ -112,8 +113,9 @@ final class Csv {
 		}
 
 		return array(
-			'columns' => array_values( array_filter( $columns, 'strlen' ) ),
-			'rows'    => $rows,
+			'columns'   => array_values( array_filter( $columns, 'strlen' ) ),
+			'rows'      => $rows,
+			'converted' => $converted,
 		);
 	}
 
@@ -205,18 +207,23 @@ final class Csv {
 
 	/**
 	 * Text in UTF-8, without Excel's byte order mark. Files saved in the
-	 * Windows character set are converted.
+	 * Windows character set are converted; letters that set doesn't have,
+	 * such as Sinhala and Tamil, were already lost when the file was saved.
 	 *
-	 * @param string $text Text.
+	 * @param string $text      Text.
+	 * @param bool   $converted Set to whether the text was converted.
 	 * @return string
 	 */
-	private static function to_utf8( $text ) {
+	private static function to_utf8( $text, &$converted = false ) {
+		$converted = false;
+
 		if ( 0 === strpos( $text, "\xEF\xBB\xBF" ) ) {
 			$text = substr( $text, 3 );
 		}
 
 		if ( function_exists( 'mb_check_encoding' ) && ! mb_check_encoding( $text, 'UTF-8' ) && function_exists( 'mb_convert_encoding' ) ) {
-			$text = mb_convert_encoding( $text, 'UTF-8', 'Windows-1252' );
+			$text      = mb_convert_encoding( $text, 'UTF-8', 'Windows-1252' );
+			$converted = true;
 		}
 
 		return $text;

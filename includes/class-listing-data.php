@@ -22,7 +22,8 @@ defined( 'ABSPATH' ) || exit;
  *
  * Lists in a cell are separated by |. Groups each take a line of their own,
  * written as "Group title: first | second"; details are "Label = Value".
- * Photos are links; the importer downloads them.
+ * Photos are links; the importer uses the ones already on this site as they
+ * are and downloads the others.
  */
 final class Listing_Data {
 
@@ -56,23 +57,23 @@ final class Listing_Data {
 		$faq      = __( 'FAQs', 'crc-real-estate' );
 		$owner    = __( 'Owner (private)', 'crc-real-estate' );
 
-		$add( 'id', $listing, __( 'Leave it empty to add a new listing. To change a listing that is already on the site, put its ID here (hover over the listing in All Listings to see it). When a row has an ID, empty cells leave that part of the listing as it is.', 'crc-real-estate' ) );
+		$add( 'id', $listing, __( 'Leave it empty to add a new listing. To change a listing that is already on the site, put its ID here (hover over the listing in All Listings to see it). When a row has an ID, columns the file doesn\'t have leave that part of the listing as it is. An empty cell takes that detail off the listing when "Empty cells take things off" is ticked as you import, except the title, status, category and main photo, which are always kept. When it isn\'t ticked, empty cells leave the listing as it is.', 'crc-real-estate' ) );
 		$add( 'title', $listing, __( 'The listing\'s title, for example Bare land for sale in Galle. Leave it empty for a new listing to name it from its category, property type, bedrooms and district, the way the listing screen suggests.', 'crc-real-estate' ) );
-		$add( 'status', $listing, __( 'draft (the default), publish, pending or private. A listing is only published when it has a main photo and a category; otherwise it stays a draft.', 'crc-real-estate' ) );
+		$add( 'status', $listing, __( 'draft (the default), publish, pending, or private (unlisted: kept here but hidden from the website, as when its On the website switch is off on All Listings). A listing is only published when it has a main photo and a category; otherwise it stays a draft.', 'crc-real-estate' ) );
 		/* translators: %s: category slugs, e.g. "lands, properties-for-sale". */
 		$add( 'category', $listing, sprintf( __( 'One of: %s. The category\'s name works too.', 'crc-real-estate' ), implode( ', ', array_keys( Taxonomy::terms() ) ) ) );
 		$add( 'district', $listing, __( 'One of Sri Lanka\'s 25 districts, for example Galle or Nuwara Eliya. It shows under the title and goes into the suggested name.', 'crc-real-estate' ) );
 		$add( 'town', $listing, __( 'The town or area people would search for, for example Hikkaduwa or Colombo 7. The search box finds the listing by it. A town that isn\'t on the site yet is added.', 'crc-real-estate' ) );
 		$add( 'description', $listing, __( 'The description shown on the listing page. Leave an empty line between paragraphs.', 'crc-real-estate' ) );
 
-		$add( 'main_photo', $photos, __( 'A link to the main photo, starting with https://. The photo is downloaded into the Media Library. Google Drive and Dropbox share links work when the file is shared with anyone who has the link.', 'crc-real-estate' ) );
-		$add( 'more_photos', $photos, __( 'Links to more photos, in the order they should show, separated by |.', 'crc-real-estate' ) );
+		$add( 'main_photo', $photos, __( 'A link to the main photo, starting with https://. A photo from another website is downloaded into the Media Library. A link to a photo already on this website, as in a file from Export, uses that photo as it is, without downloading it again. Google Drive and Dropbox share links work when the file is shared with anyone who has the link. An empty cell always keeps the main photo a listing already has.', 'crc-real-estate' ) );
+		$add( 'more_photos', $photos, __( 'Links to more photos, in the order they should show, separated by |. Photos already on this website are used as they are. For a listing already on the site, these become its more photos in this order; if some of the links can\'t be used, it keeps the photos it had. An empty cell takes all its more photos off when "Empty cells take things off" is ticked, and keeps them when it isn\'t. Photos taken off a listing stay in the Media Library.', 'crc-real-estate' ) );
 
 		$add( 'price', $price, __( 'The price in rupees, numbers only, for example 12500000 or 12,500,000. For a property for rent, the rent for one month.', 'crc-real-estate' ) );
 		$add( 'price_per_perch', $price, __( 'For land: the price of one perch, numbers only.', 'crc-real-estate' ) );
 
-		$add( 'phone', $contact, __( 'This listing\'s own number for the Call button, with the country code, for example +94 77 123 4567. A new listing without one uses the number from Settings. For a listing already on the site, an empty cell keeps the number it has; to go back to the number from Settings, empty it in the Contact buttons box on the listing screen.', 'crc-real-estate' ) );
-		$add( 'whatsapp', $contact, __( 'This listing\'s own WhatsApp number, with the country code. A new listing without one uses the number from Settings. For a listing already on the site, an empty cell keeps the number it has.', 'crc-real-estate' ) );
+		$add( 'phone', $contact, __( 'This listing\'s own number for the Call button, with the country code, for example +94 77 123 4567. A listing without one uses the number from Settings. For a listing already on the site, an empty cell goes back to the number from Settings when "Empty cells take things off" is ticked, and keeps the number it has when it isn\'t. If the spreadsheet dropped the 0 at the start of the saved number (0771234567 became 771234567), the saved number is kept.', 'crc-real-estate' ) );
+		$add( 'whatsapp', $contact, __( 'This listing\'s own WhatsApp number, with the country code. A listing without one uses the number from Settings. For a listing already on the site, an empty cell goes back to the number from Settings when "Empty cells take things off" is ticked, and keeps the number it has when it isn\'t. If the spreadsheet dropped the 0 at the start of the saved number, the saved number is kept.', 'crc-real-estate' ) );
 		$add( 'call_text', $contact, __( 'This listing\'s own Call button text. Write {number} where the number goes.', 'crc-real-estate' ) );
 		$add( 'message_text', $contact, __( 'This listing\'s own Message button text. Write {number} where the number goes.', 'crc-real-estate' ) );
 
@@ -98,7 +99,7 @@ final class Listing_Data {
 				}
 
 				/* translators: 1: detail name, 2: units, e.g. "perches, acres". */
-				$add( self::detail_column( $name ) . '_unit', $overview, sprintf( __( 'The unit of %1$s: %2$s. For a new listing, empty means the first one. For a listing already on the site, an empty cell keeps the unit it has, so fill it in when you change the number.', 'crc-real-estate' ), $item['label'], implode( ', ', $units ) ) );
+				$add( self::detail_column( $name ) . '_unit', $overview, sprintf( __( 'The unit of %1$s: %2$s. For a new listing, empty means the first one. For a listing already on the site, an empty cell goes back to the first one when "Empty cells take things off" is ticked, and keeps the unit it has when it isn\'t, so fill it in when you change the number. Taking the number off takes its unit off too.', 'crc-real-estate' ), $item['label'], implode( ', ', $units ) ) );
 			}
 		}
 
@@ -112,14 +113,14 @@ final class Listing_Data {
 
 		$add( 'latitude', $location, __( 'The exact place\'s latitude, for example 6.0535. You can also put both numbers here, as 6.0535, 80.2210. The site only ever shows the area around it.', 'crc-real-estate' ) );
 		$add( 'longitude', $location, __( 'The exact place\'s longitude, for example 80.2210.', 'crc-real-estate' ) );
-		$add( 'show_map', $location, __( 'yes or no: whether the listing page shows the map.', 'crc-real-estate' ) );
+		$add( 'show_map', $location, __( 'yes or no: whether the listing page shows the map. For a listing already on the site, an empty cell goes back to yes when "Empty cells take things off" is ticked.', 'crc-real-estate' ) );
 		$add( 'google_maps_link', $location, __( 'A Google Maps link to the place, kept for your team. It never shows on the site.', 'crc-real-estate' ) );
 
-		$add( 'show_category_faqs', $faq, __( 'yes or no: whether the listing shows its category\'s questions before its own.', 'crc-real-estate' ) );
+		$add( 'show_category_faqs', $faq, __( 'yes or no: whether the listing shows its category\'s questions before its own. For a listing already on the site, an empty cell goes back to yes when "Empty cells take things off" is ticked.', 'crc-real-estate' ) );
 
 		for ( $i = 1; $i <= max( 1, (int) $faqs ); $i++ ) {
 			/* translators: 1: question number, 2: the next question number. */
-			$add( 'faq_' . $i . '_question', $faq, sprintf( __( 'Question %1$d of the listing\'s own questions. Add more with faq_%2$d_question, faq_%2$d_answer and so on. For a listing already on the site, only the questions you fill in change; the others stay as they are.', 'crc-real-estate' ), $i, max( 3, (int) $faqs + 1 ) ) );
+			$add( 'faq_' . $i . '_question', $faq, sprintf( __( 'Question %1$d of the listing\'s own questions. Add more with faq_%2$d_question, faq_%2$d_answer and so on. For a listing already on the site, the questions change by number. When "Empty cells take things off" is ticked, a filled cell changes that part of the question, an emptied cell takes that part off, and emptying faq_%1$d_question takes question %1$d off; questions and parts whose columns aren\'t in the file stay as they are, and questions moved to other numbers aren\'t repeated. When it isn\'t ticked, only the questions you fill in change and the others stay as they are.', 'crc-real-estate' ), $i, max( 3, (int) $faqs + 1 ) ) );
 			/* translators: %d: question number. */
 			$add( 'faq_' . $i . '_answer', $faq, sprintf( __( 'The answer to question %d. Leave an empty line between paragraphs.', 'crc-real-estate' ), $i ) );
 			/* translators: %d: question number. */
@@ -258,8 +259,8 @@ final class Listing_Data {
 		);
 
 		$photos            = self::photo_ids( $post_id );
-		$row['main_photo'] = $photos['main'] ? (string) wp_get_attachment_url( $photos['main'] ) : '';
-		$row['more_photos'] = implode( ' | ', array_filter( array_map( 'wp_get_attachment_url', $photos['more'] ) ) );
+		$row['main_photo'] = $photos['main'] ? self::photo_url( $photos['main'] ) : '';
+		$row['more_photos'] = implode( ' | ', array_filter( array_map( array( __CLASS__, 'photo_url' ), $photos['more'] ) ) );
 
 		$row['price']           = Price_Card::price( $post_id );
 		$row['price_per_perch'] = Price_Card::price_per_perch( $post_id );
@@ -380,21 +381,55 @@ final class Listing_Data {
 	}
 
 	/**
-	 * Writes a row's filled-in cells onto a listing. Empty cells and columns
-	 * the file doesn't have leave the listing as it is. The title, text,
-	 * status and photos are left to the importer.
+	 * A photo's link in this site's uploads folder, as the file has it, so
+	 * the import finds the photo again even when a CDN plugin shows it from
+	 * another address. That link is only used while the file is really in the
+	 * uploads folder: when an offload plugin has moved it elsewhere, the link
+	 * WordPress gives it is the one that works.
+	 *
+	 * @param int $id Attachment ID.
+	 * @return string
+	 */
+	public static function photo_url( $id ) {
+		$file = (string) get_post_meta( $id, '_wp_attached_file', true );
+
+		// A place in the uploads folder, not a full path or a link a plugin saved instead, whose file is
+		// still on this server. Asked without the plugins' changes, so a link they give can't hide a missing file.
+		if ( '' !== $file && ! preg_match( '#^(/|\\\\|[a-z]:|[a-z][a-z0-9+.-]*://)#i', $file ) && file_exists( (string) get_attached_file( $id, true ) ) ) {
+			$uploads = wp_get_upload_dir();
+
+			if ( empty( $uploads['error'] ) && ! empty( $uploads['baseurl'] ) ) {
+				return $uploads['baseurl'] . '/' . $file;
+			}
+		}
+
+		return (string) wp_get_attachment_url( $id );
+	}
+
+	/**
+	 * Writes a row's cells onto a listing. Columns the file doesn't have
+	 * leave the listing as it is, and so do empty cells, unless $clear is on:
+	 * then an empty cell takes that detail off, as emptying it on the listing
+	 * screen does. The category is never taken off, and the title, text,
+	 * status and photos are left to the importer. A value read back as it is
+	 * saved doesn't repeat the warning it gave the first time.
 	 *
 	 * @param int      $post_id Listing ID.
 	 * @param string[] $cells   Row, keyed by column name.
+	 * @param bool     $clear   Whether empty cells take things off, for a listing already on the site.
 	 * @return string[] Warnings about cells that couldn't be used.
 	 */
-	public static function apply( $post_id, array $cells ) {
+	public static function apply( $post_id, array $cells, $clear = false ) {
 		$warnings = array();
 		$filled   = function ( $name ) use ( $cells ) {
 			return isset( $cells[ $name ] ) && '' !== trim( (string) $cells[ $name ] );
 		};
 		$cell     = function ( $name ) use ( $cells ) {
 			return isset( $cells[ $name ] ) ? trim( (string) $cells[ $name ] ) : '';
+		};
+		// The file has the column, its cell is empty, and empty cells take things off.
+		$emptied  = function ( $name ) use ( $cells, $clear ) {
+			return $clear && array_key_exists( $name, $cells ) && '' === trim( (string) $cells[ $name ] );
 		};
 
 		if ( $filled( 'category' ) ) {
@@ -410,7 +445,7 @@ final class Listing_Data {
 		}
 
 		if ( $filled( 'district' ) ) {
-			$term = District::term( District::find( $cell( 'district' ) ) );
+			$term = District::term( self::district_slug( $cell( 'district' ) ) );
 
 			if ( $term ) {
 				wp_set_object_terms( $post_id, array( (int) $term->term_id ), District::NAME );
@@ -418,10 +453,27 @@ final class Listing_Data {
 				/* translators: %s: what was written. */
 				$warnings[] = sprintf( __( 'District "%s" isn\'t one of Sri Lanka\'s 25 districts, so it was left out. Write it like Galle or Nuwara Eliya.', 'crc-real-estate' ), $cell( 'district' ) );
 			}
+		} elseif ( $emptied( 'district' ) ) {
+			wp_set_object_terms( $post_id, array(), District::NAME );
 		}
 
 		if ( $filled( 'town' ) ) {
-			Town::set( $post_id, $cell( 'town' ) );
+			$town = Town::of( $post_id );
+
+			// The listing's own town read back stays as it is, even one written another way
+			// on the Towns screen, such as "Colombo 07" or a name longer than a typed one can be.
+			if ( $town && self::same_town( $town['name'], $cell( 'town' ) ) ) {
+				$district = District::of( $post_id );
+
+				// The town remembers the listing's district, as when it is given.
+				if ( $district && (string) get_term_meta( $town['term']->term_id, Town::DISTRICT_META, true ) !== $district['slug'] ) {
+					update_term_meta( $town['term']->term_id, Town::DISTRICT_META, $district['slug'] );
+				}
+			} else {
+				Town::set( $post_id, $cell( 'town' ) );
+			}
+		} elseif ( $emptied( 'town' ) ) {
+			Town::set( $post_id, '' );
 		}
 
 		$category = Taxonomy::listing_category( $post_id );
@@ -442,36 +494,55 @@ final class Listing_Data {
 					/* translators: 1: column, 2: what was written. */
 					$warnings[] = sprintf( __( '%1$s "%2$s" isn\'t one amount in numbers, so it was left out. Write it like 12500000 or Rs. 12,500,000.', 'crc-real-estate' ), $name, $cell( $name ) );
 				}
+			} elseif ( $emptied( $name ) ) {
+				delete_post_meta( $post_id, $meta );
 			}
 		}
 
-		// Contact buttons.
+		// Contact buttons. An emptied one goes back to the number or text from Settings.
 		foreach ( array(
 			'phone'        => array( Settings::PHONE_META, 'sanitize_number' ),
 			'whatsapp'     => array( Settings::WHATSAPP_META, 'sanitize_number' ),
 			'call_text'    => array( Settings::CALL_TEXT_META, 'sanitize_text' ),
 			'message_text' => array( Settings::MESSAGE_TEXT_META, 'sanitize_text' ),
 		) as $name => $how ) {
-			if ( $filled( $name ) ) {
-				$value = call_user_func( array( Settings::class, $how[1] ), $cell( $name ) );
+			if ( $emptied( $name ) ) {
+				delete_post_meta( $post_id, $how[0] );
+				continue;
+			}
 
-				// A number without a digit, such as "-" for "not known", isn't one.
-				if ( 'sanitize_number' === $how[1] && ! preg_match( '/\d/', $value ) ) {
-					$value = '';
-				}
+			if ( ! $filled( $name ) ) {
+				continue;
+			}
 
-				if ( '' !== $value ) {
-					update_post_meta( $post_id, $how[0], wp_slash( $value ) );
-				} else {
-					/* translators: 1: column, 2: what was written. */
-					$warnings[] = sprintf( __( '%1$s "%2$s" couldn\'t be used, so it was left as it was.', 'crc-real-estate' ), $name, $cell( $name ) );
-				}
+			// A number the spreadsheet wrote without its first 0 keeps the saved one.
+			if ( 'sanitize_number' === $how[1] && self::lost_zero( $cell( $name ), get_post_meta( $post_id, $how[0], true ) ) ) {
+				continue;
+			}
+
+			$value = call_user_func( array( Settings::class, $how[1] ), $cell( $name ) );
+
+			// A number without a digit, such as "-" for "not known", isn't one.
+			if ( 'sanitize_number' === $how[1] && ! preg_match( '/\d/', $value ) ) {
+				$value = '';
+			}
+
+			if ( '' !== $value ) {
+				update_post_meta( $post_id, $how[0], wp_slash( $value ) );
+			} else {
+				/* translators: 1: column, 2: what was written. */
+				$warnings[] = sprintf( __( '%1$s "%2$s" couldn\'t be used, so it was left as it was.', 'crc-real-estate' ), $name, $cell( $name ) );
 			}
 		}
 
 		// Main overview details.
 		foreach ( Overview::fields() as $name => $field ) {
 			$column = self::field_column( $name );
+
+			if ( $emptied( $column ) ) {
+				delete_post_meta( $post_id, $field['meta'] );
+				continue;
+			}
 
 			if ( ! $filled( $column ) ) {
 				continue;
@@ -493,6 +564,14 @@ final class Listing_Data {
 
 		foreach ( self::detail_items() as $name => $item ) {
 			$column = self::detail_column( $name );
+			$saved  = (string) get_post_meta( $post_id, $item['meta'], true );
+
+			if ( $emptied( $column ) ) {
+				// Its unit goes with it, as on the listing screen.
+				delete_post_meta( $post_id, $item['meta'] );
+				delete_post_meta( $post_id, $item['meta'] . '_unit' );
+				continue;
+			}
 
 			if ( $filled( $column ) ) {
 				$value = self::detail_value( $item, $cell( $column ) );
@@ -500,16 +579,22 @@ final class Listing_Data {
 				if ( '' !== $value ) {
 					update_post_meta( $post_id, $item['meta'], wp_slash( $value ) );
 
-					if ( ! self::detail_fits( $groups, $name, $slug ) ) {
+					// Said when it changes, not again each time the same file is imported.
+					if ( $value !== $saved && ! self::detail_fits( $groups, $name, $slug ) ) {
 						$unseen[] = $item['label'];
 					}
-				} else {
+				} elseif ( $cell( $column ) !== $saved ) {
+					// A value saved before the detail became a list, read back unchanged, is kept quietly.
 					/* translators: 1: detail, 2: what was written. */
 					$warnings[] = sprintf( __( '%1$s "%2$s" couldn\'t be used, so it was left out.', 'crc-real-estate' ), $item['label'], $cell( $column ) );
 				}
 			}
 
-			if ( $item['units'] && $filled( $column . '_unit' ) ) {
+			if ( ! $item['units'] ) {
+				continue;
+			}
+
+			if ( $filled( $column . '_unit' ) ) {
 				$unit = self::unit_key( $item, $cell( $column . '_unit' ) );
 
 				if ( '' !== $unit ) {
@@ -518,6 +603,9 @@ final class Listing_Data {
 					/* translators: 1: detail, 2: what was written. */
 					$warnings[] = sprintf( __( 'The unit "%2$s" of %1$s isn\'t one of its units, so it was left out.', 'crc-real-estate' ), $item['label'], $cell( $column . '_unit' ) );
 				}
+			} elseif ( $emptied( $column . '_unit' ) ) {
+				// Back to the first unit.
+				delete_post_meta( $post_id, $item['meta'] . '_unit' );
 			}
 		}
 
@@ -530,20 +618,19 @@ final class Listing_Data {
 			foreach ( self::detail_groups( $cell( 'own_detail_groups' ) ) as $group ) {
 				$own_details[] = $group;
 			}
+		} elseif ( $emptied( 'own_detail_groups' ) ) {
+			$own_details = array();
 		}
 
 		if ( $filled( 'more_details' ) ) {
 			$extras = array();
+			$had    = Overview::extras( $post_id );
 
 			foreach ( self::detail_groups( $cell( 'more_details' ) ) as $group ) {
 				$key = self::group_key( $groups, $group['title'] );
 
 				if ( '' !== $key ) {
 					$extras[ $key ] = isset( $extras[ $key ] ) ? array_merge( $extras[ $key ], $group['items'] ) : $group['items'];
-
-					if ( $groups[ $key ]['categories'] && ! in_array( $slug, $groups[ $key ]['categories'], true ) ) {
-						$unseen[] = $groups[ $key ]['title'];
-					}
 				} else {
 					// Not a ready-made group: kept as a group of the listing's own.
 					$own_details = self::add_group( null === $own_details ? Overview::groups( $post_id ) : $own_details, $group, true );
@@ -551,10 +638,18 @@ final class Listing_Data {
 				}
 			}
 
-			// Only lines for ready-made groups replace what the listing added to them.
-			if ( $extras ) {
-				self::store( $post_id, Overview::EXTRA_META, Overview::sanitize_extras( $extras ) );
+			// The lines for ready-made groups replace all the listing added to them, even when
+			// there are none, so a line kept as a group of its own isn't there twice.
+			$extras = Overview::sanitize_extras( $extras );
+			self::store( $post_id, Overview::EXTRA_META, $extras );
+
+			foreach ( $extras as $key => $items ) {
+				if ( $groups[ $key ]['categories'] && ! in_array( $slug, $groups[ $key ]['categories'], true ) && ( ! isset( $had[ $key ] ) || $had[ $key ] !== $items ) ) {
+					$unseen[] = $groups[ $key ]['title'];
+				}
 			}
+		} elseif ( $emptied( 'more_details' ) ) {
+			delete_post_meta( $post_id, Overview::EXTRA_META );
 		}
 
 		if ( null !== $own_details ) {
@@ -571,9 +666,12 @@ final class Listing_Data {
 			foreach ( self::item_groups( $cell( 'own_feature_groups' ) ) as $group ) {
 				$own_features[] = $group;
 			}
+		} elseif ( $emptied( 'own_feature_groups' ) ) {
+			$own_features = array();
 		}
 
 		if ( $filled( 'features' ) ) {
+			$had     = Features::ticked( $post_id );
 			$keys    = array();
 			$unknown = array();
 
@@ -583,7 +681,7 @@ final class Listing_Data {
 				if ( '' !== $key ) {
 					$keys[] = $key;
 
-					if ( ! self::feature_fits( $feature_groups, $key, $slug ) ) {
+					if ( ! in_array( $key, $had, true ) && ! self::feature_fits( $feature_groups, $key, $slug ) ) {
 						$unseen[] = $feature;
 					}
 				} else {
@@ -604,29 +702,36 @@ final class Listing_Data {
 				/* translators: %s: features. */
 				$warnings[] = sprintf( __( 'These aren\'t ready-made features, so they were put in a group called More features: %s.', 'crc-real-estate' ), implode( ', ', $unknown ) );
 			}
+		} elseif ( $emptied( 'features' ) ) {
+			delete_post_meta( $post_id, Features::META );
 		}
 
 		if ( $filled( 'more_features' ) ) {
 			$extras = array();
+			$had    = Features::extras( $post_id );
 
 			foreach ( self::item_groups( $cell( 'more_features' ) ) as $group ) {
 				$key = self::group_key( $feature_groups, $group['title'] );
 
 				if ( '' !== $key ) {
 					$extras[ $key ] = isset( $extras[ $key ] ) ? array_merge( $extras[ $key ], $group['items'] ) : $group['items'];
-
-					if ( $feature_groups[ $key ]['categories'] && ! in_array( $slug, $feature_groups[ $key ]['categories'], true ) ) {
-						$unseen[] = $feature_groups[ $key ]['title'];
-					}
 				} else {
 					$own_features = self::add_group( null === $own_features ? Features::groups( $post_id ) : $own_features, $group );
 					$warnings[]   = self::unknown_group( $group['title'], $feature_groups, 'more_features', __( 'Home features: Pantry | Roof terrace', 'crc-real-estate' ) );
 				}
 			}
 
-			if ( $extras ) {
-				self::store( $post_id, Features::EXTRA_META, Features::sanitize_extras( $extras ) );
+			// As for details: all of them are replaced, even when there are none.
+			$extras = Features::sanitize_extras( $extras );
+			self::store( $post_id, Features::EXTRA_META, $extras );
+
+			foreach ( $extras as $key => $items ) {
+				if ( $feature_groups[ $key ]['categories'] && ! in_array( $slug, $feature_groups[ $key ]['categories'], true ) && ( ! isset( $had[ $key ] ) || $had[ $key ] !== $items ) ) {
+					$unseen[] = $feature_groups[ $key ]['title'];
+				}
 			}
+		} elseif ( $emptied( 'more_features' ) ) {
+			delete_post_meta( $post_id, Features::EXTRA_META );
 		}
 
 		if ( null !== $own_features ) {
@@ -661,9 +766,12 @@ final class Listing_Data {
 			} else {
 				$warnings[] = __( 'The place needs a latitude from -90 to 90 and a longitude from -180 to 180, so it was left out.', 'crc-real-estate' );
 			}
+		} elseif ( $emptied( 'latitude' ) || $emptied( 'longitude' ) ) {
+			delete_post_meta( $post_id, Location::LAT_META );
+			delete_post_meta( $post_id, Location::LNG_META );
 		}
 
-		$warnings = array_merge( $warnings, self::apply_switch( $post_id, $cells, 'show_map', Location::HIDDEN_META ) );
+		$warnings = array_merge( $warnings, self::apply_switch( $post_id, $cells, 'show_map', Location::HIDDEN_META, $clear ) );
 
 		if ( $filled( 'google_maps_link' ) ) {
 			$link = esc_url_raw( $cell( 'google_maps_link' ), array( 'http', 'https' ) );
@@ -673,26 +781,41 @@ final class Listing_Data {
 			} else {
 				$warnings[] = __( 'The Google Maps link isn\'t a web address, so it was left out.', 'crc-real-estate' );
 			}
+		} elseif ( $emptied( 'google_maps_link' ) ) {
+			delete_post_meta( $post_id, Location::GOOGLE_META );
 		}
 
 		// FAQs.
-		$warnings = array_merge( $warnings, self::apply_switch( $post_id, $cells, 'show_category_faqs', Faq::HIDE_META ) );
+		$warnings = array_merge( $warnings, self::apply_switch( $post_id, $cells, 'show_category_faqs', Faq::HIDE_META, $clear ) );
 		$faqs     = self::faqs( $cells );
 
-		if ( null !== $faqs ) {
+		if ( $clear && preg_grep( '/^faq_\d+_(question|answer|link_text|link)$/', array_map( 'strval', array_keys( $cells ) ) ) ) {
+			$warnings = array_merge( $warnings, self::merge_faqs( $post_id, $cells ) );
+		} elseif ( null !== $faqs ) {
 			$warnings = array_merge( $warnings, self::apply_faqs( $post_id, $faqs ) );
 		}
 
 		// Owner.
 		$owner  = array();
 		$labels = Owner::labels();
+		$had    = Owner::get( $post_id );
 
 		foreach ( array_keys( Owner::FIELDS ) as $key ) {
+			if ( $emptied( 'owner_' . $key ) ) {
+				$owner[ $key ] = '';
+				continue;
+			}
+
 			if ( ! $filled( 'owner_' . $key ) ) {
 				continue;
 			}
 
 			$value = $cell( 'owner_' . $key );
+
+			// A number the spreadsheet wrote without its first 0 keeps the saved one.
+			if ( 'phone' === $key && self::lost_zero( $value, $had['phone'] ) ) {
+				continue;
+			}
 
 			// A cell that can't be used leaves the saved detail as it was.
 			$clean = Owner::sanitize( $key, $value );
@@ -760,8 +883,7 @@ final class Listing_Data {
 			$item = array_merge( isset( $items[ $n ] ) ? $items[ $n ] : $empty, $parts );
 
 			if ( '' === trim( wp_strip_all_tags( (string) $item['question'] ) ) ) {
-				/* translators: %d: question number. */
-				$warnings[] = sprintf( __( 'Question %1$d has an answer or a link but no question, so it was left out. Fill in faq_%1$d_question too.', 'crc-real-estate' ), $n );
+				$warnings[] = self::no_question( $n );
 				continue;
 			}
 
@@ -772,6 +894,132 @@ final class Listing_Data {
 		self::store( $post_id, Faq::META, Faq::sanitize_items( array_values( $items ) ) );
 
 		return $warnings;
+	}
+
+	/**
+	 * Writes the listing's own questions from a row whose empty cells take
+	 * things off. They change by number, as the other columns do: a filled
+	 * cell changes that part of the question, an emptied one takes that part
+	 * off, and an emptied faq_N_question cell takes question N off. Questions
+	 * and parts whose columns aren't in the file stay as they are. So a file
+	 * from Export, with questions moved up a place and the last one emptied,
+	 * gives exactly the questions filled in, none repeated.
+	 *
+	 * @param int      $post_id Listing ID.
+	 * @param string[] $cells   Row, keyed by column name.
+	 * @return string[] Warnings.
+	 */
+	private static function merge_faqs( $post_id, array $cells ) {
+		$items    = array();
+		$warnings = array();
+		$number   = 0;
+		$file     = array();
+		$empty    = array(
+			'question'  => '',
+			'answer'    => '',
+			'link_text' => '',
+			'link_url'  => '',
+		);
+
+		foreach ( Faq::own_items( $post_id ) as $item ) {
+			$items[ ++$number ] = $item;
+		}
+
+		// The question cells the file has, filled in or emptied.
+		foreach ( $cells as $name => $value ) {
+			if ( preg_match( '/^faq_(\d+)_(question|answer|link_text|link)$/', (string) $name, $parts ) ) {
+				$file[ (int) $parts[1] ][ 'link' === $parts[2] ? 'link_url' : $parts[2] ] = '' === trim( (string) $value ) ? '' : (string) $value;
+			}
+		}
+
+		ksort( $file );
+
+		foreach ( $file as $n => $parts ) {
+			$item = array_merge( isset( $items[ $n ] ) ? $items[ $n ] : $empty, $parts );
+
+			if ( '' === trim( wp_strip_all_tags( (string) $item['question'] ) ) ) {
+				// Said when the row still fills in another part of it; a question emptied with all its parts goes quietly.
+				if ( '' !== trim( implode( '', array_diff_key( $parts, array( 'question' => '' ) ) ) ) ) {
+					$warnings[] = self::no_question( $n );
+				}
+
+				unset( $items[ $n ] );
+				continue;
+			}
+
+			$items[ $n ] = $item;
+		}
+
+		ksort( $items );
+		self::store( $post_id, Faq::META, Faq::sanitize_items( array_values( $items ) ) );
+
+		return $warnings;
+	}
+
+	/**
+	 * The warning about a question number with an answer or a link but no question.
+	 *
+	 * @param int $n Question number.
+	 * @return string
+	 */
+	private static function no_question( $n ) {
+		/* translators: %d: question number. */
+		return sprintf( __( 'Question %1$d has an answer or a link but no question, so it was left out. Fill in faq_%1$d_question too.', 'crc-real-estate' ), $n );
+	}
+
+	/**
+	 * Whether a town cell is the listing's own town: written the same, or the
+	 * same once tidied as a typed town is, e.g. "Colombo 07" and "Colombo 7".
+	 *
+	 * @param string $saved The listing's town.
+	 * @param string $typed The cell.
+	 * @return bool
+	 */
+	private static function same_town( $saved, $typed ) {
+		$lower = function ( $text ) {
+			return function_exists( 'mb_strtolower' ) ? mb_strtolower( $text, 'UTF-8' ) : strtolower( $text );
+		};
+
+		return trim( (string) $saved ) === trim( (string) $typed ) || $lower( Town::tidy( $typed ) ) === $lower( trim( (string) $saved ) ) || $lower( Town::tidy( $typed ) ) === $lower( Town::tidy( $saved ) );
+	}
+
+	/**
+	 * A district's slug from what a row says: its name, another spelling, its
+	 * slug or map code, or the name it was given on the Districts screen.
+	 *
+	 * @param string $value Cell.
+	 * @return string Slug, or '' when it matches none.
+	 */
+	private static function district_slug( $value ) {
+		$slug = District::find( $value );
+		$key  = District::normalize( $value );
+
+		if ( '' !== $slug || '' === $key ) {
+			return $slug;
+		}
+
+		foreach ( District::terms() as $term_slug => $term ) {
+			if ( District::normalize( $term->name ) === $key ) {
+				return (string) $term_slug;
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Whether a number in a cell is the saved number without its first 0, as
+	 * a spreadsheet writes 0771234567 when it takes it for a number: 771234567.
+	 *
+	 * @param string $value Cell.
+	 * @param string $saved Saved number.
+	 * @return bool
+	 */
+	private static function lost_zero( $value, $saved ) {
+		$value = trim( (string) $value );
+		$saved = (string) preg_replace( '/\D/', '', (string) $saved );
+
+		return ctype_digit( $value ) && '0' === substr( $saved, 0, 1 ) && substr( $saved, 1 ) === $value;
 	}
 
 	/**
@@ -903,9 +1151,11 @@ final class Listing_Data {
 	public static function status( $value ) {
 		$value = strtolower( trim( (string) $value ) );
 		$words = array(
-			'published' => 'publish',
-			'live'      => 'publish',
+			'published'      => 'publish',
+			'live'           => 'publish',
 			'pending review' => 'pending',
+			'unlisted'       => 'private',
+			'hidden'         => 'private',
 		);
 		$value = isset( $words[ $value ] ) ? $words[ $value ] : $value;
 
@@ -1302,22 +1552,38 @@ final class Listing_Data {
 	}
 
 	/**
-	 * A ready-made group's key from its title or key.
+	 * A ready-made group's key from its title or key, whatever its capitals,
+	 * spaces and marks, and with & for "and": "Access & Road" is "Access and road".
 	 *
 	 * @param array[] $groups Ready-made groups, key => array with 'title'.
 	 * @param string  $title  Title or key as written.
 	 * @return string Key, or '' when it matches none.
 	 */
 	private static function group_key( array $groups, $title ) {
-		$title = strtolower( trim( (string) $title ) );
+		$title = self::title_key( $title );
+
+		if ( '' === $title ) {
+			return '';
+		}
 
 		foreach ( $groups as $key => $group ) {
-			if ( strtolower( (string) $key ) === $title || strtolower( (string) $group['title'] ) === $title ) {
+			if ( self::title_key( $key ) === $title || self::title_key( $group['title'] ) === $title ) {
 				return (string) $key;
 			}
 		}
 
 		return '';
+	}
+
+	/**
+	 * A group title as it is compared: lower case, & read as "and", and only
+	 * its letters and digits.
+	 *
+	 * @param string $title Title or key.
+	 * @return string
+	 */
+	private static function title_key( $title ) {
+		return (string) preg_replace( '/[^\p{L}\p{N}]+/u', '', strtolower( str_replace( '&', ' and ', (string) $title ) ) );
 	}
 
 	/**
@@ -1439,10 +1705,15 @@ final class Listing_Data {
 	 * @param string[] $cells   Row.
 	 * @param string   $column  Column.
 	 * @param string   $meta    Flag.
+	 * @param bool     $clear   Whether an empty cell takes the answer off, which leaves it at yes.
 	 * @return string[] Warnings.
 	 */
-	private static function apply_switch( $post_id, array $cells, $column, $meta ) {
+	private static function apply_switch( $post_id, array $cells, $column, $meta, $clear = false ) {
 		if ( ! isset( $cells[ $column ] ) || '' === trim( (string) $cells[ $column ] ) ) {
+			if ( $clear && array_key_exists( $column, $cells ) ) {
+				delete_post_meta( $post_id, $meta );
+			}
+
 			return array();
 		}
 

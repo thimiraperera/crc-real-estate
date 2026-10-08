@@ -186,6 +186,7 @@ final class Import_Page {
 			'working'     => __( 'Importing. Photos take a few seconds each, so please keep this page open until it finishes.', 'crc-real-estate' ),
 			'finished'    => __( 'The import is finished.', 'crc-real-estate' ),
 			'stopped'     => __( 'The import was stopped. The listings imported before that are kept.', 'crc-real-estate' ),
+			'cancelled'   => __( 'The import was cancelled before it began, so no listing was changed. Save the file as CSV UTF-8 and choose it again.', 'crc-real-estate' ),
 			'stop'        => __( 'Stop the import', 'crc-real-estate' ),
 			'stopAsk'     => __( 'Stop the import? The listings imported so far are kept.', 'crc-real-estate' ),
 			'carryOn'     => __( 'Continue the import', 'crc-real-estate' ),
@@ -205,9 +206,9 @@ final class Import_Page {
 			/* translators: %s: what went wrong. */
 			'stopFailed'  => __( 'The import couldn\'t be stopped because the site didn\'t answer (%s). Nothing has changed: press Stop the import to try again, or Continue the import to carry on.', 'crc-real-estate' ),
 			'loggedOut'   => __( 'You were logged out of the site. Please log in again (WordPress may show a login box), then reload this page. The import waits for you there; nothing is lost.', 'crc-real-estate' ),
-			'unfinished'  => __( 'An import you started earlier isn\'t finished yet. Please press Continue the import to finish it, or Stop the import, and then start the new file. Starting again without stopping could add the same listings twice.', 'crc-real-estate' ),
-			'lastDone'    => __( 'Your last import is finished. Check All Listings before importing the same file again, or its listings will be added twice.', 'crc-real-estate' ),
-			'lastStopped' => __( 'Your last import was stopped. The listings imported before that are kept. Check All Listings before importing the same file again, or its listings will be added twice.', 'crc-real-estate' ),
+			'unfinished'  => __( 'An import you started earlier isn\'t finished yet. Please press Continue the import to finish it, or Stop the import, and then start the new file. Starting the same file again without stopping could add its new listings (the rows without an ID) twice.', 'crc-real-estate' ),
+			'lastDone'    => __( 'Your last import is finished. Importing the same file again changes the listings in its rows with an ID again, but adds its rows without an ID as new listings a second time, so check All Listings first.', 'crc-real-estate' ),
+			'lastStopped' => __( 'Your last import was stopped. The listings imported before that are kept. Importing the same file again changes the listings in its rows with an ID again, but adds its rows without an ID as new listings a second time, so check All Listings first.', 'crc-real-estate' ),
 			/* translators: 1: rows done, 2: all rows. */
 			'pending'     => __( 'An import was left unfinished, or is still running in another window: %1$s of %2$s listings done. Continue it here, or stop it to start a new one.', 'crc-real-estate' ),
 			/* translators: %s: column names. */
@@ -247,8 +248,8 @@ final class Import_Page {
 				<h2 class="crc-info-title"><?php esc_html_e( 'Import listings from a spreadsheet', 'crc-real-estate' ); ?></h2>
 				<ol class="crc-import-steps">
 					<li><?php esc_html_e( 'Download the sample file and open it in Excel or Google Sheets. It has every column, with three example listings to show how each one is filled in.', 'crc-real-estate' ); ?></li>
-					<li><?php esc_html_e( 'Put one listing on each row, under the column names. Keep the first row with the column names as it is. Columns you don\'t need can be deleted or left empty.', 'crc-real-estate' ); ?></li>
-					<li><?php esc_html_e( 'For photos, put links to them (starting with https://). They are downloaded into the Media Library, so they keep working even if the links stop working later. Google Drive and Dropbox links work when the file is shared with anyone who has the link.', 'crc-real-estate' ); ?></li>
+					<li><?php esc_html_e( 'Put one listing on each row, under the column names. Keep the first row with the column names as it is. Columns you don\'t need can be deleted. In rows without an ID (new listings) they can also be left empty. But in a row with an ID, an empty cell takes that detail off the listing while Empty cells take things off (below) is ticked, so delete the columns you aren\'t changing, or untick that box before you import.', 'crc-real-estate' ); ?></li>
+					<li><?php esc_html_e( 'For photos, put links to them (starting with https://). Photos from other websites are downloaded into the Media Library, so they keep working even if the links stop working later. Links to photos already on this website, as in a file from Export, use those photos as they are: nothing is downloaded again. Google Drive and Dropbox links work when the file is shared with anyone who has the link.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'The sample file\'s photo links start with https://example.com/photos/, which is only a stand-in. Upload your photos to a folder online first (for example on your hosting, or in the Media Library, where each photo shows its address), then replace https://example.com/photos/ with that folder\'s real address before you import. The photos\' names after it stay as they are.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'Save the file as CSV. In Excel: File → Save As → CSV UTF-8 (Comma delimited). In Google Sheets: File → Download → Comma-separated values.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'Choose the file below and press Start import. Keep this page open until it says the import is finished. Every row is listed with what happened to it.', 'crc-real-estate' ); ?></li>
@@ -283,6 +284,15 @@ final class Import_Page {
 							);
 							?>
 						</p>
+						<p class="crc-import-clear">
+							<label for="crc-import-clear">
+								<input type="checkbox" id="crc-import-clear" name="clear" value="1" checked aria-describedby="crc-import-clear-help">
+								<?php esc_html_e( 'Empty cells take things off', 'crc-real-estate' ); ?>
+							</label>
+						</p>
+						<p class="description" id="crc-import-clear-help">
+							<?php esc_html_e( 'For a file you downloaded with Export and changed: a cell you emptied takes that detail off the listing, for example a price, the owner\'s notes, a question or the more photos. The title, status, category and main photo are always kept, and columns that aren\'t in the file are never changed. Rows without an ID add new listings and aren\'t affected. For a file you made yourself with IDs and only some details filled in, untick it (its empty cells then keep what the listings have), or delete the columns you aren\'t changing. An import you continue later keeps the choice it was started with.', 'crc-real-estate' ); ?>
+						</p>
 						<p>
 							<button type="submit" class="button button-primary crc-import-start"><?php esc_html_e( 'Start import', 'crc-real-estate' ); ?></button>
 						</p>
@@ -305,17 +315,24 @@ final class Import_Page {
 			<section class="crc-info-card" id="crc-export">
 				<h2 class="crc-info-title"><?php esc_html_e( 'Export listings', 'crc-real-estate' ); ?></h2>
 				<p><?php esc_html_e( 'Download every listing (except those in the Trash) as a CSV file, in the same format as the sample file. You can open it in Excel or Google Sheets, change it, and import it back: rows keep their listing\'s ID, so importing them changes those listings instead of adding new ones.', 'crc-real-estate' ); ?></p>
-				<p><?php esc_html_e( 'Photos are written as links to the photos on this site. The file includes the owners\' private details, so keep it somewhere safe.', 'crc-real-estate' ); ?></p>
+				<p><?php esc_html_e( 'Photos are written as links to the photos on this site; importing the file again uses those photos as they are, without downloading them again. The file includes the owners\' private details, so keep it somewhere safe.', 'crc-real-estate' ); ?></p>
 				<p>
 					<a class="button" href="<?php echo esc_url( $export ); ?>"><?php esc_html_e( 'Download all listings (CSV)', 'crc-real-estate' ); ?></a>
 				</p>
+				<h3 class="crc-info-subtitle"><?php esc_html_e( 'Change listings with a spreadsheet', 'crc-real-estate' ); ?></h3>
+				<ol class="crc-import-steps">
+					<li><?php esc_html_e( 'Download all listings with the button above.', 'crc-real-estate' ); ?></li>
+					<li><?php esc_html_e( 'Change what you need in Excel or Google Sheets. Keep the id column as it is, so each row changes its own listing. To take a detail off a listing, empty its cell.', 'crc-real-estate' ); ?></li>
+					<li><?php esc_html_e( 'Save it as CSV UTF-8, so Sinhala and Tamil letters stay as they are. In Excel: File → Save As → CSV UTF-8 (Comma delimited). In Google Sheets: File → Download → Comma-separated values.', 'crc-real-estate' ); ?></li>
+					<li><?php esc_html_e( 'Import it on this page with Empty cells take things off ticked. Rows with an ID change those listings; rows without one are added as new listings. Photos already on this website are used as they are, not downloaded again.', 'crc-real-estate' ); ?></li>
+				</ol>
 				<h3 class="crc-info-subtitle"><?php esc_html_e( 'One listing, with its photos', 'crc-real-estate' ); ?></h3>
 				<p><?php esc_html_e( 'To download everything about one listing in a zip file (a page with all its details, its photos in full size, its spreadsheet row and the inquiries about it), open the listing and press Download listing in the Publish box, or hover over the listing in All Listings and choose Download.', 'crc-real-estate' ); ?></p>
 			</section>
 
 			<section class="crc-info-card" id="crc-columns">
 				<h2 class="crc-info-title"><?php esc_html_e( 'The columns', 'crc-real-estate' ); ?></h2>
-				<p><?php esc_html_e( 'Column names can be in any order, and only the title is needed for a new listing. When a row changes a listing that is already on the site, empty cells leave that part of the listing as it is.', 'crc-real-estate' ); ?></p>
+				<p><?php esc_html_e( 'Column names can be in any order, and only the title is needed for a new listing. When a row changes a listing that is already on the site (it has an ID), columns the file doesn\'t have leave that part of the listing as it is. Its empty cells take those details off when Empty cells take things off is ticked as you import, except the title, status, category and main photo, which are always kept; when it isn\'t ticked, empty cells leave the listing as it is.', 'crc-real-estate' ); ?></p>
 				<ul class="crc-import-rules">
 					<li><?php esc_html_e( 'Lists: separate the items with |, for example Garden | Hot water | Balcony.', 'crc-real-estate' ); ?></li>
 					<li><?php esc_html_e( 'Groups: one line for each group in the same cell (Alt+Enter in Excel, Ctrl+Enter in Google Sheets), written as Group title: first | second.', 'crc-real-estate' ); ?></li>
@@ -422,8 +439,12 @@ final class Import_Page {
 			wp_send_json_error( array( 'message' => __( 'Please choose a CSV file (it ends in .csv). In Excel, use File → Save As → CSV UTF-8.', 'crc-real-estate' ) ) );
 		}
 
+		// Whether an empty cell in a row with an ID takes that detail off the listing.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked in check_ajax().
+		$clear = isset( $_POST['clear'] ) && '1' === sanitize_key( wp_unslash( $_POST['clear'] ) );
+
 		// The file is read where PHP put it and never saved in the uploads folder, which anyone can open.
-		$result = Importer::start( $file['tmp_name'], get_current_user_id() );
+		$result = Importer::start( $file['tmp_name'], get_current_user_id(), $clear );
 
 		if ( is_wp_error( $result ) ) {
 			$data = $result->get_error_data();

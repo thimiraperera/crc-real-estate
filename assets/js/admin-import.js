@@ -15,6 +15,7 @@
 
 	var text = settings.text;
 	var input = form.querySelector( 'input[type="file"]' );
+	var clearCells = form.querySelector( '.crc-import-clear input[type="checkbox"]' );
 	var startButton = form.querySelector( '.crc-import-start' );
 	var run = page.querySelector( '.crc-import-run' );
 	var bar = run.querySelector( '.crc-import-bar' );
@@ -25,6 +26,7 @@
 	var stop = run.querySelector( '.crc-import-stop' );
 	var log = run.querySelector( '.crc-import-log' );
 	var pending = page.querySelector( '.crc-import-pending' );
+	var ownChoice = null;
 	var running = false;
 	var tries = 0;
 	var inFlight = null;
@@ -118,11 +120,28 @@
 		element.hidden = ! visible;
 	}
 
+	// While an import runs, or waits to be continued, the box can't be changed: the import keeps the
+	// choice it was started with.
+	function syncClear() {
+		if ( clearCells ) {
+			clearCells.disabled = running || ! pending.hidden || ( ! run.hidden && ( ! resume.hidden || ! stop.hidden ) );
+		}
+	}
+
+	// An unfinished import showed its own choice in the box; once it has ended, the owner's comes back.
+	function ownChoiceBack() {
+		if ( clearCells && null !== ownChoice ) {
+			clearCells.checked = ownChoice;
+			ownChoice = null;
+		}
+	}
+
 	function busy( on ) {
 		running = on;
 		startButton.disabled = on;
 		input.disabled = on;
 		show( stop, on || ! resume.hidden );
+		syncClear();
 	}
 
 	function say( words, kind ) {
@@ -201,6 +220,7 @@
 		say( format( text.failed, why ), 'crc-warning' );
 		show( resume, true );
 		show( stop, true );
+		syncClear();
 	}
 
 	function finish( words ) {
@@ -208,6 +228,8 @@
 		say( words, 'crc-import-done' );
 		show( resume, false );
 		show( stop, false );
+		ownChoiceBack();
+		syncClear();
 	}
 
 	function failed( words ) {
@@ -215,15 +237,27 @@
 		say( words, 'crc-warning' );
 		show( resume, false );
 		show( stop, false );
+		ownChoiceBack();
+		syncClear();
 	}
 
-	// Shows an unfinished import, with Continue and Stop.
+	// Shows an unfinished import, with Continue and Stop, and the choice it was started with.
 	function showPending( info ) {
 		show( pending.querySelector( '.crc-import-resume' ), true );
 		importId = info.run || '';
 		pending.querySelector( '.crc-import-pending-text' ).textContent = format( text.pending, number( info.done ), number( info.total ) );
 		show( pending, true );
 		progress( info.done, info.total, info.counts );
+
+		if ( clearCells && undefined !== info.clear ) {
+			if ( null === ownChoice ) {
+				ownChoice = clearCells.checked;
+			}
+
+			clearCells.checked = !! info.clear;
+		}
+
+		syncClear();
 	}
 
 	// Runs a step later, unless this run of steps has ended meanwhile.
@@ -321,15 +355,52 @@
 		step( loop, fresh );
 	}
 
+	// Takes off the notes about the last file: unknown columns and warnings about the whole file.
 	function clearUnknown() {
-		Array.prototype.forEach.call( run.querySelectorAll( '.crc-import-unknown' ), function ( element ) {
+		Array.prototype.forEach.call( run.querySelectorAll( '.crc-import-unknown, .crc-import-file-note' ), function ( element ) {
 			element.parentNode.removeChild( element );
+		} );
+	}
+
+	// A note above the rows, such as unknown columns or a file not saved as CSV UTF-8.
+	function fileNote( words, className ) {
+		var line = document.createElement( 'p' );
+
+		line.className = className + ' crc-warning';
+		line.setAttribute( 'role', 'alert' );
+		line.textContent = words;
+		run.insertBefore( line, log );
+	}
+
+	// Stops an import before its first step, so no listing is changed.
+	function cancel() {
+		var body = new FormData();
+
+		loop++;
+		body.append( 'run', importId );
+		say( text.stopping );
+
+		post( 'crc_re_import_stop', body ).then( function ( data ) {
+			if ( ! data.success ) {
+				failed( message( data ) );
+				return;
+			}
+
+			finish( text.cancelled );
+		} ).catch( function ( error ) {
+			// The import is still there, before its first step: Continue or Stop it.
+			busy( false );
+			say( error && error.loggedOut ? text.loggedOut : format( text.stopFailed, error && error.message ? error.message : text.noAnswer ), 'crc-warning' );
+			show( resume, true );
+			show( stop, true );
+			syncClear();
 		} );
 	}
 
 	form.addEventListener( 'submit', function ( event ) {
 		var file = input.files && input.files[ 0 ];
 		var body;
+		var notes;
 
 		event.preventDefault();
 
@@ -364,6 +435,9 @@
 		body = new FormData();
 		body.append( 'file', file );
 
+		// Whether an empty cell in a row with an ID takes that detail off the listing.
+		body.append( 'clear', clearCells && clearCells.checked ? '1' : '0' );
+
 		loop++;
 		tries = 0;
 		log.textContent = '';
@@ -381,8 +455,6 @@
 		show( stop, false );
 
 		post( 'crc_re_import_start', body ).then( function ( data ) {
-			var unknown;
-
 			if ( ! data.success ) {
 				failed( message( data ) );
 				status.textContent = '';
@@ -398,17 +470,25 @@
 				return;
 			}
 
+			notes = data.data.notes || [];
 			importId = data.data.run;
 			progress( 0, data.data.total, { created: 0, updated: 0, failed: 0 } );
-			begin();
+
+			notes.forEach( function ( words ) {
+				fileNote( words, 'crc-import-file-note' );
+			} );
 
 			if ( data.data.unknown && data.data.unknown.length ) {
-				unknown = document.createElement( 'p' );
-				unknown.className = 'crc-import-unknown crc-warning';
-				unknown.setAttribute( 'role', 'alert' );
-				unknown.textContent = format( text.unknown, data.data.unknown.join( ', ' ) );
-				run.insertBefore( unknown, log );
+				fileNote( format( text.unknown, data.data.unknown.join( ', ' ) ), 'crc-import-unknown' );
 			}
+
+			// A file that may have lost letters is checked with the owner before any listing is changed.
+			if ( notes.length && ! window.confirm( notes.join( '\n\n' ) ) ) {
+				cancel();
+				return;
+			}
+
+			begin();
 		} ).catch( function ( error ) {
 			failed( error && error.loggedOut ? text.loggedOut : format( text.startFailed, error && error.message ? error.message : text.noAnswer ) );
 			status.textContent = '';
@@ -512,6 +592,8 @@
 					show( resume, ! stopAsked );
 					show( stop, true );
 				}
+
+				syncClear();
 			} );
 		}
 	} );

@@ -70,7 +70,7 @@ final class Listing_Index {
 	public function meta_changed( $meta_id, $post_id, $meta_key ) {
 		$from = in_array( $meta_key, self::sources(), true );
 
-		if ( ( ! $from && '_crc_property_type' !== $meta_key ) || Post_Type::NAME !== get_post_type( $post_id ) ) {
+		if ( ( ! $from && ! in_array( $meta_key, array( '_crc_property_type', Listing_Status::AVAILABILITY_META ), true ) ) || Post_Type::NAME !== get_post_type( $post_id ) ) {
 			return;
 		}
 

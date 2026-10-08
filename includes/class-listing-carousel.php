@@ -221,6 +221,7 @@ final class Listing_Carousel {
 			esc_html( $district['name'] )
 		) : '';
 		$amount   = '';
+		$gone     = Listing_Status::gone( $post_id );
 
 		if ( '' !== $price ) {
 			$period = '' !== $category['period'] ? '<span class="crc-listing-card-period">' . esc_html( $category['period'] ) . '</span>' : '';
@@ -233,7 +234,7 @@ final class Listing_Carousel {
 		}
 
 		return sprintf(
-			'<li class="crc-listing-card"%1$s%2$s><div class="crc-listing-card-media"><a class="crc-listing-card-photo" href="%3$s" tabindex="-1" aria-hidden="true">%4$s</a>%5$s</div><div class="crc-listing-card-body">%6$s<h6 class="crc-listing-card-title"><a href="%3$s">%7$s</a></h6>%8$s<div class="crc-listing-card-button custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%3$s"><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%9$s</span><span class="elementor-button-icon">%10$s</span></span></a></div></div></li>',
+			'<li class="crc-listing-card%11$s"%1$s%2$s><div class="crc-listing-card-media"><a class="crc-listing-card-photo" href="%3$s" tabindex="-1" aria-hidden="true">%4$s</a>%5$s%12$s</div><div class="crc-listing-card-body">%6$s<h6 class="crc-listing-card-title"><a href="%3$s">%7$s</a></h6>%8$s<div class="crc-listing-card-button custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%3$s"><span class="elementor-button-content-wrapper"><span class="elementor-button-text">%9$s</span><span class="elementor-button-icon">%10$s</span></span></a></div></div></li>',
 			$number ? ' role="group" aria-roledescription="' . esc_attr__( 'slide', 'crc-real-estate' ) . '"' : '',
 			/* translators: 1: card number, 2: number of cards. */
 			$number ? ' aria-label="' . esc_attr( sprintf( __( '%1$s of %2$s', 'crc-real-estate' ), $number, $total ) ) . '"' : '',
@@ -244,7 +245,9 @@ final class Listing_Carousel {
 			esc_html( $title ),
 			'' !== $amount ? '<div class="crc-listing-card-price">' . $amount . '</div>' : '',
 			esc_html__( 'View Details', 'crc-real-estate' ),
-			Icons::svg( 'arrow-right' )
+			Icons::svg( 'arrow-right' ),
+			$gone ? ' is-gone' : '',
+			$gone ? '<span class="crc-listing-card-status crc-listing-card-status-' . esc_attr( $gone['key'] ) . '">' . esc_html( $gone['label'] ) . '</span>' : ''
 		);
 	}
 

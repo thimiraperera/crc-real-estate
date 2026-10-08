@@ -12,6 +12,7 @@ use CRC\RealEstate\District;
 use CRC\RealEstate\Town;
 use CRC\RealEstate\Inquiries;
 use CRC\RealEstate\Listing_Data;
+use CRC\RealEstate\Listing_Status;
 use CRC\RealEstate\Owner;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Faq;
@@ -396,7 +397,7 @@ final class Listing_Export {
 			self::table(
 				array(
 					__( 'Listing ID', 'crc-real-estate' )   => (string) $id,
-					__( 'Status', 'crc-real-estate' )       => $status ? $status->label : $post->post_status,
+					__( 'Status', 'crc-real-estate' )       => Listing_Status::OFF === $post->post_status ? __( 'Unlisted (hidden from the website)', 'crc-real-estate' ) : ( $status ? $status->label : $post->post_status ),
 					__( 'Category', 'crc-real-estate' )     => $category ? $category['term']->name : '',
 					__( 'District', 'crc-real-estate' )     => $district ? $district['name'] : '',
 					__( 'Town', 'crc-real-estate' )         => $town ? $town['name'] : '',

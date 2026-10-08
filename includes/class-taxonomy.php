@@ -38,6 +38,7 @@ final class Taxonomy {
 	 *                on its page. Each category's Caption field can change it.
 	 * - period:      text after the price, e.g. "/month" for rentals.
 	 * - per_perch:   whether listings show a price per perch.
+	 * - gone:        "sold" or "rented": what a listing that has gone is marked.
 	 *
 	 * @return array[]
 	 */
@@ -57,6 +58,7 @@ final class Taxonomy {
 					'period'      => '',
 					'per_perch'   => true,
 					'icon'        => 'land-plots',
+					'gone'        => 'sold',
 				),
 				'properties-for-sale' => array(
 					'name'        => __( 'Properties for Sale', 'crc-real-estate' ),
@@ -65,6 +67,7 @@ final class Taxonomy {
 					'period'      => '',
 					'per_perch'   => false,
 					'icon'        => 'home',
+					'gone'        => 'sold',
 				),
 				'properties-for-rent' => array(
 					'name'        => __( 'Properties for Rent', 'crc-real-estate' ),
@@ -73,6 +76,7 @@ final class Taxonomy {
 					'period'      => __( '/month', 'crc-real-estate' ),
 					'per_perch'   => false,
 					'icon'        => 'key',
+					'gone'        => 'rented',
 				),
 			)
 		);

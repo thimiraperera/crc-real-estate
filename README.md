@@ -12,7 +12,7 @@ Real estate listing tools for WordPress.
 - **Location** map with the area around the property, while the exact place stays in the admin
 - **Inquiry form** that checks names, phone numbers and emails as people type, with optional hCaptcha; inquiries are emailed and kept in the admin
 - **FAQs** that open smoothly, one at a time, set for each category and each listing, with FAQ structured data for search engines
-- **Import & Export** of listings from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing, with buttons for them on All Listings
+- **Import & Export** of listings from a spreadsheet (CSV), with photos downloaded from their links, a sample file, and an export of every listing that can be changed in a spreadsheet and imported again, with buttons for them on All Listings
 - **Download listing** as a zip file with a page of all its details, its photos in full size and the inquiries about it
 - **Owner details** kept privately with each listing, never shown on the website
 - **Photo privacy**: the place a photo was taken (its GPS position) is removed from uploaded and imported photos
@@ -27,6 +27,7 @@ Real estate listing tools for WordPress.
 - **Listing carousel**: the latest or most popular listings in cards, a tab for each category, moved with arrows or dragging, running on to the edge of the window
 - **Search**: a search box for any page with a tab for each category, a free search that understands places, property types, bedrooms, prices, sizes and any words, with suggestions of places, types and listings from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and More filters for features, the price and terms, floor area, parking, the road, water and electricity, availability, who listed it and when, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 - **Towns**: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
+- **On the website switch and Sold or Rented**: on All Listings, a switch hides a listing from the website without deleting anything, and one click marks it Sold, or Rented for rentals, shown on its cards and under its price
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

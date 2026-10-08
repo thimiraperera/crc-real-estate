@@ -8,6 +8,7 @@
 namespace CRC\RealEstate\Sections;
 
 use CRC\RealEstate\Icons;
+use CRC\RealEstate\Listing_Status;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Settings;
 use CRC\RealEstate\Shortcodes;
@@ -205,7 +206,7 @@ final class Price_Card {
 		$url      = get_permalink( $post );
 		$category = Taxonomy::listing_category( $post->ID );
 
-		$html  = '<div class="crc-price">';
+		$html  = '<div class="crc-price' . ( Listing_Status::gone( $post->ID ) ? ' is-gone' : '' ) . '">';
 		$html .= sprintf(
 			'<button type="button" class="crc-share" data-url="%1$s" data-title="%2$s">%3$s<span class="crc-share-label" aria-live="polite">%4$s</span></button>',
 			esc_url( $url ),
@@ -226,7 +227,7 @@ final class Price_Card {
 	}
 
 	/**
-	 * The category caption, the price and the price per perch.
+	 * The category caption, the price, Sold or Rented when it has gone, and the price per perch.
 	 *
 	 * @param int        $post_id  Listing ID.
 	 * @param array|null $category Listing category details.
@@ -243,6 +244,13 @@ final class Price_Card {
 		if ( '' !== $price ) {
 			$period = ( $category && '' !== $category['period'] ) ? '<span class="crc-price-period">' . esc_html( $category['period'] ) . '</span>' : '';
 			$html  .= '<h2 class="crc-price-amount">' . esc_html( self::money( $price ) ) . $period . '</h2>';
+		}
+
+		// Sold, or Rented: the listing stays on the website, marked as gone.
+		$gone = Listing_Status::gone( $post_id );
+
+		if ( $gone ) {
+			$html .= '<p class="crc-price-status crc-price-status-' . esc_attr( $gone['key'] ) . '">' . esc_html( $gone['label'] ) . '</p>';
 		}
 
 		$per_perch = self::price_per_perch( $post_id );
