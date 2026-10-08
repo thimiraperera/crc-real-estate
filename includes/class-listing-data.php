@@ -120,7 +120,7 @@ final class Listing_Data {
 
 		for ( $i = 1; $i <= max( 1, (int) $faqs ); $i++ ) {
 			/* translators: 1: question number, 2: the next question number. */
-			$add( 'faq_' . $i . '_question', $faq, sprintf( __( 'Question %1$d of the listing\'s own questions. Add more with faq_%2$d_question, faq_%2$d_answer and so on. For a listing already on the site, the questions change by number. When "Empty cells take things off" is ticked, a filled cell changes that part of the question, an emptied cell takes that part off, and emptying faq_%1$d_question takes question %1$d off; questions and parts whose columns aren\'t in the file stay as they are, and questions moved to other numbers aren\'t repeated. When it isn\'t ticked, only the questions you fill in change and the others stay as they are.', 'crc-real-estate' ), $i, max( 3, (int) $faqs + 1 ) ) );
+			$add( 'faq_' . $i . '_question', $faq, sprintf( __( 'Question %1$d of the listing\'s own questions. Add more with faq_%2$d_question, faq_%2$d_answer and so on. For a listing already on the site, when "Empty cells take things off" is ticked, a question you fill in is found by its words, wherever it is now, so it keeps its own link when it moves to another number and importing the same file again changes nothing. A filled cell changes that part of the question, an emptied cell takes that part off, and emptying faq_%1$d_question takes question %1$d off; questions and parts whose columns aren\'t in the file stay as they are, and questions moved to other numbers aren\'t repeated. When it isn\'t ticked, only the questions you fill in change and the others stay as they are.', 'crc-real-estate' ), $i, max( 3, (int) $faqs + 1 ) ) );
 			/* translators: %d: question number. */
 			$add( 'faq_' . $i . '_answer', $faq, sprintf( __( 'The answer to question %d. Leave an empty line between paragraphs.', 'crc-real-estate' ), $i ) );
 			/* translators: %d: question number. */
@@ -898,12 +898,21 @@ final class Listing_Data {
 
 	/**
 	 * Writes the listing's own questions from a row whose empty cells take
-	 * things off. They change by number, as the other columns do: a filled
-	 * cell changes that part of the question, an emptied one takes that part
-	 * off, and an emptied faq_N_question cell takes question N off. Questions
-	 * and parts whose columns aren't in the file stay as they are. So a file
-	 * from Export, with questions moved up a place and the last one emptied,
-	 * gives exactly the questions filled in, none repeated.
+	 * things off. Only the question cells the file has change anything.
+	 *
+	 * A question the row fills in is first found among the listing's
+	 * questions by its words, wherever it is now, and keeps the parts the
+	 * file has no column for (such as its link). So importing the same file
+	 * again finds the questions it wrote the first time and changes nothing,
+	 * even when an earlier question was taken off and the others moved up.
+	 *
+	 * Otherwise the questions change by number, as the other columns do: a
+	 * question written another way changes the one with its number, an
+	 * answer or link on its own changes that part, and an emptied
+	 * faq_N_question cell takes question N off, unless the file has that
+	 * question under another number. A question the row moved up into an
+	 * earlier one's place takes that one's place. Questions the row doesn't
+	 * cover stay as they are and where they are.
 	 *
 	 * @param int      $post_id Listing ID.
 	 * @param string[] $cells   Row, keyed by column name.
@@ -914,12 +923,18 @@ final class Listing_Data {
 		$warnings = array();
 		$number   = 0;
 		$file     = array();
+		$named    = array();
+		$taken    = array();
+		$result   = array();
 		$empty    = array(
 			'question'  => '',
 			'answer'    => '',
 			'link_text' => '',
 			'link_url'  => '',
 		);
+		$asks     = function ( array $parts ) {
+			return isset( $parts['question'] ) && '' !== trim( wp_strip_all_tags( (string) $parts['question'] ) );
+		};
 
 		foreach ( Faq::own_items( $post_id ) as $item ) {
 			$items[ ++$number ] = $item;
@@ -934,8 +949,42 @@ final class Listing_Data {
 
 		ksort( $file );
 
+		// Each question the row fills in finds the listing's question with the same words: under its own number first, then anywhere.
+		foreach ( array( true, false ) as $same_number ) {
+			foreach ( $file as $n => $parts ) {
+				if ( isset( $named[ $n ] ) || ! $asks( $parts ) ) {
+					continue;
+				}
+
+				foreach ( $items as $i => $saved ) {
+					if ( ! isset( $taken[ $i ] ) && ( ! $same_number || $i === $n ) && self::same_text( $saved['question'], $parts['question'] ) ) {
+						$named[ $n ] = $i;
+						$taken[ $i ] = true;
+						break;
+					}
+				}
+			}
+		}
+
+		// A question moved up into an earlier one's place, within the row, takes that one's place.
+		foreach ( $named as $n => $i ) {
+			if ( $i > $n && isset( $file[ $i ], $items[ $n ] ) && ! isset( $taken[ $n ] ) ) {
+				$taken[ $n ] = true;
+			}
+		}
+
 		foreach ( $file as $n => $parts ) {
-			$item = array_merge( isset( $items[ $n ] ) ? $items[ $n ] : $empty, $parts );
+			$base = null;
+
+			if ( isset( $named[ $n ] ) ) {
+				$base = $items[ $named[ $n ] ];
+			} elseif ( isset( $items[ $n ] ) && ! isset( $taken[ $n ] ) ) {
+				// By its number: a question written another way, an answer or link on its own, or an emptied question.
+				$base        = $items[ $n ];
+				$taken[ $n ] = true;
+			}
+
+			$item = array_merge( null !== $base ? $base : $empty, $parts );
 
 			if ( '' === trim( wp_strip_all_tags( (string) $item['question'] ) ) ) {
 				// Said when the row still fills in another part of it; a question emptied with all its parts goes quietly.
@@ -943,15 +992,21 @@ final class Listing_Data {
 					$warnings[] = self::no_question( $n );
 				}
 
-				unset( $items[ $n ] );
 				continue;
 			}
 
-			$items[ $n ] = $item;
+			$result[ 2 * $n ] = $item;
 		}
 
-		ksort( $items );
-		self::store( $post_id, Faq::META, Faq::sanitize_items( array_values( $items ) ) );
+		// The questions the row doesn't cover keep their place, after a question the row puts under the same number.
+		foreach ( $items as $i => $saved ) {
+			if ( ! isset( $taken[ $i ] ) ) {
+				$result[ 2 * $i + 1 ] = $saved;
+			}
+		}
+
+		ksort( $result );
+		self::store( $post_id, Faq::META, Faq::sanitize_items( array_values( $result ) ) );
 
 		return $warnings;
 	}

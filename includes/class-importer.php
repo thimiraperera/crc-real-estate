@@ -155,12 +155,14 @@ final class Importer {
 
 			return new \WP_Error(
 				'unfinished',
-				sprintf(
-					/* translators: 1: rows done, 2: all rows. */
-					__( 'An import you started earlier isn\'t finished yet (%1$s of %2$s listings done). Please press Continue the import to finish it, or Stop the import, and then start the new file. Starting the same file again without stopping could add its new listings (the rows without an ID) twice.', 'crc-real-estate' ),
-					number_format_i18n( $job['at'] ),
-					number_format_i18n( $job['total'] )
-				),
+				! empty( $job['notes'] )
+					? __( 'An import you started earlier, from a file that wasn\'t saved as CSV UTF-8, is still waiting, and nothing has been imported from it yet. Please press Stop the import to drop it, and then start the new file.', 'crc-real-estate' )
+					: sprintf(
+						/* translators: 1: rows done, 2: all rows. */
+						__( 'An import you started earlier isn\'t finished yet (%1$s of %2$s listings done). Please press Continue the import to finish it, or Stop the import, and then start the new file. Starting the same file again without stopping could add its new listings (the rows without an ID) twice.', 'crc-real-estate' ),
+						number_format_i18n( $job['at'] ),
+						number_format_i18n( $job['total'] )
+					),
 				array( 'pending' => self::pending_info( $job ) )
 			);
 		}
@@ -187,6 +189,8 @@ final class Importer {
 				'logged'  => 0,
 				'time'    => time(),
 				'clear'   => (bool) $clear,
+				// Kept until the owner answers, so no step changes anything before that, from any window.
+				'notes'   => $notes,
 			),
 			false
 		);
@@ -209,9 +213,10 @@ final class Importer {
 	 * @param string $run     The import's ID, from start().
 	 * @param int    $seen    How many rows with problems the page has shown.
 	 * @param bool   $fresh   Whether the person has just pressed Continue: a stop asked for earlier is then forgotten.
-	 * @return array|\WP_Error 'busy' when another step is working; otherwise 'done' and 'total' rows, 'reports' on the rows finished in this step, 'log' (rows with problems the page hasn't shown), 'seen', 'counts' so far, 'finished' and 'stopped'.
+	 * @param bool   $agreed  Whether the person has answered OK to the import's notes (a file not saved as CSV UTF-8).
+	 * @return array|\WP_Error 'busy' when another step is working; 'confirm' (the notes) when the import waits for an answer before changing anything; otherwise 'done' and 'total' rows, 'reports' on the rows finished in this step, 'log' (rows with problems the page hasn't shown), 'seen', 'counts' so far, 'finished' and 'stopped'.
 	 */
-	public static function step( $user_id, $run, $seen = 0, $fresh = false ) {
+	public static function step( $user_id, $run, $seen = 0, $fresh = false, $agreed = false ) {
 		if ( ! self::lock( $user_id ) ) {
 			return array( 'busy' => true );
 		}
@@ -220,7 +225,7 @@ final class Importer {
 			self::clear_stop( $user_id );
 		}
 
-		$result = self::run_step( (int) $user_id, (string) $run, max( 0, (int) $seen ) );
+		$result = self::run_step( (int) $user_id, (string) $run, max( 0, (int) $seen ), (bool) $agreed );
 
 		self::unlock( $user_id );
 
@@ -233,9 +238,10 @@ final class Importer {
 	 * @param int    $user_id Person importing.
 	 * @param string $run     The import's ID.
 	 * @param int    $seen    Rows with problems already shown.
+	 * @param bool   $agreed  Whether the person has answered OK to the import's notes.
 	 * @return array|\WP_Error
 	 */
-	private static function run_step( $user_id, $run, $seen ) {
+	private static function run_step( $user_id, $run, $seen, $agreed ) {
 		$option = self::JOB_OPTION . $user_id;
 		$job    = get_option( $option );
 
@@ -260,6 +266,20 @@ final class Importer {
 			self::clear( $user_id );
 
 			return new \WP_Error( 'no_rows', __( 'The rows of this import are no longer on the site. Please choose the file again, but check All Listings first: some of its new listings (the rows without an ID) may be there already. Rows with an ID only change their listings again.', 'crc-real-estate' ) );
+		}
+
+		// A file that may have lost letters (not saved as CSV UTF-8) changes nothing until the person answers OK,
+		// even when the import is continued later or from another window.
+		if ( ! empty( $job['notes'] ) ) {
+			if ( ! $agreed ) {
+				$answer            = self::answer( $job['at'], $job['total'], $job['counts'], array(), self::log( $user_id ), $seen, false, false );
+				$answer['confirm'] = array_values( (array) $job['notes'] );
+
+				return $answer;
+			}
+
+			$job['notes'] = array();
+			update_option( $option, $job, false );
 		}
 
 		if ( function_exists( 'set_time_limit' ) ) {
@@ -330,7 +350,7 @@ final class Importer {
 	 * An import the person started and didn't finish.
 	 *
 	 * @param int $user_id Person importing.
-	 * @return array|null 'done', 'total', 'counts', 'run' and 'clear' (whether empty cells take things off), or null when there is none.
+	 * @return array|null 'done', 'total', 'counts', 'run', 'clear' (whether empty cells take things off) and 'notes' (warnings still waiting for an answer), or null when there is none.
 	 */
 	public static function pending( $user_id ) {
 		$job = get_option( self::JOB_OPTION . (int) $user_id );
@@ -353,7 +373,7 @@ final class Importer {
 	 * How far an unfinished import got.
 	 *
 	 * @param array $job The import.
-	 * @return array 'done', 'total', 'counts', 'run' and 'clear' (whether empty cells take things off).
+	 * @return array 'done', 'total', 'counts', 'run', 'clear' (whether empty cells take things off) and 'notes' (warnings still waiting for an answer).
 	 */
 	private static function pending_info( array $job ) {
 		return array(
@@ -362,6 +382,7 @@ final class Importer {
 			'counts' => $job['counts'],
 			'run'    => (string) $job['run'],
 			'clear'  => ! empty( $job['clear'] ),
+			'notes'  => ! empty( $job['notes'] ) ? array_values( (array) $job['notes'] ) : array(),
 		);
 	}
 
@@ -454,8 +475,9 @@ final class Importer {
 				$waiting = $waiting || 'more' === $photo['role'];
 			}
 
-			// More photos still waiting to download: a listing already on the site keeps the more photos it had
-			// (a main photo already in is still put on it). A new listing gets the ones downloaded so far.
+			// More photos still waiting to download: a listing already on the site keeps the more photos it had (a new
+			// main photo already in is put on it, unless the row moved the old one into its more photos). A new
+			// listing gets the ones downloaded so far.
 			$kept = $waiting && 'updated' === $current['report']['action'];
 
 			if ( $kept ) {
@@ -483,8 +505,9 @@ final class Importer {
 					: __( 'The import was stopped just before this row was finished; its details are in.', 'crc-real-estate' );
 			}
 
-			if ( ! $kept && '' !== $placed ) {
-				$report['warnings'][] = self::photos_note( $placed );
+			// Not for a new listing whose other photos were never tried.
+			if ( ! $kept && '' !== $placed && ( ! $current['photos'] || 'updated' === $report['action'] ) ) {
+				$report['warnings'][] = self::photos_note( $placed, $report['action'] );
 			}
 
 			if ( 'created' === $report['action'] ) {
@@ -1076,6 +1099,8 @@ final class Importer {
 			'id'          => $report['id'],
 			'status'      => $status,
 			'clear'       => $clear && $id,
+			// How the listing was, saved with the import before its details are written, so the row can tell whether it changed it.
+			'before'      => $id ? self::fingerprint( $report['id'] ) : '',
 			'photos'      => null,
 			'more_given'  => false,
 			'more_failed' => false,
@@ -1112,12 +1137,10 @@ final class Importer {
 	private static function fill( array &$current, array $cells ) {
 		$clear = ! empty( $current['clear'] );
 
-		// How the listing was, so the end of the row can tell whether it changed.
-		if ( 'updated' === $current['report']['action'] ) {
-			$current['before'] = self::fingerprint( $current['id'] );
-		}
-
 		$current['report']['warnings'] = array_merge( $current['report']['warnings'], Listing_Data::apply( $current['id'], $cells, $clear ) );
+
+		// Marked as changed as soon as its details are in, in case the import ends before the row does.
+		self::touch( $current );
 
 		$links  = Listing_Data::photo_links( $cells );
 		$own    = 'updated' === $current['report']['action'] ? self::own_photos( $current['id'] ) : array();
@@ -1164,20 +1187,25 @@ final class Importer {
 	 * @return string 'none' when none of the more photos the row gave could be added, 'some' when some couldn't and the listing kept the ones it had, otherwise ''.
 	 */
 	private static function place_photos( array $current ) {
-		$id = (int) $current['id'];
+		$id     = (int) $current['id'];
+		$given  = $current['more'];
+		$failed = ! empty( $current['more_failed'] );
+		$old    = (int) get_post_thumbnail_id( $id );
 
-		if ( $current['main'] && (int) get_post_thumbnail_id( $id ) !== (int) $current['main'] ) {
+		ksort( $given );
+
+		// The more photos it had are kept (not all of the row's could be used). A row that moved the old main
+		// photo into its more photos then keeps it as the main photo, or it would be on the listing nowhere.
+		$kept  = $current['more_given'] && $failed && ( ! $given || 'updated' === $current['report']['action'] );
+		$moved = $kept && $old && in_array( $old, array_map( 'intval', $given ), true ) && ! in_array( $old, Gallery::gallery_ids( $id ), true );
+
+		if ( $current['main'] && ! $moved && $old !== (int) $current['main'] ) {
 			set_post_thumbnail( $id, $current['main'] );
 		}
 
 		if ( ! $current['more_given'] ) {
 			return '';
 		}
-
-		$given  = $current['more'];
-		$failed = ! empty( $current['more_failed'] );
-
-		ksort( $given );
 
 		if ( $failed && ! $given ) {
 			return 'none';
@@ -1215,7 +1243,7 @@ final class Importer {
 		$placed = self::place_photos( $current );
 
 		if ( '' !== $placed ) {
-			$report['warnings'][] = self::photos_note( $placed );
+			$report['warnings'][] = self::photos_note( $placed, $report['action'] );
 		}
 
 		$wanted = $current['status'];
@@ -1261,12 +1289,17 @@ final class Importer {
 	 * What the report says when the more photos weren't all put on the listing.
 	 *
 	 * @param string $placed From place_photos(): 'none' or 'some'.
+	 * @param string $action 'created' for a new listing, 'updated' for one already on the site.
 	 * @return string
 	 */
-	private static function photos_note( $placed ) {
+	private static function photos_note( $placed, $action ) {
+		if ( 'created' === $action ) {
+			return __( 'None of the more photos could be added. Add them on the listing screen.', 'crc-real-estate' );
+		}
+
 		return 'none' === $placed
 			? __( 'None of the more photos could be added, so the listing keeps the ones it had.', 'crc-real-estate' )
-			: __( 'Some of the more photos\' links couldn\'t be used, so the listing keeps the photos it had. Fix the links and import the row again.', 'crc-real-estate' );
+			: __( 'Some of the more photos\' links couldn\'t be used, so the listing keeps the more photos it had. Fix the links and import the row again.', 'crc-real-estate' );
 	}
 
 	/**
@@ -1287,16 +1320,26 @@ final class Importer {
 	 * of the copy it keeps, and LiteSpeed Cache clears the listing's page, so
 	 * visitors see the new details. The listing isn't saved again, which would
 	 * check the publishing rules again and could turn a live listing into a
-	 * draft. A row that changed nothing leaves it as it was.
+	 * draft. A row that changed nothing leaves it as it was. Called when the
+	 * details are in and again when the photos are, each time only for what
+	 * changed since.
 	 *
-	 * @param array $current The row's work.
+	 * @param array $current The row's work; how the listing is now is kept in it.
 	 */
-	private static function touch( array $current ) {
+	private static function touch( array &$current ) {
 		$id = (int) $current['id'];
 
-		if ( 'updated' !== $current['report']['action'] || empty( $current['before'] ) || self::fingerprint( $id ) === $current['before'] ) {
+		if ( 'updated' !== $current['report']['action'] || empty( $current['before'] ) ) {
 			return;
 		}
+
+		$now = self::fingerprint( $id );
+
+		if ( $now === $current['before'] ) {
+			return;
+		}
+
+		$current['before'] = $now;
 
 		global $wpdb;
 

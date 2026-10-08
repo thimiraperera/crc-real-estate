@@ -187,6 +187,10 @@ final class Import_Page {
 			'finished'    => __( 'The import is finished.', 'crc-real-estate' ),
 			'stopped'     => __( 'The import was stopped. The listings imported before that are kept.', 'crc-real-estate' ),
 			'cancelled'   => __( 'The import was cancelled before it began, so no listing was changed. Save the file as CSV UTF-8 and choose it again.', 'crc-real-estate' ),
+			'asIs'        => __( 'This file wasn\'t saved as CSV UTF-8. You chose to import it as it is, so letters such as Sinhala or Tamil may show as ?.', 'crc-real-estate' ),
+			'stillThere'  => __( 'The import is still waiting, and nothing has been imported from it: reload this page and press Stop the import.', 'crc-real-estate' ),
+			'notUtf8'     => __( 'It was started from a file that wasn\'t saved as CSV UTF-8, and nothing has been imported from it yet. To import the corrected file instead, press Stop the import and choose that file.', 'crc-real-estate' ),
+			'notUtf8Wait' => __( 'An import you started earlier, from a file that wasn\'t saved as CSV UTF-8, is still waiting, and nothing has been imported from it yet. Please press Stop the import to drop it, and then start the new file.', 'crc-real-estate' ),
 			'stop'        => __( 'Stop the import', 'crc-real-estate' ),
 			'stopAsk'     => __( 'Stop the import? The listings imported so far are kept.', 'crc-real-estate' ),
 			'carryOn'     => __( 'Continue the import', 'crc-real-estate' ),
@@ -481,7 +485,10 @@ final class Import_Page {
 		$seen   = isset( $_POST['seen'] ) ? absint( $_POST['seen'] ) : 0;
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked in check_ajax().
 		$fresh  = ! empty( $_POST['fresh'] );
-		$result = Importer::step( get_current_user_id(), self::posted_run(), $seen, $fresh );
+		// Whether the person answered OK to the import's notes, e.g. a file not saved as CSV UTF-8.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Checked in check_ajax().
+		$agreed = ! empty( $_POST['agreed'] );
+		$result = Importer::step( get_current_user_id(), self::posted_run(), $seen, $fresh, $agreed );
 
 		if ( is_wp_error( $result ) ) {
 			wp_send_json_error( array( 'message' => $result->get_error_message() ) );

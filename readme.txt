@@ -47,6 +47,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.39.1 =
+* Import: importing the same changed file twice gives the same result. Questions are found by their words, so their links stay with them, and none are lost or doubled.
+* Import: when a listing keeps the photos it had (Stop pressed, or a photo link that couldn't be used), its main photo stays too, even when the row moved it into the more photos.
+* Import: a listing whose details changed is always marked as changed, even when the import stops part way.
+* Import: a file that wasn't saved as CSV UTF-8 changes nothing until you agree, even after reloading the page or pressing Continue.
+
 = 0.39.0 =
 * Import & Export: a file downloaded with Export can be changed in Excel or Google Sheets and imported again. Rows with an ID change those listings with what is in the file now, and a short guide on the Import page shows how. With "Empty cells take things off" (ticked to start with), a cell you emptied takes that detail off the listing; the title, status, category and main photo are always kept. The listing's own questions become exactly the ones in the file.
 * Photos already on the website are used as they are, never downloaded again, even when their links are a smaller copy or come through a CDN. When some photo links can't be used, the listing keeps the photos it had. Rows that didn't change leave their listing as it was, so nothing is saved or unpublished for nothing.

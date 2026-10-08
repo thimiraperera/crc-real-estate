@@ -27,6 +27,11 @@
 	var log = run.querySelector( '.crc-import-log' );
 	var pending = page.querySelector( '.crc-import-pending' );
 	var ownChoice = null;
+
+	// The import whose file the owner agreed to import as it is (not saved as CSV UTF-8), and whether the
+	// unfinished import shown is still waiting for that answer.
+	var agreedRun = '';
+	var pendingNotes = false;
 	var running = false;
 	var tries = 0;
 	var inFlight = null;
@@ -243,9 +248,10 @@
 
 	// Shows an unfinished import, with Continue and Stop, and the choice it was started with.
 	function showPending( info ) {
+		pendingNotes = !! ( info.notes && info.notes.length );
 		show( pending.querySelector( '.crc-import-resume' ), true );
 		importId = info.run || '';
-		pending.querySelector( '.crc-import-pending-text' ).textContent = format( text.pending, number( info.done ), number( info.total ) );
+		pending.querySelector( '.crc-import-pending-text' ).textContent = format( text.pending, number( info.done ), number( info.total ) ) + ( pendingNotes ? ' ' + text.notUtf8 : '' );
 		show( pending, true );
 		progress( info.done, info.total, info.counts );
 
@@ -278,6 +284,12 @@
 		if ( fresh ) {
 			body.append( 'fresh', '1' );
 		}
+
+		// The site changes nothing from a file that may have lost letters until the owner has said OK.
+		if ( agreedRun && agreedRun === importId ) {
+			body.append( 'agreed', '1' );
+		}
+
 		inFlight = post( 'crc_re_import_step', body );
 
 		inFlight.then( function ( data ) {
@@ -308,6 +320,17 @@
 			if ( result.busy ) {
 				say( text.waiting );
 				later( WAIT, mine );
+				return;
+			}
+
+			// The import waits for an answer about its file before changing anything, e.g. when continued later.
+			if ( result.confirm && result.confirm.length ) {
+				if ( window.confirm( result.confirm.join( '\n\n' ) ) ) {
+					agree();
+					step( mine );
+				} else {
+					cancel();
+				}
 				return;
 			}
 
@@ -372,22 +395,23 @@
 		run.insertBefore( line, log );
 	}
 
-	// Stops an import before its first step, so no listing is changed.
-	function cancel() {
-		var body = new FormData();
+	// The owner said OK to importing a file that may have lost letters: the page says so in its own words.
+	function agree() {
+		agreedRun = importId;
 
+		Array.prototype.forEach.call( run.querySelectorAll( '.crc-import-file-note' ), function ( element ) {
+			element.parentNode.removeChild( element );
+		} );
+
+		fileNote( text.asIs, 'crc-import-file-note' );
+	}
+
+	// Stops an import that is waiting for an answer about its file, before it changes anything.
+	function cancel() {
 		loop++;
-		body.append( 'run', importId );
 		say( text.stopping );
 
-		post( 'crc_re_import_stop', body ).then( function ( data ) {
-			if ( ! data.success ) {
-				failed( message( data ) );
-				return;
-			}
-
-			finish( text.cancelled );
-		} ).catch( function ( error ) {
+		stopImport( false, true ).catch( function ( error ) {
 			// The import is still there, before its first step: Continue or Stop it.
 			busy( false );
 			say( error && error.loggedOut ? text.loggedOut : format( text.stopFailed, error && error.message ? error.message : text.noAnswer ), 'crc-warning' );
@@ -408,9 +432,9 @@
 			return;
 		}
 
-		// An unfinished import is continued or stopped first.
+		// An unfinished import is continued or stopped first; one waiting for an answer about its file is better stopped.
 		if ( ! pending.hidden || ! resume.hidden ) {
-			window.alert( text.unfinished );
+			window.alert( ! pending.hidden && pendingNotes ? text.notUtf8Wait : text.unfinished );
 			return;
 		}
 
@@ -474,18 +498,18 @@
 			importId = data.data.run;
 			progress( 0, data.data.total, { created: 0, updated: 0, failed: 0 } );
 
-			notes.forEach( function ( words ) {
-				fileNote( words, 'crc-import-file-note' );
-			} );
-
 			if ( data.data.unknown && data.data.unknown.length ) {
 				fileNote( format( text.unknown, data.data.unknown.join( ', ' ) ), 'crc-import-unknown' );
 			}
 
 			// A file that may have lost letters is checked with the owner before any listing is changed.
-			if ( notes.length && ! window.confirm( notes.join( '\n\n' ) ) ) {
-				cancel();
-				return;
+			if ( notes.length ) {
+				if ( ! window.confirm( notes.join( '\n\n' ) ) ) {
+					cancel();
+					return;
+				}
+
+				agree();
 			}
 
 			begin();
@@ -498,7 +522,9 @@
 	// Whether the site answered that it was asked to stop the import.
 	var stopAsked = false;
 
-	function stopImport( fromNotice ) {
+	// Stops the import. Cancelling is answering Cancel about its file: the page then says nothing was
+	// changed, but only when the site says no row was done.
+	function stopImport( fromNotice, cancelling ) {
 		var body = new FormData();
 
 		body.append( 'run', importId );
@@ -507,7 +533,7 @@
 			var result = data.data || {};
 
 			if ( ! data.success ) {
-				failed( message( data ) );
+				failed( message( data ) + ( cancelling ? ' ' + text.stillThere : '' ) );
 				return;
 			}
 
@@ -518,7 +544,7 @@
 				return new Promise( function ( resolve ) {
 					window.setTimeout( resolve, WAIT );
 				} ).then( function () {
-					return stopImport( fromNotice );
+					return stopImport( fromNotice, cancelling );
 				} );
 			}
 
@@ -532,6 +558,11 @@
 
 			if ( result.counts ) {
 				progress( result.done, result.total, result.counts );
+			}
+
+			if ( cancelling && ! result.report && ! result.done && false !== result.stopped ) {
+				finish( text.cancelled );
+				return;
 			}
 
 			finish( false === result.stopped ? text.finished : text.stopped );
