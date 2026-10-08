@@ -49,6 +49,8 @@ final class Plugin {
 		( new Views() )->hooks();
 		( new Popup() )->hooks();
 		( new Inquiries() )->hooks();
+		( new Contact_Messages() )->hooks();
+		( new Ad_Requests() )->hooks();
 		( new Owner() )->hooks();
 		( new Photo_Privacy() )->hooks();
 		( new Importer() )->hooks();
@@ -61,6 +63,8 @@ final class Plugin {
 		( new Sections\Features() )->hooks();
 		( new Sections\Location() )->hooks();
 		( new Sections\Inquiry() )->hooks();
+		( new Contact_Form() )->hooks();
+		( new Ad_Form() )->hooks();
 		( new Sections\Faq() )->hooks();
 		( new Ticker() )->hooks();
 		( new Category_Carousel() )->hooks();
@@ -86,6 +90,8 @@ final class Plugin {
 		( new Admin\Owner_Box() )->hooks();
 		( new Admin\Views_Box() )->hooks();
 		( new Admin\Inquiries_Screen() )->hooks();
+		( new Admin\Contact_Messages_Screen() )->hooks();
+		( new Admin\Ad_Requests_Screen() )->hooks();
 		( new Admin\Publish_Rules() )->hooks();
 		( new Admin\Listing_Switch() )->hooks();
 		( new Admin\Listing_Export() )->hooks();

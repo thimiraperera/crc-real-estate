@@ -1,7 +1,8 @@
 /**
- * Inquiry forms: checks each field while people type, keeps the phone
- * number's country code in view, loads hCaptcha when the form comes near,
- * and sends the inquiry without leaving the page.
+ * The plugin's forms (inquiry, contact and post a free ad): checks each field
+ * while people type, keeps the phone number's country code in view, loads
+ * hCaptcha when the form comes near, and sends the form without leaving the
+ * page.
  */
 ( function () {
 	'use strict';
@@ -10,7 +11,6 @@
 	var countries = config.countries || {};
 	var messages = config.messages || {};
 	var captcha = config.captcha || null;
-	var KEYS = [ 'first_name', 'last_name', 'phone', 'email', 'message' ];
 	var EMAIL = /^[A-Za-z0-9.!#$%&'*+\/=?^_`{|}~-]+@[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$/;
 	var BAD_ENDINGS = [ '.con', '.cmo', '.cpm', '.vom', '.xom', '.comm', '.coom' ];
 	var NUMBER_GAP = 12; // Room between the line after the country code and the number.
@@ -238,8 +238,68 @@
 		return form.querySelector( '[data-crc-field="' + key + '"]' );
 	}
 
+	// The keys of a form's fields, in page order. hCaptcha has its own checks.
+	function keysOf( form ) {
+		return Array.prototype.map.call( form.querySelectorAll( '[data-crc-field]' ), function ( wrap ) {
+			return wrap.getAttribute( 'data-crc-field' );
+		} ).filter( function ( key ) {
+			return 'captcha' !== key;
+		} );
+	}
+
+	// The box to type in, or the first round button of a choice.
 	function controlOf( wrap ) {
-		return wrap ? wrap.querySelector( '.crc-inquiry-input' ) : null;
+		return wrap ? wrap.querySelector( '.crc-inquiry-input' ) || wrap.querySelector( '.crc-inquiry-radio' ) : null;
+	}
+
+	// A message in the form's own words: "Your message couldn't be sent" on
+	// the contact form, "Your inquiry couldn't be sent" on the inquiry form.
+	function text( form, key ) {
+		var own = ( config.forms || {} )[ form.getAttribute( 'data-crc-form' ) || 'inquiry' ] || {};
+
+		return own[ key ] || messages[ key ] || '';
+	}
+
+	// How a field is checked. The contact and free ad forms say so on each
+	// field, with the site's own messages; the inquiry form's checks are
+	// built in here.
+	function ruleOf( form, wrap, key ) {
+		var spec = { rule: 'text', required: false, max: 0, empty: '', invalid: '', tooLong: '' };
+
+		if ( wrap.hasAttribute( 'data-crc-rule' ) ) {
+			spec.rule = wrap.getAttribute( 'data-crc-rule' );
+			spec.required = wrap.hasAttribute( 'data-crc-required' );
+			spec.max = parseInt( wrap.getAttribute( 'data-crc-max' ), 10 ) || 0;
+			spec.empty = wrap.getAttribute( 'data-crc-empty' ) || '';
+			spec.invalid = wrap.getAttribute( 'data-crc-invalid' ) || '';
+			spec.tooLong = wrap.getAttribute( 'data-crc-long' ) || '';
+		} else if ( 'first_name' === key || 'last_name' === key ) {
+			spec.rule = 'name';
+			spec.required = 'first_name' === key;
+			spec.empty = spec.required ? text( form, 'first_name' ) : '';
+			spec.invalid = text( form, 'first_name' === key ? 'first_letters' : 'last_letters' );
+		} else if ( 'phone' === key || 'email' === key ) {
+			spec.rule = key;
+			spec.required = true;
+		}
+
+		return spec;
+	}
+
+	// What was typed, or the value of the round button chosen.
+	function valueOf( wrap, spec ) {
+		var chosen;
+		var control;
+
+		if ( 'choice' === spec.rule ) {
+			chosen = wrap.querySelector( '.crc-inquiry-radio:checked' );
+
+			return chosen ? chosen.value : '';
+		}
+
+		control = controlOf( wrap );
+
+		return control ? control.value.trim() : '';
 	}
 
 	function phoneMessage( code ) {
@@ -261,60 +321,79 @@
 		return value.length < 6 || ! EMAIL.test( value ) ? messages.email_invalid : '';
 	}
 
-	// What's wrong with a field, or an empty string when it's all right.
+	// What's wrong with a field, or an empty string when it's all right. The
+	// site checks the same way.
 	function errorFor( form, key ) {
-		var control = controlOf( fieldOf( form, key ) );
-		var select;
+		var wrap = fieldOf( form, key );
+		var spec;
 		var value;
+		var select;
 		var phone;
 
-		if ( ! control ) {
+		if ( ! controlOf( wrap ) ) {
 			return '';
 		}
 
-		value = control.value.trim();
+		spec = ruleOf( form, wrap, key );
+		value = valueOf( wrap, spec );
 
-		if ( 'first_name' === key || 'last_name' === key ) {
-			if ( '' === value ) {
-				return 'first_name' === key ? messages.first_name : '';
-			}
-
-			return nameRule && ! nameRule.test( value ) ? messages[ 'first_name' === key ? 'first_letters' : 'last_letters' ] : '';
-		}
-
-		if ( 'phone' === key ) {
+		if ( 'phone' === spec.rule ) {
 			select = form.querySelector( '.crc-inquiry-country-select' );
 			phone = parsePhone( select ? select.value : '', value );
 
-			if ( ! phone.error ) {
+			if ( ! phone.error || ( 'empty' === phone.error && ! spec.required ) ) {
 				return '';
 			}
 
-			return 'empty' === phone.error ? messages.phone : phoneMessage( phone.country );
+			return 'empty' === phone.error ? spec.empty || messages.phone : phoneMessage( phone.country );
 		}
 
-		return 'email' === key ? emailError( value ) : '';
+		if ( '' === value ) {
+			return spec.required ? spec.empty || ( 'email' === spec.rule ? messages.email : '' ) : '';
+		}
+
+		switch ( spec.rule ) {
+			case 'name':
+				if ( spec.max && value.length > spec.max ) {
+					return spec.tooLong;
+				}
+
+				return nameRule && ! nameRule.test( value ) ? spec.invalid : '';
+
+			case 'email':
+				return value.length < 6 || ( spec.max && value.length > spec.max ) || ! EMAIL.test( value ) ? spec.invalid || messages.email_invalid : '';
+
+			case 'amount':
+				// Numbers only, with commas or spaces between, and more than nothing.
+				return ( spec.max && value.length > spec.max ) || ! /^[\d,\s]+(\.\d+)?$/.test( value ) || ! /[1-9]/.test( value.replace( /\..*$/, '' ) ) ? spec.invalid : '';
+
+			case 'count':
+				return /^\d{1,2}$/.test( value ) ? '' : spec.invalid;
+
+			case 'choice':
+				return '';
+		}
+
+		return spec.max && value.length > spec.max ? spec.tooLong : '';
 	}
 
 	function showError( wrap, message ) {
 		var error;
-		var control;
 
 		if ( ! wrap ) {
 			return;
 		}
 
 		error = wrap.querySelector( '.crc-inquiry-error' );
-		control = controlOf( wrap );
 		wrap.classList.toggle( 'is-invalid', !! message );
 
-		if ( control ) {
+		Array.prototype.forEach.call( wrap.querySelectorAll( '.crc-inquiry-input, .crc-inquiry-radio' ), function ( control ) {
 			if ( message ) {
 				control.setAttribute( 'aria-invalid', 'true' );
 			} else {
 				control.removeAttribute( 'aria-invalid' );
 			}
-		}
+		} );
 
 		if ( error ) {
 			error.textContent = message || '';
@@ -347,12 +426,12 @@
 	}
 
 	// The country code sits at the start of the phone box. It takes the text
-	// style of the site's fields (read from the E-Mail box, which the form
-	// leaves as it is), and the number starts just after it.
+	// style of the site's fields (read from the E-Mail box, or another text
+	// box, which the form leaves as it is), and the number starts just after it.
 	function fitCountry( form ) {
 		var country = form.querySelector( '.crc-inquiry-country' );
 		var number = controlOf( fieldOf( form, 'phone' ) );
-		var model = controlOf( fieldOf( form, 'email' ) );
+		var model = controlOf( fieldOf( form, 'email' ) ) || form.querySelector( 'input.crc-inquiry-input:not(.crc-inquiry-number)' );
 		var look;
 
 		if ( ! country || ! number || ! model || ! window.getComputedStyle || ! number.offsetWidth ) {
@@ -369,7 +448,9 @@
 		number.style.paddingLeft = Math.ceil( country.getBoundingClientRect().width + NUMBER_GAP - ( parseFloat( window.getComputedStyle( number ).borderLeftWidth ) || 0 ) ) + 'px';
 	}
 
-	// Shows the chosen country's flag and code, and its example number in the empty box.
+	// Shows the chosen country's flag and code, and its example number in the
+	// empty box, in the form's own words (on pages cached before each form had
+	// its own, from the shared set).
 	function showCode( form ) {
 		var select = form.querySelector( '.crc-inquiry-country-select' );
 		var flag = form.querySelector( '.crc-inquiry-country-flag' );
@@ -377,7 +458,7 @@
 		var button = form.querySelector( '.crc-inquiry-country-button' );
 		var number = controlOf( fieldOf( form, 'phone' ) );
 		var details = select ? country( select.value ) : null;
-		var examples = config.placeholders || {};
+		var examples = ( ( config.forms || {} )[ form.getAttribute( 'data-crc-form' ) || 'inquiry' ] || {} ).placeholders || config.placeholders || {};
 		var example;
 		var src;
 
@@ -651,7 +732,7 @@
 
 		if ( result.success ) {
 			form.reset();
-			KEYS.forEach( function ( name ) {
+			keysOf( form ).forEach( function ( name ) {
 				var field = fieldOf( form, name );
 
 				if ( field ) {
@@ -661,7 +742,7 @@
 			} );
 			hideHint( form );
 			showCode( form );
-			showStatus( form, 'success', result.message || messages.sent_plain );
+			showStatus( form, 'success', result.message || text( form, 'sent_plain' ) );
 			return;
 		}
 
@@ -679,7 +760,7 @@
 		if ( result.message ) {
 			showStatus( form, 'error', result.message );
 		} else if ( ! first ) {
-			showStatus( form, 'error', messages.failed );
+			showStatus( form, 'error', text( form, 'failed' ) );
 		}
 
 		if ( first ) {
@@ -706,7 +787,7 @@
 			headers: { Accept: 'application/json' }
 		} ).then( function ( response ) {
 			return response.json().catch( function () {
-				return { success: false, message: messages.failed };
+				return { success: false, message: text( form, 'failed' ) };
 			} );
 		} ).then( function ( result ) {
 			sending( form, false );
@@ -715,7 +796,7 @@
 		}, function () {
 			sending( form, false );
 			resetCaptcha( form );
-			showStatus( form, 'error', messages.network );
+			showStatus( form, 'error', text( form, 'network' ) );
 		} );
 	}
 
@@ -737,7 +818,7 @@
 
 		hideStatus( form );
 
-		KEYS.forEach( function ( key ) {
+		keysOf( form ).forEach( function ( key ) {
 			var field = fieldOf( form, key );
 
 			if ( field ) {
@@ -1176,11 +1257,23 @@
 		form.crcInquiry = true;
 		form.noValidate = true;
 
-		KEYS.forEach( function ( key ) {
+		keysOf( form ).forEach( function ( key ) {
 			var wrap = fieldOf( form, key );
 			var control = controlOf( wrap );
 
 			if ( ! control ) {
+				return;
+			}
+
+			// A choice is checked as soon as one is chosen.
+			if ( ! wrap.querySelector( '.crc-inquiry-input' ) ) {
+				Array.prototype.forEach.call( wrap.querySelectorAll( '.crc-inquiry-radio' ), function ( radio ) {
+					radio.addEventListener( 'change', function () {
+						wrap.crcTouched = true;
+						validate( form, key );
+					} );
+				} );
+
 				return;
 			}
 

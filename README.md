@@ -28,6 +28,7 @@ Real estate listing tools for WordPress.
 - **Search**: a search box for any page with a tab for each category, a free search that understands places, property types, bedrooms, prices, sizes and any words, with suggestions of places, types and listings from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and More filters for features, the price and terms, floor area, parking, the road, water and electricity, availability, who listed it and when, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 - **Towns**: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 - **On the website switch and Sold or Rented**: on All Listings, a switch hides a listing from the website without deleting anything, and one click marks it Sold, or Rented for rentals, shown on its cards and under its price
+- **Contact form and free ad form**: `[crc_contact_form]` and `[crc_post_ad_form]`, with the same checks as people type, spam protection and emails as the inquiry form, and their own Contact Messages and Free Ads pages in wp-admin
 - **Shortcodes** for every section, ready to place in Elementor
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 

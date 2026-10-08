@@ -8,7 +8,6 @@
 namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Inquiries;
-use CRC\RealEstate\Phone;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -17,87 +16,29 @@ defined( 'ABSPATH' ) || exit;
  * reach them, and each inquiry in full with buttons to reply. The menu shows
  * how many are new, and new ones are marked New until they are opened.
  */
-final class Inquiries_Screen {
+final class Inquiries_Screen extends Submissions_Screen {
+
+	const STORE = Inquiries::class;
+	const BOX   = 'crc-inquiry';
 
 	/**
-	 * Registers hooks.
-	 */
-	public function hooks() {
-		add_action( 'admin_menu', array( $this, 'badge' ), 99 );
-		add_action( 'load-post.php', array( $this, 'opened' ) );
-		add_filter( 'display_post_states', array( $this, 'states' ), 10, 2 );
-		add_filter( 'manage_' . Inquiries::NAME . '_posts_columns', array( $this, 'columns' ) );
-		add_action( 'manage_' . Inquiries::NAME . '_posts_custom_column', array( $this, 'column' ), 10, 2 );
-		add_filter( 'post_date_column_status', array( $this, 'date_status' ), 10, 2 );
-		add_filter( 'post_row_actions', array( $this, 'row_actions' ), 10, 2 );
-		add_filter( 'bulk_actions-edit-' . Inquiries::NAME, array( $this, 'bulk_actions' ) );
-		add_filter( 'views_edit-' . Inquiries::NAME, array( $this, 'views' ) );
-		add_action( 'add_meta_boxes_' . Inquiries::NAME, array( $this, 'boxes' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
-	}
-
-	/**
-	 * The number of new inquiries on the Inquiries menu, like new comments.
-	 */
-	public function badge() {
-		global $menu;
-
-		$count = is_array( $menu ) ? Inquiries::new_count() : 0;
-
-		if ( ! $count ) {
-			return;
-		}
-
-		foreach ( $menu as $key => $item ) {
-			if ( isset( $item[2] ) && 'edit.php?post_type=' . Inquiries::NAME === $item[2] ) {
-				$menu[ $key ][0] .= sprintf( // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Adding the count, as WordPress does for comments.
-					' <span class="awaiting-mod count-%1$d"><span class="pending-count" aria-hidden="true">%2$s</span><span class="screen-reader-text">%3$s</span></span>',
-					$count,
-					esc_html( number_format_i18n( $count ) ),
-					/* translators: %s: number of new inquiries. */
-					esc_html( sprintf( _n( '%s new inquiry', '%s new inquiries', $count, 'crc-real-estate' ), number_format_i18n( $count ) ) )
-				);
-				break;
-			}
-		}
-	}
-
-	/**
-	 * An inquiry opened is no longer new.
-	 */
-	public function opened() {
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only reads which inquiry is open.
-		$id = isset( $_GET['post'] ) && is_scalar( $_GET['post'] ) ? absint( $_GET['post'] ) : 0;
-
-		if ( $id && Inquiries::NAME === get_post_type( $id ) && current_user_can( 'edit_post', $id ) ) {
-			delete_post_meta( $id, Inquiries::NEW_META );
-		}
-	}
-
-	/**
-	 * New next to a new inquiry's name in the list.
+	 * The title of the inquiry box.
 	 *
-	 * @param string[] $states States shown after the name.
-	 * @param \WP_Post $post   Post.
-	 * @return string[]
+	 * @return string
 	 */
-	public function states( $states, $post ) {
-		if ( $post instanceof \WP_Post && Inquiries::NAME === $post->post_type && get_post_meta( $post->ID, Inquiries::NEW_META, true ) ) {
-			$states['crc_new'] = __( 'New', 'crc-real-estate' );
-		}
-
-		return $states;
+	protected static function box_title() {
+		return __( 'Inquiry', 'crc-real-estate' );
 	}
 
 	/**
-	 * Loads the admin styles on the inquiry screens.
+	 * The number of new inquiries, for screen readers.
+	 *
+	 * @param int $count Number of new inquiries.
+	 * @return string
 	 */
-	public function assets() {
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-
-		if ( $screen && Inquiries::NAME === $screen->post_type ) {
-			wp_enqueue_style( 'crc-re-admin', CRC_RE_URL . 'assets/css/admin.css', array(), CRC_RE_VERSION );
-		}
+	protected static function badge_text( $count ) {
+		/* translators: %s: number of new inquiries. */
+		return sprintf( _n( '%s new inquiry', '%s new inquiries', $count, 'crc-real-estate' ), number_format_i18n( $count ) );
 	}
 
 	/**
@@ -128,15 +69,11 @@ final class Inquiries_Screen {
 
 		switch ( $column ) {
 			case 'crc_phone':
-				if ( '' !== $inquiry['phone'] ) {
-					printf( '<a href="%1$s">%2$s</a>', esc_url( 'tel:' . $inquiry['phone'] ), esc_html( Phone::display( $inquiry['phone'], $inquiry['country'] ) ) );
-				}
+				echo self::phone_link( $inquiry ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in phone_link().
 				break;
 
 			case 'crc_email':
-				if ( '' !== $inquiry['email'] ) {
-					printf( '<a href="%1$s">%2$s</a>', esc_url( 'mailto:' . $inquiry['email'] ), esc_html( $inquiry['email'] ) );
-				}
+				echo self::email_link( $inquiry['email'] ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in email_link().
 				break;
 
 			case 'crc_listing':
@@ -152,72 +89,6 @@ final class Inquiries_Screen {
 	}
 
 	/**
-	 * Shows only the date in the Received column, without "Published".
-	 *
-	 * @param string   $status Status text.
-	 * @param \WP_Post $post   Post.
-	 * @return string
-	 */
-	public function date_status( $status, $post ) {
-		return $post && Inquiries::NAME === $post->post_type ? '' : $status;
-	}
-
-	/**
-	 * Links under each inquiry: Open and Trash. Inquiries aren't edited.
-	 *
-	 * @param string[] $actions Links.
-	 * @param \WP_Post $post    Post.
-	 * @return string[]
-	 */
-	public function row_actions( $actions, $post ) {
-		if ( Inquiries::NAME !== $post->post_type ) {
-			return $actions;
-		}
-
-		unset( $actions['inline hide-if-no-js'] );
-
-		if ( isset( $actions['edit'] ) ) {
-			$actions['edit'] = sprintf( '<a href="%1$s">%2$s</a>', esc_url( (string) get_edit_post_link( $post->ID ) ), esc_html__( 'Open', 'crc-real-estate' ) );
-		}
-
-		return $actions;
-	}
-
-	/**
-	 * Bulk actions: only Move to Trash.
-	 *
-	 * @param string[] $actions Bulk actions.
-	 * @return string[]
-	 */
-	public function bulk_actions( $actions ) {
-		unset( $actions['edit'] );
-
-		return $actions;
-	}
-
-	/**
-	 * The list's filters: All and Trash. "Published" would only repeat All.
-	 *
-	 * @param string[] $views Filters.
-	 * @return string[]
-	 */
-	public function views( $views ) {
-		unset( $views['publish'] );
-
-		return $views;
-	}
-
-	/**
-	 * The inquiry screen: the inquiry, and buttons to reply.
-	 */
-	public function boxes() {
-		remove_meta_box( 'submitdiv', Inquiries::NAME, 'side' );
-		remove_meta_box( 'slugdiv', Inquiries::NAME, 'normal' );
-		add_meta_box( 'crc-inquiry-details', __( 'Inquiry', 'crc-real-estate' ), array( $this, 'details' ), Inquiries::NAME, 'normal', 'high' );
-		add_meta_box( 'crc-inquiry-reply', __( 'Reply', 'crc-real-estate' ), array( $this, 'reply' ), Inquiries::NAME, 'side', 'high' );
-	}
-
-	/**
 	 * Prints the inquiry.
 	 *
 	 * @param \WP_Post $post Inquiry.
@@ -225,23 +96,7 @@ final class Inquiries_Screen {
 	public function details( $post ) {
 		$inquiry = Inquiries::get( $post->ID );
 		$listing = Inquiries::listing( $inquiry );
-		$rows    = array(
-			__( 'Name', 'crc-real-estate' ) => esc_html( Inquiries::name( $inquiry ) ),
-		);
-
-		if ( '' !== $inquiry['phone'] ) {
-			$rows[ __( 'Phone', 'crc-real-estate' ) ] = sprintf(
-				'<a href="%1$s">%2$s</a> &middot; <a href="%3$s" target="_blank" rel="noopener">%4$s</a>',
-				esc_url( 'tel:' . $inquiry['phone'] ),
-				esc_html( Phone::display( $inquiry['phone'], $inquiry['country'] ) ),
-				esc_url( Inquiries::whatsapp_url( $inquiry['phone'] ) ),
-				esc_html__( 'WhatsApp', 'crc-real-estate' )
-			);
-		}
-
-		if ( '' !== $inquiry['email'] ) {
-			$rows[ __( 'Email', 'crc-real-estate' ) ] = sprintf( '<a href="%1$s">%2$s</a>', esc_url( 'mailto:' . $inquiry['email'] ), esc_html( $inquiry['email'] ) );
-		}
+		$rows    = self::person_rows( $inquiry );
 
 		$rows[ __( 'Listing', 'crc-real-estate' ) ] = $listing
 			? sprintf(
@@ -253,32 +108,9 @@ final class Inquiries_Screen {
 			)
 			: esc_html__( 'General inquiry, not about a particular listing.', 'crc-real-estate' );
 
-		$rows[ __( 'Message', 'crc-real-estate' ) ] = '' !== $inquiry['message'] ? nl2br( esc_html( $inquiry['message'] ) ) : '<span class="description">' . esc_html__( 'No message.', 'crc-real-estate' ) . '</span>';
+		$rows[ __( 'Message', 'crc-real-estate' ) ] = self::text_cell( $inquiry['message'], __( 'No message.', 'crc-real-estate' ) );
 
-		if ( '' !== $inquiry['page'] ) {
-			$rows[ __( 'Sent from', 'crc-real-estate' ) ] = sprintf( '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( $inquiry['page'] ), esc_html( $inquiry['page'] ) );
-		}
-
-		/* translators: 1: date, 2: time. */
-		$rows[ __( 'Received', 'crc-real-estate' ) ] = esc_html( sprintf( __( '%1$s at %2$s', 'crc-real-estate' ), get_the_date( '', $post ), get_the_time( '', $post ) ) );
-
-		if ( '0' === $inquiry['mailed'] ) {
-			$rows[ __( 'Email to you', 'crc-real-estate' ) ] = '<span class="crc-warning">' . esc_html__( 'The email about this inquiry couldn\'t be sent, so it is only here. If this keeps happening, ask your host to check the site\'s email, or add an SMTP plugin that sends email through your email account.', 'crc-real-estate' ) . '</span>';
-		} elseif ( '1' === $inquiry['mailed'] ) {
-			$rows[ __( 'Email to you', 'crc-real-estate' ) ] = esc_html__( 'Sent to the address in Listings → Settings.', 'crc-real-estate' );
-		}
-
-		if ( '' !== $inquiry['note'] ) {
-			$rows[ __( 'Note', 'crc-real-estate' ) ] = '<span class="crc-warning">' . esc_html( $inquiry['note'] ) . '</span>';
-		}
-
-		echo '<table class="form-table crc-inquiry-details" role="presentation">';
-
-		foreach ( $rows as $label => $value ) {
-			printf( '<tr><th scope="row">%1$s</th><td>%2$s</td></tr>', esc_html( $label ), $value ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
-		}
-
-		echo '</table>';
+		self::table( array_merge( $rows, self::end_rows( $inquiry, $post, __( 'The email about this inquiry couldn\'t be sent, so it is only here. If this keeps happening, ask your host to check the site\'s email, or add an SMTP plugin that sends email through your email account.', 'crc-real-estate' ) ) ) );
 	}
 
 	/**
@@ -294,21 +126,6 @@ final class Inquiries_Screen {
 			? sprintf( __( 'Your inquiry about %s', 'crc-real-estate' ), html_entity_decode( get_the_title( $listing ), ENT_QUOTES, 'UTF-8' ) )
 			: __( 'Your inquiry', 'crc-real-estate' );
 
-		echo '<div class="crc-inquiry-reply">';
-
-		if ( '' !== $inquiry['email'] ) {
-			printf( '<a class="button button-primary" href="%1$s">%2$s</a>', esc_url( 'mailto:' . $inquiry['email'] . '?subject=' . rawurlencode( $subject ) ), esc_html__( 'Reply by email', 'crc-real-estate' ) );
-		}
-
-		if ( '' !== $inquiry['phone'] ) {
-			printf( '<a class="button" href="%1$s">%2$s</a>', esc_url( 'tel:' . $inquiry['phone'] ), esc_html__( 'Call', 'crc-real-estate' ) );
-			printf( '<a class="button" href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( Inquiries::whatsapp_url( $inquiry['phone'] ) ), esc_html__( 'Message on WhatsApp', 'crc-real-estate' ) );
-		}
-
-		echo '</div>';
-
-		if ( current_user_can( 'delete_post', $post->ID ) ) {
-			printf( '<p class="crc-inquiry-trash"><a class="submitdelete" href="%1$s">%2$s</a></p>', esc_url( (string) get_delete_post_link( $post->ID ) ), esc_html__( 'Move to Trash', 'crc-real-estate' ) );
-		}
+		self::reply_buttons( $post, $inquiry, $subject );
 	}
 }

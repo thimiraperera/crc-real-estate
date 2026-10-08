@@ -308,7 +308,7 @@ final class Settings_Page {
 	}
 
 	/**
-	 * Registers the Inquiry form settings and their fields.
+	 * Registers the settings of the forms (inquiry, contact and free ad) and their fields.
 	 */
 	private function register_inquiry() {
 		register_setting(
@@ -321,10 +321,10 @@ final class Settings_Page {
 			)
 		);
 
-		add_settings_section( 'crc_re_inquiry', __( 'Inquiry form', 'crc-real-estate' ), array( $this, 'inquiry_guide' ), self::SLUG );
+		add_settings_section( 'crc_re_inquiry', __( 'Forms', 'crc-real-estate' ), array( $this, 'inquiry_guide' ), self::SLUG );
 
 		$fields = array(
-			'email'      => __( 'Send inquiries to', 'crc-real-estate' ),
+			'email'      => __( 'Send form emails to', 'crc-real-estate' ),
 			'captcha'    => __( 'Spam protection', 'crc-real-estate' ),
 			'site_key'   => __( 'hCaptcha site key', 'crc-real-estate' ),
 			'secret_key' => __( 'hCaptcha secret key', 'crc-real-estate' ),
@@ -346,18 +346,18 @@ final class Settings_Page {
 	}
 
 	/**
-	 * The short guide at the top of the Inquiry form settings.
+	 * The short guide at the top of the Forms settings.
 	 */
 	public function inquiry_guide() {
 		$link = function ( $url, $text ) {
 			return sprintf( '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( $url ), esc_html( $text ) );
 		};
 
-		echo '<p>' . esc_html__( 'Inquiries sent with the inquiry form are emailed to you and also kept in Inquiries (its own menu in wp-admin), so none are lost if an email doesn\'t arrive.', 'crc-real-estate' ) . '</p>';
+		echo '<p>' . esc_html__( 'These settings are shared by the inquiry form, the contact form and the post a free ad form. Everything people send with them is emailed to you and also kept in wp-admin, each form in its own menu: Inquiries, Contact Messages and Free Ads. That way nothing is lost if an email doesn\'t arrive, and new ones are counted on each menu until you open them.', 'crc-real-estate' ) . '</p>';
 
 		printf(
 			/* translators: 1: hCaptcha link, 2: hCaptcha Sites link, 3: hCaptcha Settings link. */
-			'<p>' . esc_html__( 'To stop spam robots, add hCaptcha\'s free "I am human" box: sign up at %1$s, add your website under %2$s to get its site key, and copy your secret key from %3$s. Then paste both keys below and tick Use hCaptcha.', 'crc-real-estate' ) . '</p>',
+			'<p>' . esc_html__( 'To stop spam robots, add hCaptcha\'s free "I am human" box to all three forms: sign up at %1$s, add your website under %2$s to get its site key, and copy your secret key from %3$s. Then paste both keys below and tick Use hCaptcha.', 'crc-real-estate' ) . '</p>',
 			$link( 'https://www.hcaptcha.com/', 'hCaptcha' ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
 			$link( 'https://dashboard.hcaptcha.com/sites', __( 'Sites', 'crc-real-estate' ) ), // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
 			$link( 'https://dashboard.hcaptcha.com/settings', __( 'Settings', 'crc-real-estate' ) ) // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in $link.
@@ -365,7 +365,7 @@ final class Settings_Page {
 	}
 
 	/**
-	 * Prints an Inquiry form setting.
+	 * Prints a Forms setting.
 	 *
 	 * @param array $args Field details.
 	 */
@@ -382,7 +382,7 @@ final class Settings_Page {
 					esc_attr( Settings::inquiry( 'email' ) ),
 					esc_attr( $admin ),
 					/* translators: %s: the site's admin email address. */
-					esc_html( sprintf( __( 'Every inquiry is emailed here. To send it to more than one person, put commas between the addresses. Leave it empty to use the site\'s admin email (%s). Replying to an inquiry email answers the person who sent it.', 'crc-real-estate' ), $admin ) )
+					esc_html( sprintf( __( 'Every inquiry, contact message and free ad is emailed here. To send them to more than one person, put commas between the addresses. Leave it empty to use the site\'s admin email (%s). Replying to one of these emails answers the person who sent it, so you can write back straight away.', 'crc-real-estate' ), $admin ) )
 				);
 				break;
 
@@ -397,7 +397,7 @@ final class Settings_Page {
 
 				if ( Settings::captcha_on() && is_array( $issue ) && ! empty( $issue['time'] ) ) {
 					/* translators: %s: date. */
-					$notes .= '<p class="crc-warning">' . esc_html( sprintf( __( 'On %s hCaptcha said the keys aren\'t right, so inquiries came through without the check. Please copy both keys again from your hCaptcha dashboard and save. This note goes away after the next inquiry that passes the check.', 'crc-real-estate' ), wp_date( (string) get_option( 'date_format' ), (int) $issue['time'] ) ) ) . '</p>';
+					$notes .= '<p class="crc-warning">' . esc_html( sprintf( __( 'On %s hCaptcha said the keys aren\'t right, so what people sent with the forms came through without the check. Please copy both keys again from your hCaptcha dashboard and save. This note goes away after the next inquiry, message or ad that passes the check.', 'crc-real-estate' ), wp_date( (string) get_option( 'date_format' ), (int) $issue['time'] ) ) ) . '</p>';
 				}
 
 				printf(
@@ -405,7 +405,7 @@ final class Settings_Page {
 					esc_attr( $name ),
 					checked( (bool) Settings::inquiry( 'captcha' ), true, false ),
 					esc_html__( 'Use hCaptcha', 'crc-real-estate' ),
-					esc_html__( 'Adds an "I am human" box above the Send button. People tick it before sending, which stops spam robots from sending inquiries. It needs both keys below.', 'crc-real-estate' ),
+					esc_html__( 'Adds an "I am human" box above the send button of the inquiry form, the contact form and the post a free ad form. People tick it before sending, which stops spam robots from filling them in. It needs both keys below.', 'crc-real-estate' ),
 					$notes // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 				);
 				break;

@@ -35,6 +35,7 @@ Real estate listing tools for WordPress.
 * Search: a search box for any page with a tab for each category, a free search that understands places, property types, bedrooms, prices, sizes and any words, with suggestions of places, types and listings from three letters, and rounded boxes for land size, price, bedrooms and the property type with lists to choose from or type in, such as 25m, 25 perches or 2-4 (a category list on phones); filters with price sliders and − and + for rooms that stay in view, and More filters for features, the price and terms, floor area, parking, the road, water and electricity, availability, who listed it and when, and results as a grid or a list with many orders and numbered pages, for the listing archives (all listings, and each category, district and town), designed with archive templates
 * Towns: typed on each listing, with the towns already used suggested, so people can search by town, district or Colombo zone
 * On the website switch and Sold or Rented: on All Listings, a switch hides a listing from the website without deleting anything, and one click marks it Sold, or Rented for rentals, shown on its cards and under its price
+* Contact form and free ad form: [crc_contact_form] and [crc_post_ad_form], with the same checks as people type, spam protection and emails as the inquiry form, and their own Contact Messages and Free Ads pages in wp-admin
 * Shortcodes for every section, ready to place in Elementor
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
@@ -46,6 +47,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.40.0 =
+* Contact form: [crc_contact_form] asks for the first and last name, the phone number with its country code, the e-mail, a subject and the message, and checks them as people type, like the inquiry form.
+* Free ad form: [crc_post_ad_form] lets people send a property to be listed: their name, phone and e-mail, Lands, Properties for Sale or Properties for Rent, the property type, the district or town, the price, land size, bedrooms, a title and a description. It tells them you will contact them for the photos.
+* Both forms are e-mailed to the address in Settings, with the same spam protection (and hCaptcha when it is on), and are kept in wp-admin under Contact Messages and Free Ads, next to Inquiries, each with a count of new ones and buttons to reply by e-mail, phone or WhatsApp.
+* Settings: the Inquiry form section is now Forms; its e-mail address and hCaptcha cover all three forms.
 
 = 0.39.1 =
 * Import: importing the same changed file twice gives the same result. Questions are found by their words, so their links stay with them, and none are lost or doubled.
