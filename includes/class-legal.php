@@ -304,13 +304,13 @@ final class Legal {
 		return array(
 			array( 'p', __( 'This Privacy Policy explains what personal information {name} collects through {site}, why we collect it, who we share it with, how long we keep it and the choices you have. We are a small team based in Galle, and we only deal with land and property in Sri Lanka.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '1. Who we are', 'crc-real-estate' ) ),
+			array( 'h4', __( '1. Who we are', 'crc-real-estate' ) ),
 			array( 'p', __( '{name} is the real estate service of {company}, a private limited company incorporated in Sri Lanka under the Companies Act, No. 7 of 2007, with company number {number}. {company} also offers engineering and construction services at {website}.', 'crc-real-estate' ) ),
 			array( 'p', __( 'In this policy, "we", "us" and "our" mean {company}. We decide how your personal information is used, so we are responsible for it. Our office is at {address}.', 'crc-real-estate' ) ),
 			array( 'p', __( 'For anything about your personal information, contact us at {email} or {phone}.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '2. The information we collect', 'crc-real-estate' ) ),
-			array( 'h3', __( 'When you send an inquiry about a listing', 'crc-real-estate' ) ),
+			array( 'h4', __( '2. The information we collect', 'crc-real-estate' ) ),
+			array( 'h5', __( 'When you send an inquiry about a listing', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -321,7 +321,7 @@ final class Legal {
 					__( 'The listing you asked about', 'crc-real-estate' ),
 				),
 			),
-			array( 'h3', __( 'When you use our contact form', 'crc-real-estate' ) ),
+			array( 'h5', __( 'When you use our contact form', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -329,7 +329,7 @@ final class Legal {
 					__( 'The subject and your message', 'crc-real-estate' ),
 				),
 			),
-			array( 'h3', __( 'When you send us a property to list (Post Your Ad)', 'crc-real-estate' ) ),
+			array( 'h5', __( 'When you send us a property to list (Post Your Ad)', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -338,7 +338,7 @@ final class Legal {
 					__( 'Later, when we contact you: photos of the property, and documents such as the deed, survey plan and your National Identity Card or passport, so we can check the listing before it goes live', 'crc-real-estate' ),
 				),
 			),
-			array( 'h3', __( 'When you own or offer a property we list', 'crc-real-estate' ) ),
+			array( 'h5', __( 'When you own or offer a property we list', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -347,11 +347,11 @@ final class Legal {
 				),
 			),
 			array( 'p', __( 'We keep these details private. They are never shown on the website. The website only ever shows a wide area around the property, never its exact place.', 'crc-real-estate' ) ),
-			array( 'h3', __( 'When a sale or rental goes ahead', 'crc-real-estate' ) ),
+			array( 'h5', __( 'When a sale or rental goes ahead', 'crc-real-estate' ) ),
 			array( 'p', __( 'Under the Financial Transactions Reporting Act, No. 6 of 2006, and the rules made under it, real estate agents in Sri Lanka must identify the people they deal with. When we help with a sale, we may ask buyers and sellers for their full name, address, National Identity Card or passport, date of birth, nationality, occupation, the source of the funds and the purpose of the purchase. We only collect this when the law requires it.', 'crc-real-estate' ) ),
-			array( 'h3', __( 'When you phone, WhatsApp or e-mail us', 'crc-real-estate' ) ),
+			array( 'h5', __( 'When you phone, WhatsApp or e-mail us', 'crc-real-estate' ) ),
 			array( 'p', __( 'We keep a record of your number or address and what we discuss, so we can help you and follow up.', 'crc-real-estate' ) ),
-			array( 'h3', __( 'Information collected automatically', 'crc-real-estate' ) ),
+			array( 'h5', __( 'Information collected automatically', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -362,7 +362,7 @@ final class Legal {
 				),
 			),
 
-			array( 'h2', __( '3. Why we use your information', 'crc-real-estate' ) ),
+			array( 'h4', __( '3. Why we use your information', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -378,7 +378,7 @@ final class Legal {
 			array( 'p', __( 'If you ask us about design, construction or other engineering services, our engineering team at {company} may contact you about them. Otherwise, we only use your information for the property you contacted us about.', 'crc-real-estate' ) ),
 			array( 'p', __( 'We don\'t sell your personal information. We don\'t send you newsletters or marketing messages unless you ask for them.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '4. Who we share it with', 'crc-real-estate' ) ),
+			array( 'h4', __( '4. Who we share it with', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -392,7 +392,7 @@ final class Legal {
 			),
 			array( 'p', __( 'Some of these providers store information on servers outside Sri Lanka. We only use well-known providers that protect information properly.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '5. How long we keep it', 'crc-real-estate' ) ),
+			array( 'h4', __( '5. How long we keep it', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -405,10 +405,10 @@ final class Legal {
 			),
 			array( 'p', __( 'After that, we delete the information or remove anything that identifies you.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '6. How we protect it', 'crc-real-estate' ) ),
+			array( 'h4', __( '6. How we protect it', 'crc-real-estate' ) ),
 			array( 'p', __( 'Our website uses a secure (HTTPS) connection. Only our team can see inquiries, messages and owner details, and the parts of the website that hold them need a password. We remove the GPS location that phones store inside photos before a photo is published. No method is completely safe, but we work to protect your information and will tell you if something goes wrong that affects you.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '7. Your rights', 'crc-real-estate' ) ),
+			array( 'h4', __( '7. Your rights', 'crc-real-estate' ) ),
 			array( 'p', __( 'You can ask us to:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -421,19 +421,19 @@ final class Legal {
 			),
 			array( 'p', __( 'Send your request to {email}. We may ask you to confirm who you are. We will reply within 21 working days. If you are not happy with our answer, you can contact the Data Protection Authority of Sri Lanka.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '8. Cookies and similar technology', 'crc-real-estate' ) ),
+			array( 'h4', __( '8. Cookies and similar technology', 'crc-real-estate' ) ),
 			array( 'p', __( 'We don\'t use advertising or tracking cookies. Your browser stores a few small items for the website to work: the date it last counted a listing view, and your grid or list choice for search results. Cloudflare may set a short-lived cookie that helps tell people from automated programs. If we add analytics or advertising tools that use cookies in the future, we will update this policy and ask for your consent where needed.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '9. Children', 'crc-real-estate' ) ),
+			array( 'h4', __( '9. Children', 'crc-real-estate' ) ),
 			array( 'p', __( 'Our services are for adults. We don\'t knowingly collect information from anyone under 18. If you believe a child has sent us their details, please contact us and we will delete them.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '10. Sri Lankan law', 'crc-real-estate' ) ),
+			array( 'h4', __( '10. Sri Lankan law', 'crc-real-estate' ) ),
 			array( 'p', __( 'We handle personal information in line with the Personal Data Protection Act, No. 9 of 2022, as amended, and other laws of Sri Lanka.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '11. Changes to this policy', 'crc-real-estate' ) ),
+			array( 'h4', __( '11. Changes to this policy', 'crc-real-estate' ) ),
 			array( 'p', __( 'We may update this policy as our services or the law change. The date at the top shows when it last changed. If we make an important change, we will say so on the website.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '12. Contact us', 'crc-real-estate' ) ),
+			array( 'h4', __( '12. Contact us', 'crc-real-estate' ) ),
 			self::contact(),
 		);
 	}
@@ -447,14 +447,14 @@ final class Legal {
 		return array(
 			array( 'p', __( 'These Terms and Conditions apply to everyone who uses {site}. Please read them before you use the website. By using the website, sending an inquiry or sending us a property, you agree to them. If you don\'t agree, please don\'t use the website.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '1. Who we are', 'crc-real-estate' ) ),
+			array( 'h4', __( '1. Who we are', 'crc-real-estate' ) ),
 			array( 'p', __( '{name} is the real estate service of {company}, a private limited company incorporated in Sri Lanka under the Companies Act, No. 7 of 2007, with company number {number}. {company} also offers engineering and construction services at {website}. In these terms, "we", "us" and "our" mean {company}. Our office is at {address}.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '2. What we do', 'crc-real-estate' ) ),
+			array( 'h4', __( '2. What we do', 'crc-real-estate' ) ),
 			array( 'p', __( 'We list land and property for sale and for rent in Sri Lanka. We review listings before they go live, answer inquiries, arrange viewings and help buyers, tenants and owners deal with each other. At present we only list property located in Sri Lanka. People living abroad are welcome to use the website, but every property and deal is in Sri Lanka.', 'crc-real-estate' ) ),
 			array( 'p', __( 'We are not a law firm, notary, bank, surveyor or valuer, and nothing on the website is legal, financial or valuation advice. Please read our <a href="{disclaimer}">Disclaimer</a>.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '3. Using the website', 'crc-real-estate' ) ),
+			array( 'h4', __( '3. Using the website', 'crc-real-estate' ) ),
 			array( 'p', __( 'You must be 18 or older to send an inquiry or a property. When you use the website, you agree not to:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -468,30 +468,30 @@ final class Legal {
 			),
 			array( 'p', __( 'We may block anyone who breaks these terms.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '4. Listings', 'crc-real-estate' ) ),
+			array( 'h4', __( '4. Listings', 'crc-real-estate' ) ),
 			array( 'p', __( 'Listing details, photos and prices come from property owners or the people they authorise. We check listings before they go live, but we can\'t guarantee that every detail is correct, complete or up to date. Prices are in Sri Lankan rupees and may change. A property may be sold, rented or withdrawn before we take its listing down or mark it Sold or Rented.', 'crc-real-estate' ) ),
 			array( 'p', __( 'The map on a listing shows a wide area around the property on purpose, not its exact place. We share the exact location with serious buyers or tenants when we arrange a viewing.', 'crc-real-estate' ) ),
 			array( 'p', __( 'Before you pay anything or sign anything, check the property and its papers yourself, with your own lawyer or notary. Our <a href="{disclaimer}">Disclaimer</a> explains what our checks cover and what they don\'t.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '5. Inquiries', 'crc-real-estate' ) ),
+			array( 'h4', __( '5. Inquiries', 'crc-real-estate' ) ),
 			array( 'p', __( 'When you send an inquiry, we may contact you by phone, WhatsApp or e-mail about that property and similar ones. Sending an inquiry doesn\'t reserve the property and doesn\'t create an agreement to buy or rent it. A sale or rental is only agreed when the buyer or tenant and the owner sign the proper documents.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '6. Payments and fees', 'crc-real-estate' ) ),
+			array( 'h4', __( '6. Payments and fees', 'crc-real-estate' ) ),
 			array( 'p', __( 'Browsing the website, sending inquiries and posting a property are free. We don\'t take payments through the website. Any commission or service fee for helping with a sale or rental will be agreed in writing before we start that work. We will never ask you to pay a deposit or advance to "hold" a property through WhatsApp or into a personal bank account.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '7. Sending us a property', 'crc-real-estate' ) ),
+			array( 'h4', __( '7. Sending us a property', 'crc-real-estate' ) ),
 			array( 'p', __( 'If you send us a property to list, our <a href="{listing}">Listing Terms</a> also apply.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '8. Our content', 'crc-real-estate' ) ),
+			array( 'h4', __( '8. Our content', 'crc-real-estate' ) ),
 			array( 'p', __( 'The website\'s design, text, logos and the way listings are presented belong to {company}. Listing photos and descriptions belong to us or to the owners who gave us permission to use them. You may view and share links to our pages, and print a listing for your own use. You may not copy, change or reuse our content for any other purpose without our written permission.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '9. Other websites and services', 'crc-real-estate' ) ),
+			array( 'h4', __( '9. Other websites and services', 'crc-real-estate' ) ),
 			array( 'p', __( 'The website uses or links to services run by others, such as WhatsApp, OpenStreetMap and Google Fonts. We are not responsible for their content or how they work, and their own terms apply.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '10. The website itself', 'crc-real-estate' ) ),
+			array( 'h4', __( '10. The website itself', 'crc-real-estate' ) ),
 			array( 'p', __( 'We work to keep the website running and accurate, but it may sometimes be unavailable or contain mistakes. We may change, add or remove any part of it at any time.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '11. Our responsibility to you', 'crc-real-estate' ) ),
+			array( 'h4', __( '11. Our responsibility to you', 'crc-real-estate' ) ),
 			array( 'p', __( 'As far as the law of Sri Lanka allows:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -504,19 +504,19 @@ final class Legal {
 			),
 			array( 'p', __( 'Nothing in these terms limits any responsibility that cannot be limited under Sri Lankan law, including responsibility for fraud.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '12. Your responsibility', 'crc-real-estate' ) ),
+			array( 'h4', __( '12. Your responsibility', 'crc-real-estate' ) ),
 			array( 'p', __( 'If you misuse the website or break these terms and someone makes a claim against us because of it, you agree to cover our reasonable costs of dealing with that claim.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '13. Your privacy', 'crc-real-estate' ) ),
+			array( 'h4', __( '13. Your privacy', 'crc-real-estate' ) ),
 			array( 'p', __( 'Our <a href="{privacy}">Privacy Policy</a> explains how we handle your personal information.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '14. Changes to these terms', 'crc-real-estate' ) ),
+			array( 'h4', __( '14. Changes to these terms', 'crc-real-estate' ) ),
 			array( 'p', __( 'We may update these terms from time to time. The date at the top shows when they last changed. If you keep using the website after a change, the new terms apply.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '15. Law and disputes', 'crc-real-estate' ) ),
+			array( 'h4', __( '15. Law and disputes', 'crc-real-estate' ) ),
 			array( 'p', __( 'These terms are governed by the law of Sri Lanka, and the courts of Sri Lanka will decide any dispute about them. If you have a problem, please contact us first so we can try to put it right.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '16. Contact us', 'crc-real-estate' ) ),
+			array( 'h4', __( '16. Contact us', 'crc-real-estate' ) ),
 			self::contact(),
 		);
 	}
@@ -530,10 +530,10 @@ final class Legal {
 		return array(
 			array( 'p', __( 'We work hard to make every listing on {site} honest and accurate. This page explains what our checks cover, what they don\'t, and what you should check yourself before you buy or rent a property. {name} is the real estate service of {company} (company number {number}).', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '1. General information only', 'crc-real-estate' ) ),
+			array( 'h4', __( '1. General information only', 'crc-real-estate' ) ),
 			array( 'p', __( 'Everything on this website, including listings, prices, FAQs and guides, is general information. It isn\'t legal, financial, tax or valuation advice. For advice about a particular property or deal, speak to a lawyer, notary, licensed surveyor, valuer or financial adviser.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '2. Where listing details come from', 'crc-real-estate' ) ),
+			array( 'h4', __( '2. Where listing details come from', 'crc-real-estate' ) ),
 			array( 'p', __( 'Listing details, photos and prices come from property owners or the people they authorise. We review them before they go live, but we can\'t guarantee that every detail is correct, complete or current. In particular:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -544,7 +544,7 @@ final class Legal {
 				),
 			),
 
-			array( 'h2', __( '3. What "checked" and "Verified by CRC" mean', 'crc-real-estate' ) ),
+			array( 'h4', __( '3. What "checked" and "Verified by CRC" mean', 'crc-real-estate' ) ),
 			array( 'p', __( 'When we say a listing is checked or Verified by CRC, it means:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -564,7 +564,7 @@ final class Legal {
 				),
 			),
 
-			array( 'h2', __( '4. Check before you pay or sign', 'crc-real-estate' ) ),
+			array( 'h4', __( '4. Check before you pay or sign', 'crc-real-estate' ) ),
 			array( 'p', __( 'Before you pay a deposit or sign anything, please:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -578,22 +578,22 @@ final class Legal {
 				),
 			),
 
-			array( 'h2', __( '5. Prices', 'crc-real-estate' ) ),
+			array( 'h4', __( '5. Prices', 'crc-real-estate' ) ),
 			array( 'p', __( 'Prices are in Sri Lankan rupees and are the owner\'s asking price. They may change, and some are negotiable. Prices per perch are worked out from the price and the land extent and are rounded. Unit conversions on the website are approximate (1 acre is 160 perches, and 1 square metre is about 10.76 square feet). We don\'t promise that any price reflects the property\'s market value.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '6. Maps and locations', 'crc-real-estate' ) ),
+			array( 'h4', __( '6. Maps and locations', 'crc-real-estate' ) ),
 			array( 'p', __( 'To protect owners, the map on each listing shows a wide area around the property, not its exact place. The circle is moved on purpose and doesn\'t show where the property is inside it. We share the exact location when we arrange a viewing.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '7. Availability', 'crc-real-estate' ) ),
+			array( 'h4', __( '7. Availability', 'crc-real-estate' ) ),
 			array( 'p', __( 'We mark a listing Sold or Rented, or take it down, as soon as we know a property has gone. Sometimes a property goes before we hear about it. Please send an inquiry to confirm a property is still available.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '8. Buyers from abroad', 'crc-real-estate' ) ),
+			array( 'h4', __( '8. Buyers from abroad', 'crc-real-estate' ) ),
 			array( 'p', __( 'Sri Lankans living abroad are welcome to use our services. Foreign nationals, and companies with foreign shareholders, face legal restrictions on buying land in Sri Lanka. Please get legal advice before you start.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '9. Testimonials', 'crc-real-estate' ) ),
+			array( 'h4', __( '9. Testimonials', 'crc-real-estate' ) ),
 			array( 'p', __( 'Testimonials are the personal experiences of our clients. Every property and deal is different, and your experience may differ.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '10. Stay safe from fraud', 'crc-real-estate' ) ),
+			array( 'h4', __( '10. Stay safe from fraud', 'crc-real-estate' ) ),
 			array( 'p', __( 'Property fraud happens in Sri Lanka, sometimes using the names of real companies. Please remember:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -605,10 +605,10 @@ final class Legal {
 			),
 			array( 'p', __( 'If someone contacts you in our name and something doesn\'t feel right, call us on one of these numbers before you do anything. If you see a listing you think is false, please tell us.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '11. Other websites', 'crc-real-estate' ) ),
+			array( 'h4', __( '11. Other websites', 'crc-real-estate' ) ),
 			array( 'p', __( 'Links to other websites are for your convenience. We are not responsible for their content.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '12. Contact us', 'crc-real-estate' ) ),
+			array( 'h4', __( '12. Contact us', 'crc-real-estate' ) ),
 			array( 'p', __( 'If you spot a mistake in a listing, please tell us at {email} or {phone}, and we will look into it.', 'crc-real-estate' ) ),
 			array( 'p', __( 'See also our <a href="{terms}">Terms and Conditions</a> and <a href="{privacy}">Privacy Policy</a>.', 'crc-real-estate' ) ),
 		);
@@ -623,7 +623,7 @@ final class Legal {
 		return array(
 			array( 'p', __( 'These Listing Terms apply when you send us a property to list on {site}, through the Post Your Ad form, by phone, WhatsApp or e-mail, or in person. They sit alongside our <a href="{terms}">Terms and Conditions</a>. By sending us a property, you agree to them. {name} is the real estate service of {company} (company number {number}), and "we", "us" and "our" mean {company}.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '1. Who can list a property', 'crc-real-estate' ) ),
+			array( 'h4', __( '1. Who can list a property', 'crc-real-estate' ) ),
 			array( 'p', __( 'You can list a property with us if:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -634,7 +634,7 @@ final class Legal {
 			),
 			array( 'p', __( 'The property must be in Sri Lanka, and you must be 18 or older.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '2. What you tell us', 'crc-real-estate' ) ),
+			array( 'h4', __( '2. What you tell us', 'crc-real-estate' ) ),
 			array( 'p', __( 'Everything you send us must be true, complete and up to date. You must tell us about anything a buyer or tenant would want to know, such as:', 'crc-real-estate' ) ),
 			array(
 				'ul',
@@ -647,11 +647,11 @@ final class Legal {
 			),
 			array( 'p', __( 'Photos must be of the property itself, and you must own them or have permission to use them.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '3. Our checks', 'crc-real-estate' ) ),
+			array( 'h4', __( '3. Our checks', 'crc-real-estate' ) ),
 			array( 'p', __( 'We check every property before it goes live. We may ask for the deed, the survey plan, your National Identity Card or passport, approvals and recent utility bills, and we may visit the property. We keep copies of your documents privately. They are never published.', 'crc-real-estate' ) ),
 			array( 'p', __( 'We may refuse a listing, or take one down, for any reason, including when we can\'t verify it. A listing only goes live once we have checked it.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '4. How we present your listing', 'crc-real-estate' ) ),
+			array( 'h4', __( '4. How we present your listing', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -664,19 +664,19 @@ final class Legal {
 				),
 			),
 
-			array( 'h2', __( '5. Permission to use your photos and details', 'crc-real-estate' ) ),
+			array( 'h4', __( '5. Permission to use your photos and details', 'crc-real-estate' ) ),
 			array( 'p', __( 'You allow us to use the photos, text and details you send us, free of charge, to advertise your property on our website, on social media, in online ads and in printed material, for as long as it is listed with us. When the listing comes down, we stop using them in new advertising, but we may keep copies in our records.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '6. Keeping your listing up to date', 'crc-real-estate' ) ),
+			array( 'h4', __( '6. Keeping your listing up to date', 'crc-real-estate' ) ),
 			array( 'p', __( 'Please tell us straight away if the property is sold or rented, the price changes, or you no longer want to sell or rent it. We will mark it Sold or Rented, update it, or take it down.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '7. Fees', 'crc-real-estate' ) ),
+			array( 'h4', __( '7. Fees', 'crc-real-estate' ) ),
 			array( 'p', __( 'Posting your property on our website is free. If you would like us to help find a buyer or tenant, any commission or service fee will be agreed with you in writing before your listing goes live. We will not charge you anything you have not agreed to. Where a fee has been agreed, please don\'t deal directly with a buyer or tenant we introduced in order to avoid it.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '8. No guarantees', 'crc-real-estate' ) ),
+			array( 'h4', __( '8. No guarantees', 'crc-real-estate' ) ),
 			array( 'p', __( 'We can\'t promise how many inquiries your listing will get, or that your property will sell or rent, or at what price. Any sale or rental is between you and the buyer or tenant. You are responsible for the deed, the agreement, any taxes and duties, and any approvals the sale or rental needs.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '9. What is not allowed', 'crc-real-estate' ) ),
+			array( 'h4', __( '9. What is not allowed', 'crc-real-estate' ) ),
 			array(
 				'ul',
 				array(
@@ -688,16 +688,16 @@ final class Legal {
 				),
 			),
 
-			array( 'h2', __( '10. Taking your listing down', 'crc-real-estate' ) ),
+			array( 'h4', __( '10. Taking your listing down', 'crc-real-estate' ) ),
 			array( 'p', __( 'You can ask us to take your listing down at any time by phone, WhatsApp or e-mail. We will remove it within 2 working days. We may also take a listing down, or put it on hold, at any time, for example if we can\'t contact you or something in it turns out to be wrong.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '11. Your responsibility', 'crc-real-estate' ) ),
+			array( 'h4', __( '11. Your responsibility', 'crc-real-estate' ) ),
 			array( 'p', __( 'You are responsible for what you send us. If someone makes a claim against us because information or photos you gave us were false, or you didn\'t have the right to share them, you agree to cover our reasonable costs of dealing with that claim.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '12. Your personal information', 'crc-real-estate' ) ),
+			array( 'h4', __( '12. Your personal information', 'crc-real-estate' ) ),
 			array( 'p', __( 'Our <a href="{privacy}">Privacy Policy</a> explains how we handle your personal information and the owner details we keep.', 'crc-real-estate' ) ),
 
-			array( 'h2', __( '13. Changes, law and contact', 'crc-real-estate' ) ),
+			array( 'h4', __( '13. Changes, law and contact', 'crc-real-estate' ) ),
 			array( 'p', __( 'We may update these terms from time to time. The date at the top shows when they last changed. These terms are governed by the law of Sri Lanka, and the courts of Sri Lanka will decide any dispute about them.', 'crc-real-estate' ) ),
 			self::contact(),
 		);

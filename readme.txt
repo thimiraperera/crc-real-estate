@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.41.2 =
+* Legal pages: the section headings are H4 and the headings inside a section H5, so nothing on these pages is bigger than an H4.
+
 = 0.41.1 =
 * Carousel arrows: inside a container that hides what reaches outside it (overflow: hidden), the round arrows only reach out as far as that container's edge, so they are never cut off. Before, they reached half their width past the carousel when the window had room, and a container with a 16px gap cut off the edge of the circle.
 
