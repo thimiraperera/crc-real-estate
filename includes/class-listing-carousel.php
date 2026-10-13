@@ -319,7 +319,7 @@ final class Listing_Carousel {
 				);
 			}
 
-			// On phones the tabs show their icons, and the open one its name too.
+			// Each tab shows its icon and name; on phones the row scrolls when they don't fit.
 			$tabs .= sprintf(
 				'<span class="crc-listing-tab" role="tab" id="%1$s-tab-%2$d" aria-controls="%1$s-panel-%2$d" aria-selected="%3$s" aria-label="%5$s" tabindex="%4$d">%6$s<span class="crc-listing-tab-text">%5$s</span></span>',
 				esc_attr( $id ),

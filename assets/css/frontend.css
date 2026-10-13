@@ -451,7 +451,7 @@
 	inset-inline-end: calc(-1 * min(var(--crc-arrow-size) / 2, var(--crc-carousel-room-end, 0px)));
 }
 
-/* Dots under the card, for phones, in white for the dark section behind it. */
+/* Dots under the cards on phones, for the listing carousel, which sets their colours. */
 .crc-carousel .crc-carousel-dots {
 	display: none;
 	flex-wrap: wrap;
@@ -633,8 +633,10 @@
 }
 
 .crc-listings .crc-listing-tab {
-	display: block;
+	display: flex;
 	flex: none;
+	align-items: center;
+	gap: 8px;
 	padding: 0 20px 8px;
 	border-bottom: 2px solid var(--e-global-color-bb33687);
 	color: var(--e-global-color-6e3d619);
@@ -666,9 +668,18 @@
 	outline-offset: 2px;
 }
 
-/* Each tab's icon shows on phones only. */
+/* Each tab's icon before its name, in the site's colour on the open tab. */
 .crc-listings .crc-listing-tab-icon {
-	display: none;
+	display: block;
+	flex: none;
+	width: 20px;
+	height: 20px;
+	fill: currentColor;
+	transition: fill 0.25s ease;
+}
+
+.crc-listings .crc-listing-tab[aria-selected="true"] .crc-listing-tab-icon {
+	fill: var(--e-global-color-primary);
 }
 
 .crc-listings .crc-listing-panel[hidden] {
@@ -2838,7 +2849,8 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 		padding: 24px 24px 32px 24px;
 	}
 
-	/* One card at a time inside the container, with dots instead of arrows. */
+	/* One card at a time inside the container. The listing carousel has dots
+	   instead of arrows; the category carousel keeps its arrows, a little smaller. */
 	.crc-carousel {
 		--crc-carousel-per-view: 1;
 		--crc-carousel-gap: 16px;
@@ -2858,8 +2870,17 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 		display: none;
 	}
 
-	.crc-carousel .crc-carousel-arrow {
+	.crc-carousel.crc-carousel-listings .crc-carousel-arrow {
 		display: none;
+	}
+
+	.crc-carousel.crc-carousel-categories .crc-arrow {
+		--crc-arrow-size: 40px;
+	}
+
+	.crc-carousel.crc-carousel-categories .crc-arrow .crc-arrow-icon {
+		width: 16px;
+		height: 16px;
 	}
 
 	.crc-carousel:not(.is-static) .crc-carousel-dots {
@@ -2871,12 +2892,27 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 		--crc-testimonials-padding: 24px 16px;
 	}
 
-	/* Listing tabs: icons, the open one with its name too, sharing the width.
-	   A grey line under the others, green under the open one. 24px above the cards. */
+	/* Listing tabs: each with its icon and name, sharing the width. A grey line
+	   under the others, green under the open one. 24px above the cards. When
+	   they don't all fit, the row scrolls sideways and fades out on the side
+	   with more (listings.js sets is-cut-left and is-cut-right). */
 	.crc-listings .crc-listing-tabs {
+		--crc-tabs-fade-left: 0px;
+		--crc-tabs-fade-right: 0px;
 		margin-bottom: 24px;
 		overflow-x: auto;
+		overscroll-behavior-x: contain;
 		scrollbar-width: none;
+		-webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--crc-tabs-fade-left), #000 calc(100% - var(--crc-tabs-fade-right)), transparent 100%);
+		mask-image: linear-gradient(90deg, transparent 0, #000 var(--crc-tabs-fade-left), #000 calc(100% - var(--crc-tabs-fade-right)), transparent 100%);
+	}
+
+	.crc-listings .crc-listing-tabs.is-cut-left {
+		--crc-tabs-fade-left: 40px;
+	}
+
+	.crc-listings .crc-listing-tabs.is-cut-right {
+		--crc-tabs-fade-right: 40px;
 	}
 
 	.crc-listings .crc-listing-tabs::-webkit-scrollbar {
@@ -2884,9 +2920,7 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 	}
 
 	.crc-listings .crc-listing-tab {
-		display: flex;
-		flex: 1 1 auto;
-		align-items: center;
+		flex: 1 0 auto;
 		justify-content: center;
 		padding: 0 12px 10px;
 		border-bottom-color: color-mix(in srgb, var(--e-global-color-1ead78b) 12%, var(--e-global-color-3581a59));
@@ -2900,31 +2934,11 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 	}
 
 	.crc-listings .crc-listing-tab-icon {
-		display: block;
-		flex: none;
-		width: 20px;
-		height: 20px;
-		fill: currentColor;
 		transition: fill 0.4s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 	}
 
 	.crc-listings .crc-listing-tab[aria-selected="true"] .crc-listing-tab-icon {
-		fill: var(--e-global-color-primary);
 		transform: scale(1.08);
-	}
-
-	.crc-listings .crc-listing-tab-text {
-		max-width: 0;
-		overflow: hidden;
-		opacity: 0;
-		margin-inline-start: 0;
-		transition: max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1), margin 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
-	}
-
-	.crc-listings .crc-listing-tab[aria-selected="true"] .crc-listing-tab-text {
-		max-width: 240px;
-		opacity: 1;
-		margin-inline-start: 8px;
 	}
 
 	/* The listing cards' photos are 4 / 3. */

@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  * and a View Properties button, that people move through with the arrows or
  * by dragging with the mouse. On computers and tablets the cards line up with
  * the container on the left and run on to the edge of the window on the right;
- * phones show one card at a time, with dots under it instead of arrows.
+ * phones show one card at a time, with smaller arrows.
  *
  * The cards are set in Listings → Widgets.
  */
@@ -70,7 +70,7 @@ final class Category_Carousel {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Category carousel', 'crc-real-estate' ),
-				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows or by dragging with the mouse, and that can move on by themselves. On computers and tablets the cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. Phones show one card at a time: people swipe, or tap the dots under it. The cards, how fast they slide and how often they move on by themselves are set in Listings → Widgets.', 'crc-real-estate' ),
+				'description' => __( 'A row of square cards, each with a picture, a title and a View Properties button, that people move through with the arrows or by dragging with the mouse, and that can move on by themselves. On computers and tablets the cards line up with the container on the left and run on to the edge of the window on the right, so people can see there are more. Phones show one card at a time with smaller arrows, and people can swipe too. The cards, how fast they slide and how often they move on by themselves are set in Listings → Widgets.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'width'    => array(
 						'default'     => 'bleed',
@@ -220,7 +220,6 @@ final class Category_Carousel {
 		}
 
 		$items = '';
-		$dots  = '';
 		$count = count( $cards );
 
 		foreach ( $cards as $index => $card ) {
@@ -255,14 +254,6 @@ final class Category_Carousel {
 				'' !== $card['title'] ? '<h6 class="crc-carousel-title">' . esc_html( $card['title'] ) . '</h6>' : '',
 				$button
 			);
-
-			$dots .= $count < 2 ? '' : sprintf(
-				'<span class="crc-carousel-dot%1$s" role="button" tabindex="0" aria-label="%2$s"%3$s></span>',
-				0 === $index ? ' is-active' : '',
-				/* translators: 1: card number, 2: number of cards. */
-				esc_attr( sprintf( __( 'Show card %1$s of %2$s', 'crc-real-estate' ), $index + 1, $count ) ),
-				0 === $index ? ' aria-current="true"' : ''
-			);
 		}
 
 		wp_enqueue_script( 'crc-re-carousel' );
@@ -271,14 +262,13 @@ final class Category_Carousel {
 		$autoplay = '' !== trim( (string) $atts['autoplay'] ) ? self::sanitize_autoplay( $atts['autoplay'] ) : self::setting( 'autoplay' );
 
 		return sprintf(
-			'<div class="crc-carousel%1$s" data-crc-carousel data-speed="%8$d" data-autoplay="%9$d" role="region" aria-roledescription="%2$s" aria-label="%3$s"><div class="crc-carousel-stage"><div class="crc-carousel-viewport"><ul class="crc-carousel-track">%4$s</ul></div>%5$s%6$s</div>%7$s</div>',
+			'<div class="crc-carousel crc-carousel-categories%1$s" data-crc-carousel data-speed="%7$d" data-autoplay="%8$d" role="region" aria-roledescription="%2$s" aria-label="%3$s"><div class="crc-carousel-stage"><div class="crc-carousel-viewport"><ul class="crc-carousel-track">%4$s</ul></div>%5$s%6$s</div></div>',
 			'container' === strtolower( trim( (string) $atts['width'] ) ) ? '' : ' crc-carousel-bleed',
 			esc_attr__( 'carousel', 'crc-real-estate' ),
 			esc_attr__( 'Property categories', 'crc-real-estate' ),
 			$items, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			Arrow::html( 'prev', __( 'Previous', 'crc-real-estate' ), 'crc-carousel-arrow crc-carousel-prev', true ),
 			Arrow::html( 'next', __( 'Next', 'crc-real-estate' ), 'crc-carousel-arrow crc-carousel-next' ),
-			'' !== $dots ? '<div class="crc-carousel-dots">' . $dots . '</div>' : '', // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			(int) round( $speed * 1000 ),
 			(int) round( $autoplay * 1000 )
 		);

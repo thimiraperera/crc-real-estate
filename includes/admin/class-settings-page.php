@@ -7,6 +7,7 @@
 
 namespace CRC\RealEstate\Admin;
 
+use CRC\RealEstate\Legal;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Inquiry;
 use CRC\RealEstate\Settings;
@@ -16,7 +17,8 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Settings: the default phone and WhatsApp numbers and button
- * texts, the map, the inquiry form, deleting listings, and plugin updates.
+ * texts, the map, the inquiry form, deleting listings, the business details
+ * for the legal pages, and plugin updates.
  */
 final class Settings_Page {
 
@@ -151,6 +153,88 @@ final class Settings_Page {
 		$this->register_map();
 		$this->register_inquiry();
 		$this->register_cleanup();
+		$this->register_business();
+	}
+
+	/**
+	 * Registers the business details used on the legal pages, and their fields.
+	 */
+	private function register_business() {
+		register_setting(
+			self::GROUP,
+			Legal::OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Legal::class, 'sanitize' ),
+				'default'           => Legal::defaults(),
+			)
+		);
+
+		add_settings_section(
+			'crc_re_business',
+			__( 'Business details', 'crc-real-estate' ),
+			function () {
+				echo '<p>' . esc_html__( 'Who runs this website, as the legal pages say it: the Privacy Policy, Terms and Conditions, Disclaimer and Listing Terms. An empty box goes back to the detail shown in it.', 'crc-real-estate' ) . '</p>';
+			},
+			self::SLUG
+		);
+
+		$fields = array(
+			'name'    => array( __( 'Business name', 'crc-real-estate' ), __( 'The name people know the website by.', 'crc-real-estate' ) ),
+			'company' => array( __( 'Company', 'crc-real-estate' ), __( 'The registered company that runs it, as on its certificate of incorporation.', 'crc-real-estate' ) ),
+			'number'  => array( __( 'Company number', 'crc-real-estate' ), __( 'From the certificate of incorporation, for example PV 00339321.', 'crc-real-estate' ) ),
+			'website' => array( __( 'Company website', 'crc-real-estate' ), __( 'The company\'s own website, mentioned with its other services.', 'crc-real-estate' ) ),
+			'address' => array( __( 'Address', 'crc-real-estate' ), __( 'The office address shown on the legal pages.', 'crc-real-estate' ) ),
+			'email'   => array( __( 'E-mail', 'crc-real-estate' ), __( 'Where people write about the legal pages and their personal information.', 'crc-real-estate' ) ),
+			'phones'  => array( __( 'Phone numbers', 'crc-real-estate' ), __( 'One a line, up to 5. The first is the one to call; all of them are listed as the business\'s only numbers in the Disclaimer\'s fraud warning.', 'crc-real-estate' ) ),
+		);
+
+		foreach ( $fields as $key => $field ) {
+			add_settings_field(
+				'crc_re_business_' . $key,
+				$field[0],
+				array( $this, 'business_field' ),
+				self::SLUG,
+				'crc_re_business',
+				array(
+					'label_for'   => 'crc-business-' . $key,
+					'key'         => $key,
+					'description' => $field[1],
+				)
+			);
+		}
+	}
+
+	/**
+	 * Prints a business detail's box, with the detail in use as its hint.
+	 *
+	 * @param array $args Field details.
+	 */
+	public function business_field( $args ) {
+		$saved    = get_option( Legal::OPTION, array() );
+		$saved    = is_array( $saved ) ? Legal::sanitize( $saved ) : array();
+		$defaults = Legal::defaults();
+		$key      = $args['key'];
+
+		if ( 'phones' === $key ) {
+			printf(
+				'<textarea id="crc-business-phones" name="%1$s[phones]" rows="3" class="regular-text" placeholder="%2$s">%3$s</textarea>',
+				esc_attr( Legal::OPTION ),
+				esc_attr( implode( "\n", $defaults['phones'] ) ),
+				esc_textarea( implode( "\n", isset( $saved['phones'] ) ? $saved['phones'] : array() ) )
+			);
+		} else {
+			printf(
+				'<input type="%1$s" id="crc-business-%2$s" name="%3$s[%2$s]" value="%4$s" class="regular-text" placeholder="%5$s">',
+				esc_attr( 'email' === $key ? 'email' : ( 'website' === $key ? 'url' : 'text' ) ),
+				esc_attr( $key ),
+				esc_attr( Legal::OPTION ),
+				esc_attr( isset( $saved[ $key ] ) ? $saved[ $key ] : '' ),
+				esc_attr( $defaults[ $key ] )
+			);
+		}
+
+		echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
 	}
 
 	/**

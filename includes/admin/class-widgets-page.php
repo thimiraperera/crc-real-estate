@@ -290,7 +290,7 @@ final class Widgets_Page {
 						<td>
 							<input type="number" class="small-text" id="crc-carousel-speed" name="<?php echo esc_attr( Category_Carousel::OPTION ); ?>[speed]" value="<?php echo esc_attr( (string) Category_Carousel::setting( 'speed' ) ); ?>" min="0.1" max="3" step="0.1" inputmode="decimal">
 							<?php esc_html_e( 'seconds', 'crc-real-estate' ); ?>
-							<p class="description"><?php esc_html_e( 'How long the cards take to slide over when someone uses the arrows or the dots, or when they move on by themselves. 0.3 is quick, 0.6 is gentle (the usual) and 1.5 is slow. Swiping on phones and touch pads keeps the device\'s own speed.', 'crc-real-estate' ); ?></p>
+							<p class="description"><?php esc_html_e( 'How long the cards take to slide over when someone uses the arrows, or when they move on by themselves. 0.3 is quick, 0.6 is gentle (the usual) and 1.5 is slow. Swiping on phones and touch pads keeps the device\'s own speed.', 'crc-real-estate' ); ?></p>
 						</td>
 					</tr>
 					<tr>
