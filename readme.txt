@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.41.1 =
+* Carousel arrows: inside a container that hides what reaches outside it (overflow: hidden), the round arrows only reach out as far as that container's edge, so they are never cut off. Before, they reached half their width past the carousel when the window had room, and a container with a 16px gap cut off the edge of the circle.
+
 = 0.41.0 =
 * Listing carousel tabs: every tab shows its icon and its name, on computers too. On phones, when the names don't all fit, the row of tabs can be swiped sideways and fades out on the side that has more, and a chosen tab slides fully into view.
 * Category carousel: the arrows show on phones too, a little smaller (40px), and the dots are gone.

@@ -258,12 +258,37 @@
 			}
 		}
 
-		// The room between the carousel and the window's edges: the arrows may
-		// reach into it, and on the right the cards run on into it.
+		// How far the arrows can reach out before something cuts them off: the
+		// window's edges, or nearer, those of a container around the carousel
+		// that hides what reaches outside it (overflow: hidden).
+		function reach() {
+			var left = 0;
+			var right = document.documentElement.clientWidth;
+			var node = root.parentElement;
+			var style;
+			var box;
+
+			while ( node && node !== document.body && node !== document.documentElement ) {
+				style = window.getComputedStyle( node );
+
+				if ( 'visible' !== style.overflowX ) {
+					box = node.getBoundingClientRect();
+					left = Math.max( left, box.left + ( parseFloat( style.borderLeftWidth ) || 0 ) );
+					right = Math.min( right, box.right - ( parseFloat( style.borderRightWidth ) || 0 ) );
+				}
+
+				node = node.parentElement;
+			}
+
+			return { left: left, right: right };
+		}
+
+		// The room between the carousel and the window's edges: on the right the
+		// cards run on into it. The arrows reach into it as far as nothing cuts them off.
 		function measure() {
 			var page = document.documentElement.clientWidth;
 			var box;
-			var before;
+			var edge;
 			var after;
 
 			measureFrame = 0;
@@ -274,11 +299,11 @@
 			}
 
 			box = root.getBoundingClientRect();
-			before = Math.max( 0, Math.floor( rtl() ? page - box.right : box.left ) );
+			edge = reach();
 			after = Math.max( 0, Math.floor( rtl() ? box.left : page - box.right ) );
 
-			root.style.setProperty( '--crc-carousel-room-start', before + 'px' );
-			root.style.setProperty( '--crc-carousel-room-end', after + 'px' );
+			root.style.setProperty( '--crc-carousel-room-start', Math.max( 0, Math.floor( rtl() ? edge.right - box.right : box.left - edge.left ) ) + 'px' );
+			root.style.setProperty( '--crc-carousel-room-end', Math.max( 0, Math.floor( rtl() ? box.left - edge.left : edge.right - box.right ) ) + 'px' );
 
 			if ( root.classList.contains( 'crc-carousel-bleed' ) ) {
 				root.style.setProperty( '--crc-carousel-bleed', after + 'px' );
