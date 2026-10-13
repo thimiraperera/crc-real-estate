@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.42.0 =
+* View count: a listing's view count shows on its photos only once it has 500 views or more. Below that it stays hidden, so a new listing doesn't show a small number. When a listing reaches 500, the count appears straight away, even on a cached page, and a count set lower in the Views box hides it again. views="no" still never shows it.
+
 = 0.41.2 =
 * Legal pages: the section headings are H4 and the headings inside a section H5, so nothing on these pages is bigger than an H4.
 

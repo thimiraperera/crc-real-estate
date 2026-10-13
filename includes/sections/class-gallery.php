@@ -57,7 +57,7 @@ final class Gallery {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Gallery', 'crc-real-estate' ),
-				'description' => __( 'The main photo as the large photo, with the other photos beside it. Shows the view count and "+N photos" when there are more photos than fit. Clicking any photo opens the full-screen photo viewer with every photo.', 'crc-real-estate' ),
+				'description' => __( 'The main photo as the large photo, with the other photos beside it. Shows the view count once the listing has 500 views, and "+N photos" when there are more photos than fit. Clicking any photo opens the full-screen photo viewer with every photo.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'    => array(
 						'default'     => '',
@@ -65,7 +65,7 @@ final class Gallery {
 					),
 					'views' => array(
 						'default'     => 'yes',
-						'description' => __( 'Show the view count. Use "no" to hide it.', 'crc-real-estate' ),
+						'description' => __( 'Show the view count once the listing has 500 views. Use "no" to never show it.', 'crc-real-estate' ),
 					),
 				),
 				'examples'    => array(
@@ -232,14 +232,16 @@ final class Gallery {
 
 		$html = sprintf( '<div class="crc-gallery crc-gallery-count-%d" data-crc-lightbox>', count( $shown ) );
 
+		// Below the count that shows, the badge is there but hidden, without the
+		// number, for views.js to show once the listing reaches it.
 		if ( $show_views ) {
 			$views = Views::get( $post->ID );
 			$html .= sprintf(
 				'<span class="crc-gallery-badge" data-crc-views="%1$d"%2$s>%3$s<span class="crc-gallery-badge-label">%4$s</span></span>',
 				$post->ID,
-				$views ? '' : ' hidden',
+				Views::shown( $views ) ? '' : ' hidden',
 				Icons::svg( 'eye', 'crc-gallery-badge-icon' ),
-				esc_html( Views::label( $views ) )
+				Views::shown( $views ) ? esc_html( Views::label( $views ) ) : ''
 			);
 		}
 

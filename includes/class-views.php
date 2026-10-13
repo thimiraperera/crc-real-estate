@@ -21,6 +21,7 @@ final class Views {
 	const META       = '_crc_views';
 	const REST_SPACE = 'crc-real-estate/v1';
 	const WINDOW     = 86400; // Seconds before the same browser counts again.
+	const SHOWN_FROM = 500; // A listing's view count shows on its page once it has this many.
 
 	/**
 	 * Registers hooks.
@@ -62,6 +63,17 @@ final class Views {
 	 */
 	public static function get( $post_id ) {
 		return (int) get_post_meta( $post_id, self::META, true );
+	}
+
+	/**
+	 * Whether a view count is high enough to show on the listing page. A
+	 * handful of views would put people off, so it stays hidden until then.
+	 *
+	 * @param int $count View count.
+	 * @return bool
+	 */
+	public static function shown( $count ) {
+		return (int) $count >= self::SHOWN_FROM;
 	}
 
 	/**
@@ -166,6 +178,7 @@ final class Views {
 					'id'     => $post_id,
 					'url'    => rest_url( self::REST_SPACE . '/listings/' . $post_id . '/views' ),
 					'window' => self::WINDOW,
+					'from'   => self::SHOWN_FROM,
 				)
 			) . ';',
 			'before'

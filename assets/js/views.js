@@ -1,5 +1,6 @@
 /**
- * Counts one view of the listing on this page, at most once a day per browser.
+ * Counts one view of the listing on this page, at most once a day per browser,
+ * and shows the new count once the listing has config.from views.
  */
 ( function () {
 	'use strict';
@@ -42,22 +43,25 @@
 		var badges;
 		var i;
 		var labelEl;
+		var shown;
 
 		if ( ! data || ! data.label ) {
 			return;
 		}
 
-		// Show the new count, even on cached pages.
+		// Show the new count, even on cached pages, once it is high enough.
+		// A count set lower by hand hides it again.
+		shown = ( parseInt( data.views, 10 ) || 0 ) >= ( parseInt( config.from, 10 ) || 0 );
 		badges = document.querySelectorAll( '[data-crc-views="' + config.id + '"]' );
 
 		for ( i = 0; i < badges.length; i++ ) {
 			labelEl = badges[ i ].querySelector( '.crc-gallery-badge-label' );
 
 			if ( labelEl ) {
-				labelEl.textContent = data.label;
+				labelEl.textContent = shown ? data.label : '';
 			}
 
-			badges[ i ].hidden = false;
+			badges[ i ].hidden = ! shown;
 		}
 	} ).catch( function () {} );
 }() );
