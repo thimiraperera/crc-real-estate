@@ -63,8 +63,8 @@ final class Listing_Carousel {
 						'description' => sprintf( __( 'How many listings each tab shows, from 1 to %d.', 'crc-real-estate' ), self::MAX ),
 					),
 					'categories' => array(
-						'default'     => 'lands,properties-for-rent,properties-for-sale',
-						'description' => __( 'Which categories have tabs, in order, separated by commas.', 'crc-real-estate' ),
+						'default'     => 'properties-for-sale,lands,properties-for-rent',
+						'description' => __( 'Which categories have tabs, in order, separated by commas. The first one is open to start with.', 'crc-real-estate' ),
 					),
 					'width'      => array(
 						'default'     => 'bleed',
