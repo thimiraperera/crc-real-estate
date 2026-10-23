@@ -10,6 +10,7 @@ namespace CRC\RealEstate\Admin;
 use CRC\RealEstate\Category_Carousel;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Faq;
+use CRC\RealEstate\Settings;
 use CRC\RealEstate\Taxonomy;
 
 defined( 'ABSPATH' ) || exit;
@@ -17,7 +18,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Listings → Widgets: ready-made pieces for any page, each on a tab with its
  * shortcode and what goes in it: the category carousel's cards, FAQs, the
- * keyword ticker, and the search with its listings page.
+ * keyword ticker, and the search with its listings page. The shortcodes stay
+ * off the tabs while Settings → Developer options hides them in wp-admin.
  */
 final class Widgets_Page {
 
@@ -211,11 +213,14 @@ final class Widgets_Page {
 	}
 
 	/**
-	 * Prints a shortcode with its Copy button.
+	 * Prints a shortcode with its Copy button, unless the shortcodes are hidden in wp-admin.
 	 *
 	 * @param string $tag Shortcode, with its brackets.
 	 */
 	private function shortcode( $tag ) {
+		if ( ! Settings::shortcodes_shown() ) {
+			return;
+		}
 		?>
 		<p class="crc-info-code">
 			<code><?php echo esc_html( $tag ); ?></code>
@@ -251,11 +256,16 @@ final class Widgets_Page {
 	 */
 	private function carousel_tab() {
 		$cards = Category_Carousel::cards();
+		$help  = __( 'Click a picture to change it. Drag a card by its handle, or use the arrows, to change the order. Under the cards, set how fast they slide and how often they move on by themselves.', 'crc-real-estate' );
+
+		if ( Settings::shortcodes_shown() ) {
+			$help = __( 'Paste the shortcode into an Elementor Shortcode widget.', 'crc-real-estate' ) . ' ' . $help;
+		}
 		?>
 		<section class="crc-info-card" id="<?php echo esc_attr( Category_Carousel::SHORTCODE ); ?>">
 			<h2 class="crc-info-title"><?php esc_html_e( 'Category carousel', 'crc-real-estate' ); ?></h2>
 			<?php $this->shortcode( '[' . Category_Carousel::SHORTCODE . ']' ); ?>
-			<p class="description"><?php esc_html_e( 'Paste the shortcode into an Elementor Shortcode widget. Click a picture to change it. Drag a card by its handle, or use the arrows, to change the order. Under the cards, set how fast they slide and how often they move on by themselves.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php echo esc_html( $help ); ?></p>
 
 			<form action="options.php" method="post">
 				<?php
@@ -364,11 +374,16 @@ final class Widgets_Page {
 	 */
 	private function faqs_tab() {
 		$items = Faq::general_items();
+		$help  = __( 'One question opens at a time, and the questions are given to search engines as FAQ schema. Leave an empty line between paragraphs of an answer. Drag a question by its handle, or use the arrows, to change the order.', 'crc-real-estate' );
+
+		if ( Settings::shortcodes_shown() ) {
+			$help = __( 'Paste the shortcode into an Elementor Shortcode widget on any page.', 'crc-real-estate' ) . ' ' . $help;
+		}
 		?>
 		<section class="crc-info-card" id="<?php echo esc_attr( Faq::GENERAL_SHORTCODE ); ?>">
 			<h2 class="crc-info-title"><?php esc_html_e( 'FAQs', 'crc-real-estate' ); ?></h2>
 			<?php $this->shortcode( '[' . Faq::GENERAL_SHORTCODE . ']' ); ?>
-			<p class="description"><?php esc_html_e( 'Paste the shortcode into an Elementor Shortcode widget on any page. One question opens at a time, and the questions are given to search engines as FAQ schema. Leave an empty line between paragraphs of an answer. Drag a question by its handle, or use the arrows, to change the order.', 'crc-real-estate' ); ?></p>
+			<p class="description"><?php echo esc_html( $help ); ?></p>
 
 			<form action="options.php" method="post">
 				<?php

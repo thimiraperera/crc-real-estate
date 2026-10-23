@@ -62,7 +62,13 @@ final class Ticker_Tab {
 	 * The short guide at the top of the Keyword ticker settings.
 	 */
 	public function guide() {
-		echo '<p>' . esc_html__( 'A row of keywords, such as Houses · Villas · Apartments, that moves across the page on its own, over the full width of the window. It slows down and stops while the mouse is over it, and people can drag it and throw it. To show it, put the shortcode [crc_ticker] in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes.', 'crc-real-estate' ) . '</p>';
+		$guide = __( 'A row of keywords, such as Houses · Villas · Apartments, that moves across the page on its own, over the full width of the window. It slows down and stops while the mouse is over it, and people can drag it and throw it.', 'crc-real-estate' );
+
+		if ( Settings::shortcodes_shown() ) {
+			$guide .= ' ' . __( 'To show it, put the shortcode [crc_ticker] in a Shortcode widget in Elementor, or anywhere WordPress accepts shortcodes.', 'crc-real-estate' );
+		}
+
+		echo '<p>' . esc_html( $guide ) . '</p>';
 		echo '<p>' . esc_html__( 'Saving clears the LiteSpeed page cache, so visitors see the changes straight away. If the site also uses a Cloudflare page cache, clear that too.', 'crc-real-estate' ) . '</p>';
 	}
 
@@ -100,12 +106,18 @@ final class Ticker_Tab {
 				break;
 
 			case 'speed':
+				$help = __( 'How fast the keywords move, from 5 to 400. About 30 is calm, 50 is the usual, and 100 is quick.', 'crc-real-estate' );
+
+				if ( Settings::shortcodes_shown() ) {
+					$help .= ' ' . __( 'A page can have its own speed by adding speed="…" to the shortcode, for example [crc_ticker speed="80"].', 'crc-real-estate' );
+				}
+
 				printf(
 					'<input type="number" id="crc-ticker-speed" name="%1$s[speed]" value="%2$s" min="5" max="400" step="1" class="small-text"> %3$s<p class="description">%4$s</p>',
 					esc_attr( $name ),
 					esc_attr( (string) Settings::sanitize_speed( Settings::ticker( 'speed' ) ) ),
 					esc_html__( 'pixels a second', 'crc-real-estate' ),
-					esc_html__( 'How fast the keywords move, from 5 to 400. About 30 is calm, 50 is the usual, and 100 is quick. A page can have its own speed by adding speed="…" to the shortcode, for example [crc_ticker speed="80"].', 'crc-real-estate' )
+					esc_html( $help )
 				);
 				break;
 

@@ -37,7 +37,7 @@ Real estate listing tools for WordPress.
 * On the website switch and Sold or Rented: on All Listings, a switch hides a listing from the website without deleting anything, and one click marks it Sold, or Rented for rentals, shown on its cards and under its price
 * Contact form and free ad form: [crc_contact_form] and [crc_post_ad_form], with the same checks as people type, spam protection and emails as the inquiry form, and their own Contact Messages and Free Ads pages in wp-admin
 * Legal pages: [crc_privacy_policy], [crc_terms_and_conditions], [crc_disclaimer] and [crc_listing_terms], written for a property business in Sri Lanka, with the business details from Listings → Settings
-* Shortcodes for every section, ready to place in Elementor
+* Shortcodes for every section, ready to place in Elementor, and a switch in Listings → Settings → Developer options that hides them in wp-admin once the website is built
 * Updates straight from GitHub, checked and installed from Listings → Settings
 
 Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-icons. Maps: Leaflet and OpenStreetMap.
@@ -48,6 +48,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.43.0 =
+* Listings → Settings has two tabs: General, with everything that was there before, and Developer options. Each tab saves on its own.
+* Developer options: Show the shortcodes, ticked to start with. Untick it to hide the shortcodes from wp-admin once the website is built: the Shortcodes page goes from the Listings menu, and the Widgets page and Testimonials → Settings no longer show the shortcodes, their Copy buttons or the notes on where to paste them (the Search tab keeps just its settings). The shortcodes keep working on the website, and ticking it again brings everything back.
 
 = 0.42.1 =
 * Listing carousel: the tabs are in the order Properties for Sale, Lands, Properties for Rent, so Properties for Sale is open to start with. A carousel with its own categories="..." keeps the order it gives.

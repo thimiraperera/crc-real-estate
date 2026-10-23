@@ -30,7 +30,7 @@ Real estate listing tools for WordPress.
 - **On the website switch and Sold or Rented**: on All Listings, a switch hides a listing from the website without deleting anything, and one click marks it Sold, or Rented for rentals, shown on its cards and under its price
 - **Contact form and free ad form**: `[crc_contact_form]` and `[crc_post_ad_form]`, with the same checks as people type, spam protection and emails as the inquiry form, and their own Contact Messages and Free Ads pages in wp-admin
 - **Legal pages**: `[crc_privacy_policy]`, `[crc_terms_and_conditions]`, `[crc_disclaimer]` and `[crc_listing_terms]`, written for a property business in Sri Lanka, with the business details from Listings → Settings
-- **Shortcodes** for every section, ready to place in Elementor
+- **Shortcodes** for every section, ready to place in Elementor, and a switch in Listings → Settings → Developer options that hides them in wp-admin once the website is built
 - **Updates** straight from GitHub, checked and installed from Listings → Settings
 
 ## Credits

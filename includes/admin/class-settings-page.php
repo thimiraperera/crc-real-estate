@@ -16,14 +16,17 @@ use CRC\RealEstate\Updater;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Listings → Settings: the default phone and WhatsApp numbers and button
- * texts, the map, the inquiry form, deleting listings, the business details
- * for the legal pages, and plugin updates.
+ * Listings → Settings, on two tabs. General: the default phone and WhatsApp
+ * numbers and button texts, the map, the inquiry form, deleting listings, the
+ * business details for the legal pages, and plugin updates. Developer
+ * options: whether wp-admin shows the shortcodes. Each tab saves on its own.
  */
 final class Settings_Page {
 
-	const SLUG  = 'crc-real-estate-settings';
-	const GROUP = 'crc_re_settings';
+	const SLUG            = 'crc-real-estate-settings';
+	const GROUP           = 'crc_re_settings';
+	const DEVELOPER_PAGE  = 'crc-real-estate-settings-developer';
+	const DEVELOPER_GROUP = 'crc_re_settings_developer';
 
 	/**
 	 * Registers hooks.
@@ -154,6 +157,54 @@ final class Settings_Page {
 		$this->register_inquiry();
 		$this->register_cleanup();
 		$this->register_business();
+		$this->register_developer();
+	}
+
+	/**
+	 * Registers the developer options and their field. They have their own
+	 * group, so saving the General tab never touches them.
+	 */
+	private function register_developer() {
+		register_setting(
+			self::DEVELOPER_GROUP,
+			Settings::DEVELOPER_OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_developer' ),
+				'default'           => Settings::developer_defaults(),
+			)
+		);
+
+		add_settings_section(
+			'crc_re_developer',
+			__( 'Shortcodes', 'crc-real-estate' ),
+			function () {
+				echo '<p>' . esc_html__( 'Shortcodes place the plugin\'s pieces on the website\'s pages in Elementor. Once the pages are built, they can be hidden from wp-admin, so the people who add listings only see what they need.', 'crc-real-estate' ) . '</p>';
+			},
+			self::DEVELOPER_PAGE
+		);
+
+		add_settings_field(
+			'crc_re_developer_shortcodes',
+			__( 'In wp-admin', 'crc-real-estate' ),
+			array( $this, 'developer_field' ),
+			self::DEVELOPER_PAGE,
+			'crc_re_developer',
+			array( 'label_for' => 'crc-developer-shortcodes' )
+		);
+	}
+
+	/**
+	 * Prints the tick box for showing the shortcodes in wp-admin.
+	 */
+	public function developer_field() {
+		printf(
+			'<input type="hidden" name="%1$s[shortcodes]" value="0"><label for="crc-developer-shortcodes"><input type="checkbox" id="crc-developer-shortcodes" name="%1$s[shortcodes]" value="1"%2$s> %3$s</label><p class="description">%4$s</p>',
+			esc_attr( Settings::DEVELOPER_OPTION ),
+			checked( Settings::shortcodes_shown(), true, false ),
+			esc_html__( 'Show the shortcodes', 'crc-real-estate' ),
+			esc_html__( 'Shows the Shortcodes page under Listings, and the shortcodes on the Widgets page and on Testimonials → Settings, with their Copy buttons and the notes on where to paste them. Untick this to hide them all. The shortcodes keep working on the website either way, and ticking this again brings them back.', 'crc-real-estate' )
+		);
 	}
 
 	/**
@@ -540,21 +591,63 @@ final class Settings_Page {
 	}
 
 	/**
+	 * The tabs, in order: name => title.
+	 *
+	 * @return string[]
+	 */
+	private function tabs() {
+		return array(
+			'general'   => __( 'General', 'crc-real-estate' ),
+			'developer' => __( 'Developer options', 'crc-real-estate' ),
+		);
+	}
+
+	/**
+	 * The tab being shown.
+	 *
+	 * @return string
+	 */
+	private function tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks which tab shows.
+		$tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+
+		return isset( $this->tabs()[ $tab ] ) ? $tab : 'general';
+	}
+
+	/**
 	 * Prints the page.
 	 */
 	public function render() {
+		$current = $this->tab();
 		?>
-		<div class="wrap">
+		<div class="wrap crc-settings">
 			<h1><?php esc_html_e( 'Settings', 'crc-real-estate' ); ?></h1>
 			<?php settings_errors(); ?>
-			<form action="options.php" method="post">
-				<?php
-				settings_fields( self::GROUP );
-				do_settings_sections( self::SLUG );
-				submit_button();
-				?>
-			</form>
-			<?php $this->updates(); ?>
+
+			<nav class="nav-tab-wrapper crc-settings-tabs" aria-label="<?php esc_attr_e( 'Settings', 'crc-real-estate' ); ?>">
+				<?php foreach ( $this->tabs() as $tab => $title ) : ?>
+					<a href="<?php echo esc_url( add_query_arg( 'tab', $tab, self::url() ) ); ?>" class="nav-tab<?php echo $tab === $current ? ' nav-tab-active' : ''; ?>"<?php echo $tab === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $title ); ?></a>
+				<?php endforeach; ?>
+			</nav>
+
+			<?php if ( 'developer' === $current ) : ?>
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( self::DEVELOPER_GROUP );
+					do_settings_sections( self::DEVELOPER_PAGE );
+					submit_button();
+					?>
+				</form>
+			<?php else : ?>
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( self::GROUP );
+					do_settings_sections( self::SLUG );
+					submit_button();
+					?>
+				</form>
+				<?php $this->updates(); ?>
+			<?php endif; ?>
 		</div>
 		<?php
 	}

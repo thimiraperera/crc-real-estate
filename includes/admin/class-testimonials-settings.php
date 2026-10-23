@@ -7,13 +7,15 @@
 
 namespace CRC\RealEstate\Admin;
 
+use CRC\RealEstate\Settings;
 use CRC\RealEstate\Testimonials;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Testimonials → Settings: the shortcode, how many testimonials to show and
- * how often the carousel moves on by itself.
+ * Testimonials → Settings: the shortcode (unless Listings → Settings →
+ * Developer options hides it), how many testimonials to show and how often
+ * the carousel moves on by itself.
  */
 final class Testimonials_Settings {
 
@@ -139,16 +141,24 @@ final class Testimonials_Settings {
 	 * Prints the page.
 	 */
 	public function render() {
-		$tag = '[' . Testimonials::SHORTCODE . ']';
+		$tag   = '[' . Testimonials::SHORTCODE . ']';
+		$shown = Settings::shortcodes_shown();
+		$intro = __( 'Your published testimonials show in a carousel that goes round and round: three at a time on computers, two on tablets and one on phones.', 'crc-real-estate' );
+
+		if ( $shown ) {
+			$intro = __( 'Paste the shortcode into an Elementor Shortcode widget on any page.', 'crc-real-estate' ) . ' ' . $intro;
+		}
 		?>
 		<div class="wrap crc-info">
 			<h1><?php esc_html_e( 'Testimonials Settings', 'crc-real-estate' ); ?></h1>
 			<?php settings_errors(); ?>
-			<p class="crc-info-code">
-				<code><?php echo esc_html( $tag ); ?></code>
-				<button type="button" class="button button-small crc-copy" data-copy="<?php echo esc_attr( $tag ); ?>" data-copied="<?php esc_attr_e( 'Copied', 'crc-real-estate' ); ?>"><?php esc_html_e( 'Copy', 'crc-real-estate' ); ?></button>
-			</p>
-			<p class="crc-info-intro"><?php esc_html_e( 'Paste the shortcode into an Elementor Shortcode widget on any page. It shows your published testimonials in a carousel that goes round and round: three at a time on computers, two on tablets and one on phones.', 'crc-real-estate' ); ?></p>
+			<?php if ( $shown ) : ?>
+				<p class="crc-info-code">
+					<code><?php echo esc_html( $tag ); ?></code>
+					<button type="button" class="button button-small crc-copy" data-copy="<?php echo esc_attr( $tag ); ?>" data-copied="<?php esc_attr_e( 'Copied', 'crc-real-estate' ); ?>"><?php esc_html_e( 'Copy', 'crc-real-estate' ); ?></button>
+				</p>
+			<?php endif; ?>
+			<p class="crc-info-intro"><?php echo esc_html( $intro ); ?></p>
 			<form action="options.php" method="post">
 				<?php
 				settings_fields( self::GROUP );

@@ -8,13 +8,15 @@
 namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Post_Type;
+use CRC\RealEstate\Settings;
 use CRC\RealEstate\Shortcodes;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Shortcodes: every shortcode the plugin offers, with its options
- * and ready-to-copy examples.
+ * and ready-to-copy examples. Gone while Settings → Developer options hides
+ * the shortcodes in wp-admin.
  */
 final class Shortcodes_Page {
 
@@ -37,9 +39,13 @@ final class Shortcodes_Page {
 	}
 
 	/**
-	 * Adds the page under Listings.
+	 * Adds the page under Listings, unless the shortcodes are hidden in wp-admin.
 	 */
 	public function menu() {
+		if ( ! Settings::shortcodes_shown() ) {
+			return;
+		}
+
 		$this->hook = (string) add_submenu_page(
 			'edit.php?post_type=' . Post_Type::NAME,
 			__( 'Shortcodes', 'crc-real-estate' ),
@@ -56,7 +62,7 @@ final class Shortcodes_Page {
 	 * @param string $hook Current admin page.
 	 */
 	public function assets( $hook ) {
-		if ( $hook !== $this->hook ) {
+		if ( '' === $this->hook || $hook !== $this->hook ) {
 			return;
 		}
 

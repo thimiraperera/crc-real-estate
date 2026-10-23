@@ -21,6 +21,7 @@ final class Settings {
 	const INQUIRY_OPTION    = 'crc_re_inquiry';
 	const TICKER_OPTION     = 'crc_re_ticker';
 	const CLEANUP_OPTION    = 'crc_re_cleanup';
+	const DEVELOPER_OPTION  = 'crc_re_developer';
 	const TICKER_MAX        = 200;
 	const KEYWORD_MAX       = 100;
 	const DEFAULT_NUMBER    = '+94777643264';
@@ -210,6 +211,52 @@ final class Settings {
 		$media = is_array( $input ) && isset( $input['media'] ) && is_scalar( $input['media'] ) ? (string) $input['media'] : '0';
 
 		return array( 'media' => '' !== $media && '0' !== $media ? 1 : 0 );
+	}
+
+	/**
+	 * Developer options used until they are saved: wp-admin shows the shortcodes.
+	 *
+	 * @return array
+	 */
+	public static function developer_defaults() {
+		return array( 'shortcodes' => 1 );
+	}
+
+	/**
+	 * A saved developer option.
+	 *
+	 * @param string $key "shortcodes".
+	 * @return int|null
+	 */
+	public static function developer( $key ) {
+		$saved = get_option( self::DEVELOPER_OPTION, null );
+		$saved = is_array( $saved ) ? self::sanitize_developer( $saved ) : self::developer_defaults();
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Whether wp-admin shows the shortcodes: the Shortcodes page under
+	 * Listings, and the shortcodes on the Widgets page and on Testimonials →
+	 * Settings with their Copy buttons and the notes on where to paste them.
+	 * They work on the website either way.
+	 *
+	 * @return bool
+	 */
+	public static function shortcodes_shown() {
+		return (bool) self::developer( 'shortcodes' );
+	}
+
+	/**
+	 * Cleans the developer options.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_developer( $input ) {
+		$shortcodes = is_array( $input ) && isset( $input['shortcodes'] ) && is_scalar( $input['shortcodes'] ) ? (string) $input['shortcodes'] : '0';
+
+		return array( 'shortcodes' => '' !== $shortcodes && '0' !== $shortcodes ? 1 : 0 );
 	}
 
 	/**
