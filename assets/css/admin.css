@@ -835,13 +835,15 @@
 	gap: 8px 12px;
 }
 
-.crc-widgets .crc-cards-add {
+.crc-widgets .crc-cards-add,
+.crc-list-editor .crc-cards-add {
 	display: inline-flex;
 	align-items: center;
 	gap: 2px;
 }
 
-.crc-widgets .crc-cards-add .dashicons {
+.crc-widgets .crc-cards-add .dashicons,
+.crc-list-editor .crc-cards-add .dashicons {
 	width: 18px;
 	height: 18px;
 	margin-left: -2px;
@@ -849,7 +851,8 @@
 	line-height: 1;
 }
 
-.crc-widgets [hidden] {
+.crc-widgets [hidden],
+.crc-list-editor [hidden] {
 	display: none !important;
 }
 

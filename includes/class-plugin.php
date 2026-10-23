@@ -76,6 +76,7 @@ final class Plugin {
 		( new Listing_Filters() )->hooks();
 		( new Listing_Results() )->hooks();
 		( new Testimonials() )->hooks();
+		( new Faqs() )->hooks();
 		( new Scroll_Hint() )->hooks();
 		( new Legal() )->hooks();
 		( new Listing_Cleanup() )->hooks();
@@ -100,6 +101,7 @@ final class Plugin {
 		( new Admin\Widgets_Page() )->hooks();
 		( new Admin\Testimonial_Box() )->hooks();
 		( new Admin\Testimonials_Settings() )->hooks();
+		( new Admin\Faqs_Box() )->hooks();
 		( new Admin\Shortcodes_Page() )->hooks();
 		( new Admin\Settings_Page() )->hooks();
 

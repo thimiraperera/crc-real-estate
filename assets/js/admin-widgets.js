@@ -1,7 +1,8 @@
 /**
- * Widgets page: the lists on its tabs, such as the category carousel's cards
- * and the FAQs. Adding, removing and ordering rows, and choosing the cards'
- * pictures. Each list says how it is saved in data attributes.
+ * Widgets page and FAQ screen: their lists, such as the category carousel's
+ * cards and the FAQ questions. Adding, removing and ordering rows, and
+ * choosing the cards' pictures. Each list says how it is saved in data
+ * attributes.
  */
 jQuery( function ( $ ) {
 	'use strict';

@@ -237,9 +237,9 @@ final class Settings {
 
 	/**
 	 * Whether wp-admin shows the shortcodes: the Shortcodes page under
-	 * Listings, and the shortcodes on the Widgets page and on Testimonials →
-	 * Settings with their Copy buttons and the notes on where to paste them.
-	 * They work on the website either way.
+	 * Listings, and the shortcodes on the Widgets page, on Testimonials →
+	 * Settings and in the FAQs menu, with their Copy buttons and the notes on
+	 * where to paste them. They work on the website either way.
 	 *
 	 * @return bool
 	 */

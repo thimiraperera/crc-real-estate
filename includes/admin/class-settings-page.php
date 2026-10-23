@@ -203,7 +203,7 @@ final class Settings_Page {
 			esc_attr( Settings::DEVELOPER_OPTION ),
 			checked( Settings::shortcodes_shown(), true, false ),
 			esc_html__( 'Show the shortcodes', 'crc-real-estate' ),
-			esc_html__( 'Shows the Shortcodes page under Listings, and the shortcodes on the Widgets page and on Testimonials → Settings, with their Copy buttons and the notes on where to paste them. Untick this to hide them all. The shortcodes keep working on the website either way, and ticking this again brings them back.', 'crc-real-estate' )
+			esc_html__( 'Shows the Shortcodes page under Listings, and the shortcodes on the Widgets page, on Testimonials → Settings and in the FAQs menu, with their Copy buttons and the notes on where to paste them. Untick this to hide them all. The shortcodes keep working on the website either way, and ticking this again brings them back.', 'crc-real-estate' )
 		);
 	}
 

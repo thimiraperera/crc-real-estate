@@ -29,6 +29,7 @@ Real estate listing tools for WordPress.
 * Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
 * FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
+* FAQ posts: an FAQs menu of their own, each FAQ a named set of questions and answers, shown on any page with [crc_faqs id="…"] in the same FAQ cards, with FAQ schema for search engines
 * Scroll down hint: a small moving sign without words, three arrows inside a U-shaped line that draws itself from the bottom middle out and up both sides, in white fading to clear, at the bottom of a hero section; a tap scrolls to what is under it
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab with an icon and name for each category, moved with arrows or dragging, running on to the edge of the window
@@ -48,6 +49,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.44.0 =
+* FAQs: a menu of its own (not under Listings) with All FAQs and Add New FAQ. Each FAQ has a name for wp-admin, such as Home page FAQs, and its questions, each with its answer under it, dragged or moved with the arrows into order (up to 50).
+* [crc_faqs id="…"] shows an FAQ on any page in the same white cards as the FAQs for any page: the first question is open at the start, one opens at a time, and the questions are given to search engines as FAQ structured data. Each FAQ shows its own shortcode with a Copy button, on its screen and in the list, unless Developer options hides the shortcodes. The list also shows how many questions each FAQ shows.
+* [crc_faqs] without an ID still shows the questions on Listings → Widgets → FAQs, and the listings' own questions stay as they were.
+* Saving an FAQ, or moving it to the Trash, clears the LiteSpeed page cache.
 
 = 0.43.0 =
 * Listings → Settings has two tabs: General, with everything that was there before, and Developer options. Each tab saves on its own.
