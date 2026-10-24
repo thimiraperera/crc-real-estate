@@ -24,7 +24,7 @@ final class Legal {
 	/**
 	 * When the texts last changed. Move it on whenever a text changes.
 	 */
-	const UPDATED = '2026-10-13';
+	const UPDATED = '2026-10-24';
 
 	/**
 	 * The legal pages: shortcode tag => page slug and title.
@@ -326,7 +326,7 @@ final class Legal {
 				'ul',
 				array(
 					__( 'Your first and last name, phone number and e-mail address', 'crc-real-estate' ),
-					__( 'The subject and your message', 'crc-real-estate' ),
+					__( 'Your message', 'crc-real-estate' ),
 				),
 			),
 			array( 'h5', __( 'When you send us a property to list (Post Your Ad)', 'crc-real-estate' ) ),

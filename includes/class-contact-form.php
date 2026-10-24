@@ -11,20 +11,19 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * [crc_contact_form]: a contact form for any page, such as a Contact Us
- * page. First and last name, phone number with its country, email, an
- * optional subject and the message. Messages are emailed to the site and
- * kept in Contact Messages in wp-admin.
+ * page. First and last name, phone number with its country, email and the
+ * message, like the inquiry form. Messages are emailed to the site and kept
+ * in Contact Messages in wp-admin.
  */
 final class Contact_Form extends Form {
 
-	const TYPE           = 'contact';
-	const SHORTCODE      = 'crc_contact_form';
-	const ACTION         = 'crc_re_contact';
-	const PREFIX         = 'crc-contact-form';
-	const RESULT         = 'crc_contact';
-	const LIMIT_KEY      = 'contact_messages';
-	const STORE          = Contact_Messages::class;
-	const SUBJECT_LENGTH = 150;
+	const TYPE      = 'contact';
+	const SHORTCODE = 'crc_contact_form';
+	const ACTION    = 'crc_re_contact';
+	const PREFIX    = 'crc-contact-form';
+	const RESULT    = 'crc_contact';
+	const LIMIT_KEY = 'contact_messages';
+	const STORE     = Contact_Messages::class;
 
 	/**
 	 * Contact forms on the page so far, for unique field IDs.
@@ -42,7 +41,7 @@ final class Contact_Form extends Form {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Contact form', 'crc-real-estate' ),
-				'description' => __( 'A contact form for any page, such as your Contact Us page: First Name, Last Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail, Subject and Your Message. First Name, Phone Number, E-Mail and Your Message must be filled in; Last Name and Subject can be left empty. Everything is checked while people type and again when the message arrives, with clear messages under each field, and the fields and labels take the site\'s own Elementor styles. Messages are emailed to the address in Listings → Settings, and replying to that email answers the person who wrote. They are also kept in Contact Messages, its own menu in wp-admin, where new ones are counted on the menu. When hCaptcha is turned on in Listings → Settings, its "I am human" box shows on this form too.', 'crc-real-estate' ),
+				'description' => __( 'A contact form for any page, such as your Contact Us page: First Name, Last Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail and Message. First Name, Phone Number, E-Mail and Message must be filled in; Last Name can be left empty. Everything is checked while people type and again when the message arrives, with clear messages under each field, and the fields and labels take the site\'s own Elementor styles. Messages are emailed to the address in Listings → Settings, and replying to that email answers the person who wrote. They are also kept in Contact Messages, its own menu in wp-admin, where new ones are counted on the menu. When hCaptcha is turned on in Listings → Settings, its "I am human" box shows on this form too.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'button'  => array(
 						'default'     => __( 'Send Message', 'crc-real-estate' ),
@@ -109,14 +108,9 @@ final class Contact_Form extends Form {
 				'attributes'  => ' autocomplete="email" autocapitalize="off" spellcheck="false"',
 				'hint'        => true,
 			),
-			'subject'    => array(
-				'label'       => __( 'Subject', 'crc-real-estate' ),
-				'max'         => self::SUBJECT_LENGTH,
-				'placeholder' => __( 'e.g. Selling my land in Galle', 'crc-real-estate' ),
-			),
 			'message'    => array(
 				'type'        => 'textarea',
-				'label'       => __( 'Your Message', 'crc-real-estate' ),
+				'label'       => __( 'Message', 'crc-real-estate' ),
 				'required'    => true,
 				'max'         => self::MESSAGE_LENGTH,
 				'placeholder' => __( 'e.g. I\'d like to know more about selling my land with you.', 'crc-real-estate' ),

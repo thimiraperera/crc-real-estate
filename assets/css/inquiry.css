@@ -4,10 +4,11 @@
    and the send button. */
 .crc-inquiry {
 	--crc-inquiry-error: #d93025;
+	--crc-inquiry-gap: 16px; /* Between one field and the next. */
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: var(--crc-inquiry-gap);
 	margin: 0;
 }
 
@@ -29,7 +30,7 @@
 .crc-inquiry .crc-inquiry-names {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
-	gap: 8px 24px;
+	gap: var(--crc-inquiry-gap) 24px;
 }
 
 .crc-inquiry .crc-inquiry-field {
@@ -44,7 +45,7 @@
 .crc-inquiry .crc-inquiry-row {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
-	gap: 8px 24px;
+	gap: var(--crc-inquiry-gap) 24px;
 }
 
 /* A little more room above the message, as in the design. */

@@ -53,7 +53,7 @@ final class Inquiry extends Form {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Inquiry form', 'crc-real-estate' ),
-				'description' => __( 'The "Send an inquiry" form: First Name, Last Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail and Your Message. First Name, Phone Number and E-Mail must be filled in. Everything is checked while people type and again when the inquiry arrives, with clear messages under each field. The fields and labels take the site\'s own Elementor styles. On a listing page the inquiry says which listing it is about; on any other page it is a general inquiry. Inquiries are emailed to the address in Listings → Settings and kept in Inquiries, its own menu in wp-admin, where new ones are counted on the menu. Turn on hCaptcha in Listings → Settings to stop spam robots.', 'crc-real-estate' ),
+				'description' => __( 'The "Send an inquiry" form: First Name, Last Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail and Message. First Name, Phone Number and E-Mail must be filled in. Everything is checked while people type and again when the inquiry arrives, with clear messages under each field. The fields and labels take the site\'s own Elementor styles. On a listing page the inquiry says which listing it is about; on any other page it is a general inquiry. Inquiries are emailed to the address in Listings → Settings and kept in Inquiries, its own menu in wp-admin, where new ones are counted on the menu. Turn on hCaptcha in Listings → Settings to stop spam robots.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'      => array(
 						'default'     => '',
@@ -139,7 +139,7 @@ final class Inquiry extends Form {
 			),
 			'message'    => array(
 				'type'        => 'textarea',
-				'label'       => __( 'Your Message', 'crc-real-estate' ),
+				'label'       => __( 'Message', 'crc-real-estate' ),
 				'max'         => self::MESSAGE_LENGTH,
 				'placeholder' => $examples['message'],
 				'messages'    => array( 'long' => $texts['message_long'] ),

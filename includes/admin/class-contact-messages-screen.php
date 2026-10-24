@@ -96,7 +96,11 @@ final class Contact_Messages_Screen extends Submissions_Screen {
 		$message = Contact_Messages::get( $post->ID );
 		$rows    = self::person_rows( $message );
 
-		$rows[ __( 'Subject', 'crc-real-estate' ) ] = '' !== $message['subject'] ? esc_html( $message['subject'] ) : '<span class="description">' . esc_html__( 'No subject.', 'crc-real-estate' ) . '</span>';
+		// Only older messages have a subject, from when the form asked for one.
+		if ( '' !== $message['subject'] ) {
+			$rows[ __( 'Subject', 'crc-real-estate' ) ] = esc_html( $message['subject'] );
+		}
+
 		$rows[ __( 'Message', 'crc-real-estate' ) ] = self::text_cell( $message['message'], __( 'No message.', 'crc-real-estate' ) );
 
 		self::table( array_merge( $rows, self::end_rows( $message, $post, __( 'The email about this message couldn\'t be sent, so it is only here. If this keeps happening, ask your host to check the site\'s email, or add an SMTP plugin that sends email through your email account.', 'crc-real-estate' ) ) ) );

@@ -20,7 +20,8 @@ final class Contact_Messages extends Submissions {
 	const NEW_META = '_crc_contact_new';
 
 	/**
-	 * Details kept with each message: key => field name.
+	 * Details kept with each message: key => field name. Only older messages
+	 * have a subject, from when the form asked for one.
 	 */
 	const META = array(
 		'first_name' => '_crc_contact_first_name',
@@ -66,40 +67,20 @@ final class Contact_Messages extends Submissions {
 	}
 
 	/**
-	 * Its text, which the list's search also looks through: the subject and
-	 * the message, so the list can be searched by subject too.
-	 *
-	 * @param array $message Details.
-	 * @return string
-	 */
-	protected static function content( array $message ) {
-		$text    = parent::content( $message );
-		$subject = isset( $message['subject'] ) ? trim( (string) $message['subject'] ) : '';
-
-		return '' !== $subject ? $subject . "\n\n" . $text : $text;
-	}
-
-	/**
 	 * Emails a message to the addresses in Settings. Replying answers the
 	 * person who wrote.
 	 *
-	 * @param array $message Checked message: the keys of META except "mailed".
+	 * @param array $message Checked message: the keys of META except "mailed" and "subject".
 	 * @param int   $post_id Kept message's ID, for a link to it; 0 when it wasn't kept.
 	 * @return bool Whether the email was handed over for sending.
 	 */
 	public static function mail( array $message, $post_id = 0 ) {
 		$first   = self::greeting( $message );
-		$topic   = isset( $message['subject'] ) ? self::plain( $message['subject'] ) : '';
-		/* translators: %s: the message's subject, or the name of the person who wrote. */
-		$subject = sprintf( __( 'New message: %s', 'crc-real-estate' ), '' !== $topic ? $topic : self::name( $message ) );
+		/* translators: %s: the name of the person who wrote. */
+		$subject = sprintf( __( 'New message: %s', 'crc-real-estate' ), self::name( $message ) );
 		/* translators: %s: first name. */
-		$intro = __( '%s sent a message from your website.', 'crc-real-estate' );
-		$rows  = self::person_rows( $message );
-
-		if ( '' !== $topic ) {
-			$rows[] = array( __( 'Subject', 'crc-real-estate' ), esc_html( $topic ), $topic );
-		}
-
+		$intro  = __( '%s sent a message from your website.', 'crc-real-estate' );
+		$rows   = self::person_rows( $message );
 		$rows[] = self::text_row( __( 'Message', 'crc-real-estate' ), $message['message'], __( 'No message.', 'crc-real-estate' ) );
 
 		return self::send(

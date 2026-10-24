@@ -49,6 +49,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.46.0 =
+* Inquiry form: a little more room between one field and the next, 16px instead of 8px, also between First Name and Last Name when they sit one under the other on phones. The contact and post a free ad forms share the form's styles, so they get the same room. The --crc-inquiry-gap setting on a form changes it.
+* Inquiry form: Your Message is now Message.
+* Contact form: First Name, Last Name, Phone Number, E-Mail and Message, like the inquiry form. The Subject box is gone and Your Message is now Message. Messages are still e-mailed to the address in Listings → Settings, with the person's name in the e-mail's subject, and kept in Contact Messages in wp-admin, where older messages still show their subject.
+* Privacy Policy: what the contact form collects no longer mentions a subject, and the legal pages show 24 October 2026 as when they last changed.
+
 = 0.45.0 =
 * Listings → Widgets no longer has an FAQs tab: the FAQs for any page are made in the FAQs menu, and [crc_faqs] needs the id="…" of one. Without it nothing shows to visitors, and people who edit the site see a note saying what to add.
 * The questions that were on the tab stay in the database, no longer used. The listings' own questions and their categories' questions are as they were.
