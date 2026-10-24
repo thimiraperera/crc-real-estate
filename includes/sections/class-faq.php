@@ -20,10 +20,9 @@ defined( 'ABSPATH' ) || exit;
  *
  * Each listing category has questions of its own, shown on every listing in
  * it; a listing adds its own after them, or leaves the category's out. The
- * site also has questions of its own for any page, [crc_faqs]: an FAQ from
- * the FAQs menu with id="…", or without it the ones set in Listings →
- * Widgets. All the questions on a page are also given to search engines as
- * FAQ structured data (schema.org FAQPage), once.
+ * site also has questions of its own for any page, [crc_faqs id="…"]: an FAQ
+ * from the FAQs menu. All the questions on a page are also given to search
+ * engines as FAQ structured data (schema.org FAQPage), once.
  */
 final class Faq {
 
@@ -34,7 +33,6 @@ final class Faq {
 	const MAX        = 50;
 
 	const GENERAL_SHORTCODE = 'crc_faqs';
-	const GENERAL_OPTION    = 'crc_re_faqs';
 
 	/**
 	 * Questions for search engines on this page: question => answer HTML.
@@ -62,8 +60,6 @@ final class Faq {
 		add_action( 'elementor/preview/enqueue_scripts', array( $this, 'enqueue_script' ) );
 		add_filter( 'body_class', array( $this, 'body_class' ) );
 		add_action( 'wp_footer', array( $this, 'print_schema' ) );
-		add_action( 'add_option_' . self::GENERAL_OPTION, array( $this, 'clear_cache' ) );
-		add_action( 'update_option_' . self::GENERAL_OPTION, array( $this, 'clear_cache' ) );
 	}
 
 	/**
@@ -107,11 +103,11 @@ final class Faq {
 			array( $this, 'render_general' ),
 			array(
 				'title'       => __( 'FAQs for any page', 'crc-real-estate' ),
-				'description' => __( 'The site\'s own frequently asked questions, for any page, such as the home page or a contact page: an FAQ from the FAQs menu with id="…", where each FAQ shows its own shortcode, or without an ID the questions in Listings → Widgets, on the FAQs tab. They show as white cards with a soft shadow, up to 800px wide; each question opens smoothly to show its answer, the first one is open at the start, and only one is open at a time. The questions are also given to search engines as FAQ structured data.', 'crc-real-estate' ),
+				'description' => __( 'The site\'s own frequently asked questions, for any page, such as the home page or a contact page: an FAQ from the FAQs menu, where each FAQ shows its own shortcode. They show as white cards with a soft shadow, up to 800px wide; each question opens smoothly to show its answer, the first one is open at the start, and only one is open at a time. The questions are also given to search engines as FAQ structured data.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'id'     => array(
 						'default'     => '',
-						'description' => __( 'The ID of an FAQ from the FAQs menu, to show its questions. Leave it out for the questions on the Widgets page.', 'crc-real-estate' ),
+						'description' => __( 'The ID of the FAQ from the FAQs menu whose questions show. Needed: without it nothing shows.', 'crc-real-estate' ),
 					),
 					'open'   => array(
 						'default'     => 'first',
@@ -125,7 +121,6 @@ final class Faq {
 				'examples'    => array(
 					'[' . self::GENERAL_SHORTCODE . ' id="123"]',
 					'[' . self::GENERAL_SHORTCODE . ' id="123" open="none"]',
-					'[' . self::GENERAL_SHORTCODE . ']',
 				),
 			)
 		);
@@ -149,12 +144,11 @@ final class Faq {
 	}
 
 	/**
-	 * Loads the FAQ styles in the page head on every page once the site has
-	 * questions of its own or a published FAQ, so [crc_faqs] never shows
-	 * unstyled while a page loads.
+	 * Loads the FAQ styles in the page head on every page once an FAQ is
+	 * published, so [crc_faqs] never shows unstyled while a page loads.
 	 */
 	public function enqueue_for_general() {
-		if ( self::with_answers( self::general_items() ) || Faqs::any_published() ) {
+		if ( Faqs::any_published() ) {
 			wp_enqueue_style( 'crc-re-faq' );
 		}
 	}
@@ -179,35 +173,6 @@ final class Faq {
 		}
 
 		wp_enqueue_script( 'crc-re-faq' );
-	}
-
-	/**
-	 * Clears the LiteSpeed page cache when the site's questions change, so
-	 * visitors see them straight away. Does nothing without LiteSpeed Cache.
-	 */
-	public function clear_cache() {
-		do_action( 'litespeed_purge_all' );
-	}
-
-	/**
-	 * The site's own questions, from Listings → Widgets.
-	 *
-	 * @return array[] Items with 'question', 'answer', 'link_text' and 'link_url'.
-	 */
-	public static function general_items() {
-		$saved = get_option( self::GENERAL_OPTION, array() );
-
-		return self::sanitize_items( is_array( $saved ) && isset( $saved['items'] ) ? $saved['items'] : array() );
-	}
-
-	/**
-	 * Cleans the site's questions sent from Listings → Widgets.
-	 *
-	 * @param mixed $input Submitted value.
-	 * @return array
-	 */
-	public static function sanitize_general( $input ) {
-		return array( 'items' => self::sanitize_items( is_array( $input ) && isset( $input['items'] ) ? $input['items'] : array() ) );
 	}
 
 	/**
@@ -388,8 +353,7 @@ final class Faq {
 	}
 
 	/**
-	 * Renders [crc_faqs]: the site's own questions, from an FAQ in the FAQs
-	 * menu, or without an ID from Listings → Widgets.
+	 * Renders [crc_faqs]: the questions of an FAQ from the FAQs menu.
 	 *
 	 * @param array|string $atts Shortcode attributes.
 	 * @return string
@@ -398,21 +362,19 @@ final class Faq {
 		$atts = Shortcodes::atts( self::GENERAL_SHORTCODE, $atts );
 
 		if ( '' === trim( (string) $atts['id'] ) ) {
-			$items = self::with_answers( self::general_items() );
-			$empty = __( 'Add questions in Listings → Widgets, on the FAQs tab.', 'crc-real-estate' );
-		} else {
-			$faq = Faqs::find( $atts['id'] );
-
-			if ( ! $faq ) {
-				return Shortcodes::placeholder( self::GENERAL_SHORTCODE, __( 'There is no published FAQ with this ID in the FAQs menu.', 'crc-real-estate' ) );
-			}
-
-			$items = self::with_answers( Faqs::items( $faq->ID ) );
-			$empty = __( 'This FAQ has no questions with answers yet. Add them in the FAQs menu.', 'crc-real-estate' );
+			return Shortcodes::placeholder( self::GENERAL_SHORTCODE, __( 'Add id="…" with the ID of an FAQ from the FAQs menu, for example [crc_faqs id="123"].', 'crc-real-estate' ) );
 		}
 
+		$faq = Faqs::find( $atts['id'] );
+
+		if ( ! $faq ) {
+			return Shortcodes::placeholder( self::GENERAL_SHORTCODE, __( 'There is no published FAQ with this ID in the FAQs menu.', 'crc-real-estate' ) );
+		}
+
+		$items = self::with_answers( Faqs::items( $faq->ID ) );
+
 		if ( ! $items ) {
-			return Shortcodes::placeholder( self::GENERAL_SHORTCODE, $empty );
+			return Shortcodes::placeholder( self::GENERAL_SHORTCODE, __( 'This FAQ has no questions with answers yet. Add them in the FAQs menu.', 'crc-real-estate' ) );
 		}
 
 		return $this->list_html( $items, $atts, 'crc-faqs' );

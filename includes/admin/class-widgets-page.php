@@ -9,7 +9,6 @@ namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Category_Carousel;
 use CRC\RealEstate\Post_Type;
-use CRC\RealEstate\Sections\Faq;
 use CRC\RealEstate\Settings;
 use CRC\RealEstate\Taxonomy;
 
@@ -17,15 +16,15 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Widgets: ready-made pieces for any page, each on a tab with its
- * shortcode and what goes in it: the category carousel's cards, FAQs, the
- * keyword ticker, and the search with its listings page. The shortcodes stay
- * off the tabs while Settings → Developer options hides them in wp-admin.
+ * shortcode and what goes in it: the category carousel's cards, the keyword
+ * ticker, and the search with its listings page. The shortcodes stay off the
+ * tabs while Settings → Developer options hides them in wp-admin. FAQs have
+ * a menu of their own (see Faqs).
  */
 final class Widgets_Page {
 
-	const SLUG      = 'crc-real-estate-widgets';
-	const GROUP     = 'crc_re_widgets';
-	const FAQ_GROUP = 'crc_re_widgets_faqs';
+	const SLUG  = 'crc-real-estate-widgets';
+	const GROUP = 'crc_re_widgets';
 
 	/**
 	 * Admin page hook suffix.
@@ -113,16 +112,6 @@ final class Widgets_Page {
 			)
 		);
 
-		register_setting(
-			self::FAQ_GROUP,
-			Faq::GENERAL_OPTION,
-			array(
-				'type'              => 'array',
-				'sanitize_callback' => array( Faq::class, 'sanitize_general' ),
-				'default'           => array( 'items' => array() ),
-			)
-		);
-
 		$this->ticker()->register();
 		$this->search()->register();
 	}
@@ -135,7 +124,6 @@ final class Widgets_Page {
 	private function tabs() {
 		return array(
 			'carousel' => __( 'Category carousel', 'crc-real-estate' ),
-			'faqs'     => __( 'FAQs', 'crc-real-estate' ),
 			'ticker'   => __( 'Keyword ticker', 'crc-real-estate' ),
 			'search'   => __( 'Search', 'crc-real-estate' ),
 		);
@@ -198,9 +186,7 @@ final class Widgets_Page {
 			</nav>
 
 			<?php
-			if ( 'faqs' === $current ) {
-				$this->faqs_tab();
-			} elseif ( 'ticker' === $current ) {
+			if ( 'ticker' === $current ) {
 				$this->ticker()->render();
 			} elseif ( 'search' === $current ) {
 				$this->search()->render();
@@ -365,78 +351,6 @@ final class Widgets_Page {
 			<label class="screen-reader-text" for="<?php echo esc_attr( $id ); ?>-link"><?php esc_html_e( 'Link', 'crc-real-estate' ); ?></label>
 			<input type="text" class="crc-cards-row-link" id="<?php echo esc_attr( $id ); ?>-link" data-name="link" name="<?php echo esc_attr( $name ); ?>[link]" value="<?php echo esc_attr( $card['link'] ); ?>" list="crc-cards-links" inputmode="url" spellcheck="false" placeholder="<?php esc_attr_e( 'Link', 'crc-real-estate' ); ?>">
 			<?php $this->row_actions( __( 'Remove card', 'crc-real-estate' ) ); ?>
-		</li>
-		<?php
-	}
-
-	/**
-	 * Prints the FAQs tab.
-	 */
-	private function faqs_tab() {
-		$items = Faq::general_items();
-		$help  = __( 'One question opens at a time, and the questions are given to search engines as FAQ schema. Leave an empty line between paragraphs of an answer. Drag a question by its handle, or use the arrows, to change the order.', 'crc-real-estate' );
-
-		if ( Settings::shortcodes_shown() ) {
-			$help = __( 'Paste the shortcode into an Elementor Shortcode widget on any page.', 'crc-real-estate' ) . ' ' . $help;
-		}
-		?>
-		<section class="crc-info-card" id="<?php echo esc_attr( Faq::GENERAL_SHORTCODE ); ?>">
-			<h2 class="crc-info-title"><?php esc_html_e( 'FAQs', 'crc-real-estate' ); ?></h2>
-			<?php $this->shortcode( '[' . Faq::GENERAL_SHORTCODE . ']' ); ?>
-			<p class="description"><?php echo esc_html( $help ); ?></p>
-
-			<form action="options.php" method="post">
-				<?php
-				settings_fields( self::FAQ_GROUP );
-				/* translators: %s: most questions. */
-				$this->editor_start( Faq::GENERAL_OPTION, 'items', 'crc-faq-', Faq::MAX, __( 'Remove this question? It goes from the website when you press Save Changes.', 'crc-real-estate' ), __( 'There can be up to %s questions.', 'crc-real-estate' ) );
-				?>
-					<ol class="crc-faqs-list" data-crc-items>
-						<?php
-						foreach ( $items as $index => $item ) {
-							$this->faq_row( $index, $item );
-						}
-						?>
-					</ol>
-
-					<p class="crc-cards-empty" data-crc-empty<?php echo $items ? ' hidden' : ''; ?>><?php esc_html_e( 'No questions yet.', 'crc-real-estate' ); ?></p>
-
-					<p class="crc-cards-tools">
-						<button type="button" class="button crc-cards-add" data-crc-add><span class="dashicons dashicons-plus-alt2" aria-hidden="true"></span><?php esc_html_e( 'Add a question', 'crc-real-estate' ); ?></button>
-						<span class="crc-cards-note" data-crc-note role="status"></span>
-					</p>
-
-					<template id="crc-faqs-template" data-crc-template>
-						<?php $this->faq_row( 0, array() ); ?>
-					</template>
-				</div>
-
-				<?php submit_button(); ?>
-			</form>
-		</section>
-		<?php
-	}
-
-	/**
-	 * Prints one question: the question, and its answer under it.
-	 *
-	 * @param int   $index Question number, from 0.
-	 * @param array $item  Saved question.
-	 */
-	private function faq_row( $index, array $item ) {
-		$item = wp_parse_args( $item, array( 'question' => '', 'answer' => '' ) );
-		$name = Faq::GENERAL_OPTION . '[items][' . (int) $index . ']';
-		$id   = 'crc-faq-' . (int) $index;
-		?>
-		<li class="crc-faqs-row" data-crc-row>
-			<span class="crc-cards-row-handle dashicons dashicons-menu" data-crc-handle title="<?php esc_attr_e( 'Drag to change the order', 'crc-real-estate' ); ?>" aria-hidden="true"></span>
-			<span class="crc-faqs-row-fields">
-				<label class="screen-reader-text" for="<?php echo esc_attr( $id ); ?>-question"><?php esc_html_e( 'Question', 'crc-real-estate' ); ?></label>
-				<input type="text" class="crc-faqs-row-question" id="<?php echo esc_attr( $id ); ?>-question" data-name="question" data-crc-focus name="<?php echo esc_attr( $name ); ?>[question]" value="<?php echo esc_attr( $item['question'] ); ?>" placeholder="<?php esc_attr_e( 'Question', 'crc-real-estate' ); ?>">
-				<label class="screen-reader-text" for="<?php echo esc_attr( $id ); ?>-answer"><?php esc_html_e( 'Answer', 'crc-real-estate' ); ?></label>
-				<textarea class="crc-faqs-row-answer" id="<?php echo esc_attr( $id ); ?>-answer" data-name="answer" name="<?php echo esc_attr( $name ); ?>[answer]" rows="3" placeholder="<?php esc_attr_e( 'Answer', 'crc-real-estate' ); ?>"><?php echo esc_textarea( $item['answer'] ); ?></textarea>
-			</span>
-			<?php $this->row_actions( __( 'Remove question', 'crc-real-estate' ) ); ?>
 		</li>
 		<?php
 	}

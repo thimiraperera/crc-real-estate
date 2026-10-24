@@ -28,8 +28,7 @@ Real estate listing tools for WordPress.
 * Tags under the title: the district, land extent, bedrooms, bathrooms, floor area and property type as rounded tags with icons
 * Districts: Sri Lanka's 25 districts, picked from a search box that fills itself in from the map
 * Suggested names and short links, such as Bare land for sale in Galle and bare-land-for-sale-galle, used by themselves when the title is left empty
-* FAQs for any page: questions and answers set on the Widgets page, one open at a time, with FAQ schema for search engines
-* FAQ posts: an FAQs menu of their own, each FAQ a named set of questions and answers, shown on any page with [crc_faqs id="…"] in the same FAQ cards, with FAQ schema for search engines
+* FAQs for any page: an FAQs menu of their own, each FAQ a named set of questions and answers, shown on any page with [crc_faqs id="…"], one open at a time, with FAQ schema for search engines
 * Scroll down hint: a small moving sign without words, three arrows inside a U-shaped line that draws itself from the bottom middle out and up both sides, in white fading to clear, at the bottom of a hero section; a tap scrolls to what is under it
 * Testimonials: their own menu with a name, a star rating in halves and the testimonial, shown in a carousel that goes round and round, with a random choice on each visit
 * Listing carousel: the latest or most popular listings in cards, a tab with an icon and name for each category, moved with arrows or dragging, running on to the edge of the window
@@ -49,6 +48,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.45.0 =
+* Listings → Widgets no longer has an FAQs tab: the FAQs for any page are made in the FAQs menu, and [crc_faqs] needs the id="…" of one. Without it nothing shows to visitors, and people who edit the site see a note saying what to add.
+* The questions that were on the tab stay in the database, no longer used. The listings' own questions and their categories' questions are as they were.
 
 = 0.44.0 =
 * FAQs: a menu of its own (not under Listings) with All FAQs and Add New FAQ. Each FAQ has a name for wp-admin, such as Home page FAQs, and its questions, each with its answer under it, dragged or moved with the arrows into order (up to 50).
