@@ -13,8 +13,9 @@ defined( 'ABSPATH' ) || exit;
  * Offers an update whenever the version on the repository's main branch is
  * higher than the installed one, and installs it from the branch archive.
  *
- * WordPress checks by itself twice a day. The "Check for updates" button in
- * Listings → Settings asks GitHub straight away and offers any new version.
+ * WordPress checks by itself twice a day. The "Check for updates" button on
+ * the Updates tab of Listings → Settings asks GitHub straight away and
+ * offers any new version.
  *
  * Works through the plugin's "Update URI" header, so WordPress.org never
  * offers updates for this plugin.
@@ -171,7 +172,7 @@ final class Updater {
 		}
 
 		$back = wp_get_referer();
-		$back = $back ? remove_query_arg( self::RESULT_ARG, $back ) : Admin\Settings_Page::url();
+		$back = $back ? remove_query_arg( self::RESULT_ARG, $back ) : Admin\Settings_Page::url( 'updates' );
 
 		wp_safe_redirect( add_query_arg( self::RESULT_ARG, $result, $back ) );
 		exit;

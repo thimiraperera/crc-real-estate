@@ -38,7 +38,7 @@ Real estate listing tools for WordPress.
 * Contact form and free ad form: [crc_contact_form] and [crc_post_ad_form], with the same checks as people type, spam protection and emails as the inquiry form, and their own Contact Messages and Free Ads pages in wp-admin
 * Legal pages: [crc_privacy_policy], [crc_terms_and_conditions], [crc_disclaimer] and [crc_listing_terms], written for a property business in Sri Lanka, with the business details from Listings → Settings
 * Shortcodes for every section, ready to place in Elementor, and a switch in Listings → Settings → Developer options that hides them in wp-admin once the website is built
-* Updates straight from GitHub, checked and installed from Listings → Settings
+* Updates straight from GitHub, checked and installed on the Updates tab of Listings → Settings
 
 Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-icons. Maps: Leaflet and OpenStreetMap.
 
@@ -48,6 +48,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 2. Activate the plugin from the Plugins screen.
 
 == Changelog ==
+
+= 0.47.0 =
+* Listings → Settings has an Updates tab, between General and Developer options, with the installed and latest versions, Check for updates, Update to the new version when there is one, and What's new. Before, they were at the very bottom of General. After Check for updates, the Updates tab opens again with the result.
+* Someone whose account can't update plugins sees the versions on the Updates tab, with a note saying why Check for updates isn't there, instead of nothing at all.
 
 = 0.46.0 =
 * Inquiry form: a little more room between one field and the next, 16px instead of 8px, also between First Name and Last Name when they sit one under the other on phones. The contact and post a free ad forms share the form's styles, so they get the same room. The --crc-inquiry-gap setting on a form changes it.

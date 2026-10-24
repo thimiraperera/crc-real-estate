@@ -16,10 +16,12 @@ use CRC\RealEstate\Updater;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Listings → Settings, on two tabs. General: the default phone and WhatsApp
- * numbers and button texts, the map, the inquiry form, deleting listings, the
- * business details for the legal pages, and plugin updates. Developer
- * options: whether wp-admin shows the shortcodes. Each tab saves on its own.
+ * Listings → Settings, on three tabs. General: the default phone and WhatsApp
+ * numbers and button texts, the map, the inquiry form, deleting listings and
+ * the business details for the legal pages. Updates: the installed and
+ * latest versions, with Check for updates. Developer options: whether
+ * wp-admin shows the shortcodes. General and Developer options each save on
+ * their own.
  */
 final class Settings_Page {
 
@@ -40,12 +42,15 @@ final class Settings_Page {
 	}
 
 	/**
-	 * Address of the page.
+	 * Address of the page, or of one of its tabs.
 	 *
+	 * @param string $tab Tab name, e.g. "updates"; empty for the first tab.
 	 * @return string
 	 */
-	public static function url() {
-		return admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=' . self::SLUG );
+	public static function url( $tab = '' ) {
+		$url = admin_url( 'edit.php?post_type=' . Post_Type::NAME . '&page=' . self::SLUG );
+
+		return '' !== $tab ? add_query_arg( 'tab', $tab, $url ) : $url;
 	}
 
 	/**
@@ -598,6 +603,7 @@ final class Settings_Page {
 	private function tabs() {
 		return array(
 			'general'   => __( 'General', 'crc-real-estate' ),
+			'updates'   => __( 'Updates', 'crc-real-estate' ),
 			'developer' => __( 'Developer options', 'crc-real-estate' ),
 		);
 	}
@@ -626,11 +632,13 @@ final class Settings_Page {
 
 			<nav class="nav-tab-wrapper crc-settings-tabs" aria-label="<?php esc_attr_e( 'Settings', 'crc-real-estate' ); ?>">
 				<?php foreach ( $this->tabs() as $tab => $title ) : ?>
-					<a href="<?php echo esc_url( add_query_arg( 'tab', $tab, self::url() ) ); ?>" class="nav-tab<?php echo $tab === $current ? ' nav-tab-active' : ''; ?>"<?php echo $tab === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $title ); ?></a>
+					<a href="<?php echo esc_url( self::url( $tab ) ); ?>" class="nav-tab<?php echo $tab === $current ? ' nav-tab-active' : ''; ?>"<?php echo $tab === $current ? ' aria-current="page"' : ''; ?>><?php echo esc_html( $title ); ?></a>
 				<?php endforeach; ?>
 			</nav>
 
-			<?php if ( 'developer' === $current ) : ?>
+			<?php if ( 'updates' === $current ) : ?>
+				<?php $this->updates(); ?>
+			<?php elseif ( 'developer' === $current ) : ?>
 				<form action="options.php" method="post">
 					<?php
 					settings_fields( self::DEVELOPER_GROUP );
@@ -646,21 +654,17 @@ final class Settings_Page {
 					submit_button();
 					?>
 				</form>
-				<?php $this->updates(); ?>
 			<?php endif; ?>
 		</div>
 		<?php
 	}
 
 	/**
-	 * Prints the Updates part: the installed and latest versions, and buttons
-	 * to look for a new version and install it.
+	 * Prints the Updates tab: the installed and latest versions, and buttons
+	 * to look for a new version and install it. People who can't update
+	 * plugins on this site see the versions and why the buttons aren't there.
 	 */
 	private function updates() {
-		if ( ! current_user_can( 'update_plugins' ) ) {
-			return;
-		}
-
 		$updater = new Updater( CRC_RE_FILE );
 		$status  = $updater->status();
 		?>
@@ -689,14 +693,18 @@ final class Settings_Page {
 				</td>
 			</tr>
 		</table>
-		<p class="crc-updates-actions">
-			<?php if ( $status['available'] ) : ?>
-				<?php /* translators: %s: new version number. */ ?>
-				<a class="button button-primary" href="<?php echo esc_url( $updater->update_url() ); ?>"><?php echo esc_html( sprintf( __( 'Update to %s', 'crc-real-estate' ), $status['latest'] ) ); ?></a>
-			<?php endif; ?>
-			<a class="button" href="<?php echo esc_url( Updater::check_url() ); ?>"><?php esc_html_e( 'Check for updates', 'crc-real-estate' ); ?></a>
-			<a class="thickbox open-plugin-details-modal" href="<?php echo esc_url( $updater->details_url() ); ?>"><?php esc_html_e( 'What\'s new', 'crc-real-estate' ); ?></a>
-		</p>
+		<?php if ( current_user_can( 'update_plugins' ) ) : ?>
+			<p class="crc-updates-actions">
+				<?php if ( $status['available'] ) : ?>
+					<?php /* translators: %s: new version number. */ ?>
+					<a class="button button-primary" href="<?php echo esc_url( $updater->update_url() ); ?>"><?php echo esc_html( sprintf( __( 'Update to %s', 'crc-real-estate' ), $status['latest'] ) ); ?></a>
+				<?php endif; ?>
+				<a class="button" href="<?php echo esc_url( Updater::check_url() ); ?>"><?php esc_html_e( 'Check for updates', 'crc-real-estate' ); ?></a>
+				<a class="thickbox open-plugin-details-modal" href="<?php echo esc_url( $updater->details_url() ); ?>"><?php esc_html_e( 'What\'s new', 'crc-real-estate' ); ?></a>
+			</p>
+		<?php else : ?>
+			<p class="crc-warning"><?php esc_html_e( 'This site doesn\'t let your account update plugins, so Check for updates isn\'t here. An administrator who can update plugins sees it on this tab. If nobody can, updates are turned off for the whole site, for example by DISALLOW_FILE_MODS in wp-config.php.', 'crc-real-estate' ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 }
