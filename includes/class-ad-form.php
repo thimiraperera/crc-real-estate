@@ -7,17 +7,16 @@
 
 namespace CRC\RealEstate;
 
-use CRC\RealEstate\Sections\Overview;
 use CRC\RealEstate\Sections\Price_Card;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * [crc_post_ad_form]: a simple form where people send a property to
- * advertise for free. Their name and how to reach them, the category,
- * property type, place, price, size, bedrooms, a title and a description.
- * Photos are collected afterwards, by the site's team. Ads are emailed to
- * the site and kept in Free Ads in wp-admin; nothing is published by itself.
+ * [crc_post_ad_form]: a short form where people send a property to
+ * advertise. Their name and how to reach them, the category, the place, the
+ * price if they like, a description and up to a few photos (see Ad_Photos).
+ * The site's team calls them for anything else. Ads are emailed to the site
+ * and kept in Free Ads in wp-admin; nothing is published by itself.
  */
 final class Ad_Form extends Form {
 
@@ -29,7 +28,6 @@ final class Ad_Form extends Form {
 	const LIMIT_KEY          = 'ad_requests';
 	const STORE              = Ad_Requests::class;
 	const FULL_NAME_LENGTH   = 100;
-	const TITLE_LENGTH       = 120;
 	const DESCRIPTION_LENGTH = 3000;
 
 	/**
@@ -48,7 +46,7 @@ final class Ad_Form extends Form {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Post a free ad form', 'crc-real-estate' ),
-				'description' => __( 'A simple form where people send you a property to advertise for free: Your Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail, the category (Lands, Properties for Sale or Properties for Rent), Property Type, District or Town, Price, Land Size, Bedrooms, Ad Title and Description. Price, Land Size and Bedrooms can be left empty; everything else must be filled in. Photos aren\'t sent with the form: a note under the fields says you\'ll contact them to collect the photos and check the details before the ad goes on the website. Everything is checked while people type and again when the ad arrives, and the fields and labels take the site\'s own Elementor styles. Ads are emailed to the address in Listings → Settings and kept in Free Ads, its own menu in wp-admin, where new ones are counted on the menu. Nothing goes on the website by itself: you add the listing yourself when the details are ready. When hCaptcha is turned on in Listings → Settings, its "I am human" box shows on this form too.', 'crc-real-estate' ),
+				'description' => __( 'A short form where people send you a property to advertise: Your Name, Phone Number with a country code (Sri Lanka unless changed), E-Mail, the category (Lands, Properties for Sale or Properties for Rent), District or Town, Price, Description and Photos. Price and Photos can be left out; everything else must be filled in. Photos are made smaller in the browser (no side bigger than the largest size in Listings → Settings), turned into WebP and sent in small pieces while the rest of the form is filled in, so big photos don\'t stop halfway; they are kept in a private folder, not in the Media Library. Everything is checked while people type and again when the ad arrives, and the fields and labels take the site\'s own Elementor styles. Ads are emailed to the address in Listings → Settings and kept in Free Ads, its own menu in wp-admin, with their photos; new ones are counted on the menu. Nothing goes on the website by itself: you call them for the other details and add the listing yourself. When hCaptcha is turned on in Listings → Settings, its "I am human" box shows on this form too.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'button'  => array(
 						'default'     => __( 'Send My Ad', 'crc-real-estate' ),
@@ -89,9 +87,6 @@ final class Ad_Form extends Form {
 	 * @return array[]
 	 */
 	public static function fields() {
-		$overview = Overview::fields();
-		$types    = isset( $overview['property_type']['suggestions'] ) ? (array) $overview['property_type']['suggestions'] : array();
-
 		return array(
 			'name'          => array(
 				'rule'        => 'name',
@@ -134,15 +129,6 @@ final class Ad_Form extends Form {
 					'invalid' => __( 'Please choose one of these categories.', 'crc-real-estate' ),
 				),
 			),
-			'property_type' => array(
-				'label'       => __( 'Property Type', 'crc-real-estate' ),
-				'required'    => true,
-				'max'         => 50,
-				'placeholder' => __( 'e.g. Bare Land, House or Apartment', 'crc-real-estate' ),
-				'suggestions' => $types,
-				'row'         => 'place',
-				'messages'    => array( 'empty' => __( 'Please enter the property type, for example Bare Land or House.', 'crc-real-estate' ) ),
-			),
 			'location'      => array(
 				'label'       => __( 'District or Town', 'crc-real-estate' ),
 				'required'    => true,
@@ -161,30 +147,8 @@ final class Ad_Form extends Form {
 				'max'         => 20,
 				'placeholder' => __( 'e.g. 25,000,000', 'crc-real-estate' ),
 				'attributes'  => ' inputmode="numeric"',
-				'row'         => 'size',
+				'row'         => 'place',
 				'messages'    => array( 'invalid' => __( 'Please enter the price in numbers only, for example 25,000,000.', 'crc-real-estate' ) ),
-			),
-			'land_size'     => array(
-				'label'       => __( 'Land Size', 'crc-real-estate' ),
-				'max'         => 50,
-				'placeholder' => __( 'e.g. 20 perches', 'crc-real-estate' ),
-				'row'         => 'size',
-			),
-			'bedrooms'      => array(
-				'rule'        => 'count',
-				'label'       => __( 'Bedrooms', 'crc-real-estate' ),
-				'max'         => 2,
-				'placeholder' => __( 'e.g. 3', 'crc-real-estate' ),
-				'attributes'  => ' inputmode="numeric"',
-				'row'         => 'size',
-				'messages'    => array( 'invalid' => __( 'Please enter the number of bedrooms, for example 3.', 'crc-real-estate' ) ),
-			),
-			'title'         => array(
-				'label'       => __( 'Ad Title', 'crc-real-estate' ),
-				'required'    => true,
-				'max'         => self::TITLE_LENGTH,
-				'placeholder' => __( 'e.g. Bare land for sale in Galle', 'crc-real-estate' ),
-				'messages'    => array( 'empty' => __( 'Please give your ad a title.', 'crc-real-estate' ) ),
 			),
 			'description'   => array(
 				'type'        => 'textarea',
@@ -192,7 +156,7 @@ final class Ad_Form extends Form {
 				'required'    => true,
 				'max'         => self::DESCRIPTION_LENGTH,
 				'rows'        => 6,
-				'placeholder' => __( 'e.g. Flat land with a 20 ft road, water and electricity, 5 minutes from Galle town.', 'crc-real-estate' ),
+				'placeholder' => __( 'e.g. 20 perches of flat land with a 20 ft road, water and electricity, 5 minutes from Galle town.', 'crc-real-estate' ),
 				'messages'    => array(
 					'empty' => __( 'Please describe your property.', 'crc-real-estate' ),
 					/* translators: %s: the most characters allowed, e.g. 3,000. */
@@ -203,12 +167,104 @@ final class Ad_Form extends Form {
 	}
 
 	/**
-	 * The note under the fields: photos come later.
+	 * The photos box, when the form takes photos, and the note under it:
+	 * the team calls before anything goes on the website.
 	 *
+	 * @param string $id Form ID.
 	 * @return string
 	 */
-	protected static function after_fields() {
-		return '<p class="crc-inquiry-note">' . esc_html__( 'After you send this, we\'ll contact you to collect the photos and check the details before your ad goes on the website.', 'crc-real-estate' ) . '</p>';
+	protected static function after_fields( $id = '' ) {
+		$html = Ad_Photos::enabled() ? Ad_Photos::field( $id ) : '';
+
+		return $html . '<p class="crc-inquiry-note">' . esc_html__( 'After you send this, we\'ll call you to talk about your property and check the details before it goes on the website.', 'crc-real-estate' ) . '</p>';
+	}
+
+	/**
+	 * Loads the form's files, with the photos box's script when the form takes photos.
+	 */
+	protected function enqueue() {
+		parent::enqueue();
+
+		if ( Ad_Photos::enabled() ) {
+			Ad_Photos::enqueue();
+		}
+	}
+
+	/**
+	 * The fields' names, with the photos box.
+	 *
+	 * @return string[]
+	 */
+	public static function labels() {
+		$labels           = parent::labels();
+		$labels['photos'] = __( 'Photos', 'crc-real-estate' );
+
+		return $labels;
+	}
+
+	/**
+	 * Reads the submitted form, with the visit its photos were sent in and
+	 * the photos, in the order they were on the form.
+	 *
+	 * @param array $posted Submitted form, unslashed.
+	 * @return array
+	 */
+	public static function read( array $posted ) {
+		$form    = parent::read( $posted );
+		$session = isset( $posted['crc_photo_session'] ) && is_scalar( $posted['crc_photo_session'] ) ? sanitize_key( (string) $posted['crc_photo_session'] ) : '';
+		$photos  = isset( $posted['crc_photos'] ) && is_array( $posted['crc_photos'] ) ? array_slice( $posted['crc_photos'], 0, 50 ) : array();
+
+		$form['photo_session'] = Ad_Photos::id( $session );
+		$form['photos']        = array_values(
+			array_filter(
+				array_map(
+					function ( $photo ) {
+						return is_scalar( $photo ) ? Ad_Photos::id( sanitize_key( (string) $photo ) ) : '';
+					},
+					$photos
+				)
+			)
+		);
+
+		return $form;
+	}
+
+	/**
+	 * Checks each field, and that the photos sent with the form all arrived.
+	 *
+	 * @param array $form Form from read().
+	 * @return string[] Field key => message, for the fields that aren't right.
+	 */
+	public static function check( array $form ) {
+		$errors = parent::check( $form );
+
+		if ( ! empty( $form['photos'] ) && Ad_Photos::enabled() ) {
+			$photos = Ad_Photos::ready( $form['photo_session'], $form['photos'] );
+
+			if ( is_wp_error( $photos ) ) {
+				$errors['photos'] = 'count' === $photos->get_error_code()
+					/* translators: %s: most photos, e.g. 10. */
+					? sprintf( __( 'You can add up to %s photos.', 'crc-real-estate' ), number_format_i18n( (int) Settings::photos( 'count' ) ) )
+					: __( 'Some photos didn\'t arrive. Please remove them and add them again.', 'crc-real-estate' );
+			}
+		}
+
+		return $errors;
+	}
+
+	/**
+	 * Moves the photos sent with the form to the ad just kept, and counts
+	 * them for the email.
+	 *
+	 * @param int   $post_id The ad, or 0 when it couldn't be kept.
+	 * @param array $form    Checked form from read().
+	 * @param array $data    Details from data().
+	 * @return array
+	 */
+	protected static function attach( $post_id, array $form, array $data ) {
+		$data['photos'] = $post_id && ! empty( $form['photos'] ) && Ad_Photos::enabled() ? count( Ad_Photos::attach( $form['photo_session'], $form['photos'], $post_id ) ) : 0;
+
+		return $data;
 	}
 
 	/**
@@ -225,11 +281,11 @@ final class Ad_Form extends Form {
 				__( 'Sorry, your ad couldn\'t be sent. Please try again in a moment.', 'crc-real-estate' )
 			),
 			'network'    => __( 'Your ad couldn\'t be sent. Please check your internet connection and try again.', 'crc-real-estate' ),
-			/* translators: %s: names of the fields to check, e.g. "Phone Number, Ad Title". */
+			/* translators: %s: names of the fields to check, e.g. "Phone Number, Description". */
 			'fields'     => __( 'Your ad wasn\'t sent. Please check these and try again: %s.', 'crc-real-estate' ),
 			/* translators: %s: the name given on the form. */
-			'sent'       => __( 'Thank you, %s! We\'ve got your ad. We\'ll contact you soon to collect the photos and check the details.', 'crc-real-estate' ),
-			'sent_plain' => __( 'Thank you! We\'ve got your ad. We\'ll contact you soon to collect the photos and check the details.', 'crc-real-estate' ),
+			'sent'       => __( 'Thank you, %s! We\'ve got your ad. We\'ll call you soon to talk about your property and check the details.', 'crc-real-estate' ),
+			'sent_plain' => __( 'Thank you! We\'ve got your ad. We\'ll call you soon to talk about your property and check the details.', 'crc-real-estate' ),
 		);
 	}
 

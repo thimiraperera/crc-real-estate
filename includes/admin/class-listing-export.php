@@ -283,13 +283,13 @@ final class Listing_Export {
 	}
 
 	/**
-	 * Makes the zip file.
+	 * Makes the zip file. Also used for the photos of a free ad.
 	 *
 	 * @param string  $folder Folder inside the zip that holds everything.
 	 * @param array[] $files  See files().
 	 * @return string|\WP_Error Path of the zip file, to be deleted after sending.
 	 */
-	private static function zip( $folder, array $files ) {
+	public static function zip( $folder, array $files ) {
 		$path = wp_tempnam( $folder . '.zip' );
 
 		if ( ! $path ) {

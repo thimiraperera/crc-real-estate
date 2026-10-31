@@ -22,6 +22,7 @@ final class Settings {
 	const TICKER_OPTION     = 'crc_re_ticker';
 	const CLEANUP_OPTION    = 'crc_re_cleanup';
 	const DEVELOPER_OPTION  = 'crc_re_developer';
+	const PHOTOS_OPTION     = 'crc_re_ad_photos';
 	const TICKER_MAX        = 200;
 	const KEYWORD_MAX       = 100;
 	const DEFAULT_NUMBER    = '+94777643264';
@@ -257,6 +258,58 @@ final class Settings {
 		$shortcodes = is_array( $input ) && isset( $input['shortcodes'] ) && is_scalar( $input['shortcodes'] ) ? (string) $input['shortcodes'] : '0';
 
 		return array( 'shortcodes' => '' !== $shortcodes && '0' !== $shortcodes ? 1 : 0 );
+	}
+
+	/**
+	 * Settings for the photos sent with the post a free ad form, used until
+	 * they are saved: the largest width and height in pixels, how many photos
+	 * an ad can have (0 turns photos off) and the WebP quality.
+	 *
+	 * @return array
+	 */
+	public static function photos_defaults() {
+		return array(
+			'width'   => 1440,
+			'height'  => 1440,
+			'count'   => 10,
+			'quality' => 82,
+		);
+	}
+
+	/**
+	 * A saved setting for the photos sent with the post a free ad form.
+	 *
+	 * @param string $key "width", "height", "count" or "quality".
+	 * @return int|null
+	 */
+	public static function photos( $key ) {
+		$saved = get_option( self::PHOTOS_OPTION, null );
+		$saved = is_array( $saved ) ? self::sanitize_photos( $saved ) : self::photos_defaults();
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Cleans the photo settings. A number out of range goes back to its default.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_photos( $input ) {
+		$input    = is_array( $input ) ? $input : array();
+		$defaults = self::photos_defaults();
+		$number   = function ( $key, $min, $max ) use ( $input, $defaults ) {
+			$value = isset( $input[ $key ] ) && is_scalar( $input[ $key ] ) ? trim( (string) $input[ $key ] ) : '';
+
+			return preg_match( '/^\d+$/', $value ) && (int) $value >= $min && (int) $value <= $max ? (int) $value : $defaults[ $key ];
+		};
+
+		return array(
+			'width'   => $number( 'width', 320, 4000 ),
+			'height'  => $number( 'height', 320, 4000 ),
+			'count'   => $number( 'count', 0, 30 ),
+			'quality' => $number( 'quality', 40, 100 ),
+		);
 	}
 
 	/**

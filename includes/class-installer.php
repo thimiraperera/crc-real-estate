@@ -37,6 +37,7 @@ final class Installer {
 	 */
 	public static function deactivate() {
 		Importer::stop_all();
+		wp_clear_scheduled_hook( Ad_Photos::CLEANUP );
 		unregister_post_type( Post_Type::NAME );
 		flush_rewrite_rules();
 	}

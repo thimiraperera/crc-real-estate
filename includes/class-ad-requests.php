@@ -14,8 +14,9 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Emails each free ad and keeps it in Free Ads, its own menu in wp-admin, so
  * none is lost when an email doesn't arrive. A new ad counts as new until it
- * is opened. Nothing is published by itself: the site's team collects the
- * photos, checks the details and adds the listing.
+ * is opened. Its photos are kept with it (see Ad_Photos). Nothing is
+ * published by itself: the site's team calls, checks the details and adds
+ * the listing.
  */
 final class Ad_Requests extends Submissions {
 
@@ -23,7 +24,9 @@ final class Ad_Requests extends Submissions {
 	const NEW_META = '_crc_ad_new';
 
 	/**
-	 * Details kept with each ad: key => field name.
+	 * Details kept with each ad: key => field name. Only older ads have a
+	 * property type, land size, bedrooms and title, from when the form asked
+	 * for them.
 	 */
 	const META = array(
 		'name'          => '_crc_ad_name',
@@ -74,13 +77,28 @@ final class Ad_Requests extends Submissions {
 	}
 
 	/**
-	 * Its name in the list in wp-admin: the ad's title.
+	 * Its name in the list in wp-admin and in the email: what it is and
+	 * where, e.g. "Land for sale in Galle". Older ads keep the title they
+	 * were given.
 	 *
 	 * @param array $ad Details.
 	 * @return string
 	 */
 	protected static function title( array $ad ) {
-		return isset( $ad['title'] ) && '' !== (string) $ad['title'] ? (string) $ad['title'] : self::name( $ad );
+		if ( isset( $ad['title'] ) && '' !== (string) $ad['title'] ) {
+			return (string) $ad['title'];
+		}
+
+		$terms = Taxonomy::terms();
+		$what  = isset( $ad['category'], $terms[ $ad['category'] ]['label'] ) ? (string) $terms[ $ad['category'] ]['label'] : '';
+		$where = isset( $ad['location'] ) ? trim( (string) $ad['location'] ) : '';
+
+		if ( '' === $what ) {
+			return self::name( $ad );
+		}
+
+		/* translators: 1: what the property is, e.g. "Land for sale", 2: district or town. */
+		return '' !== $where ? sprintf( __( '%1$s in %2$s', 'crc-real-estate' ), $what, $where ) : $what;
 	}
 
 	/**
@@ -130,35 +148,47 @@ final class Ad_Requests extends Submissions {
 
 	/**
 	 * The ad's details after the person: label => value, in the form's order.
+	 * Category, district or town and price are always there (the price may
+	 * be empty); the details only older ads have show when they were given.
 	 *
 	 * @param array $ad Details.
 	 * @return string[]
 	 */
 	public static function property( array $ad ) {
-		return array(
+		$details = array(
 			__( 'Category', 'crc-real-estate' )         => self::category( $ad['category'] ),
-			__( 'Property type', 'crc-real-estate' )    => (string) $ad['property_type'],
+			__( 'Property type', 'crc-real-estate' )    => isset( $ad['property_type'] ) ? (string) $ad['property_type'] : '',
 			__( 'District or town', 'crc-real-estate' ) => (string) $ad['location'],
 			__( 'Price', 'crc-real-estate' )            => self::price( $ad['price'] ),
-			__( 'Land size', 'crc-real-estate' )        => (string) $ad['land_size'],
-			__( 'Bedrooms', 'crc-real-estate' )         => (string) $ad['bedrooms'],
-			__( 'Ad title', 'crc-real-estate' )         => (string) $ad['title'],
+			__( 'Land size', 'crc-real-estate' )        => isset( $ad['land_size'] ) ? (string) $ad['land_size'] : '',
+			__( 'Bedrooms', 'crc-real-estate' )         => isset( $ad['bedrooms'] ) ? (string) $ad['bedrooms'] : '',
+			__( 'Ad title', 'crc-real-estate' )         => isset( $ad['title'] ) ? (string) $ad['title'] : '',
 		);
+		$always  = array( __( 'Category', 'crc-real-estate' ), __( 'District or town', 'crc-real-estate' ), __( 'Price', 'crc-real-estate' ) );
+
+		foreach ( $details as $label => $value ) {
+			if ( '' === $value && ! in_array( $label, $always, true ) ) {
+				unset( $details[ $label ] );
+			}
+		}
+
+		return $details;
 	}
 
 	/**
-	 * Emails an ad to the addresses in Settings. Replying answers the person
-	 * who sent it.
+	 * Emails an ad to the addresses in Settings, with how many photos came.
+	 * Replying answers the person who sent it.
 	 *
-	 * @param array $ad      Checked ad: the keys of META except "mailed".
+	 * @param array $ad      Checked ad: the keys of META except "mailed", and "photos", how many photos were kept.
 	 * @param int   $post_id Kept ad's ID, for a link to it; 0 when it wasn't kept.
 	 * @return bool Whether the email was handed over for sending.
 	 */
 	public static function mail( array $ad, $post_id = 0 ) {
-		$who   = self::greeting( $ad );
-		$title = self::plain( $ad['title'] );
+		$who    = self::greeting( $ad );
+		$title  = self::plain( self::title( $ad ) );
+		$photos = isset( $ad['photos'] ) ? (int) $ad['photos'] : 0;
 		/* translators: %s: the name of the person who sent the ad. */
-		$intro = __( '%s would like to post a free ad on your website. Contact them to collect the photos and check the details.', 'crc-real-estate' );
+		$intro = __( '%s would like to advertise a property on your website. Call them to talk about it and check the details.', 'crc-real-estate' );
 		$rows  = self::person_rows( $ad );
 
 		foreach ( self::property( $ad ) as $label => $value ) {
@@ -168,6 +198,12 @@ final class Ad_Requests extends Submissions {
 		}
 
 		$rows[] = self::text_row( __( 'Description', 'crc-real-estate' ), $ad['description'], __( 'No description.', 'crc-real-estate' ) );
+
+		$count  = $photos
+			/* translators: %s: number of photos. */
+			? sprintf( _n( '%s photo, to see and download on the ad in wp-admin, under Free Ads', '%s photos, to see and download on the ad in wp-admin, under Free Ads', $photos, 'crc-real-estate' ), number_format_i18n( $photos ) )
+			: __( 'None sent', 'crc-real-estate' );
+		$rows[] = array( __( 'Photos', 'crc-real-estate' ), esc_html( $count ), $count );
 
 		return self::send(
 			/* translators: %s: the ad's title. */

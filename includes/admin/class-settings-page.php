@@ -7,6 +7,7 @@
 
 namespace CRC\RealEstate\Admin;
 
+use CRC\RealEstate\Ad_Photos;
 use CRC\RealEstate\Legal;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Inquiry;
@@ -17,8 +18,9 @@ defined( 'ABSPATH' ) || exit;
 
 /**
  * Listings → Settings, on three tabs. General: the default phone and WhatsApp
- * numbers and button texts, the map, the inquiry form, deleting listings and
- * the business details for the legal pages. Updates: the installed and
+ * numbers and button texts, the map, the inquiry form, the photos sent with
+ * the post a free ad form, deleting listings and the business details for
+ * the legal pages. Updates: the installed and
  * latest versions, with Check for updates. Developer options: whether
  * wp-admin shows the shortcodes. General and Developer options each save on
  * their own.
@@ -160,6 +162,7 @@ final class Settings_Page {
 
 		$this->register_map();
 		$this->register_inquiry();
+		$this->register_photos();
 		$this->register_cleanup();
 		$this->register_business();
 		$this->register_developer();
@@ -291,6 +294,111 @@ final class Settings_Page {
 		}
 
 		echo '<p class="description">' . esc_html( $args['description'] ) . '</p>';
+	}
+
+	/**
+	 * Registers the settings of the photos sent with the post a free ad form, and their fields.
+	 */
+	private function register_photos() {
+		register_setting(
+			self::GROUP,
+			Settings::PHOTOS_OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_photos' ),
+				'default'           => Settings::photos_defaults(),
+			)
+		);
+
+		add_settings_section(
+			'crc_re_photos',
+			__( 'Photos with free ads', 'crc-real-estate' ),
+			function () {
+				echo '<p>' . esc_html__( 'Photos people add to the post a free ad form. Each one is made smaller in their browser so neither side is bigger than the largest size, keeping its shape, and sent in small pieces so big photos don\'t stop halfway. The site checks it, saves it as WebP at the quality below and keeps it in a private folder, not in the Media Library. See them on each ad in Free Ads.', 'crc-real-estate' ) . '</p>';
+			},
+			self::SLUG
+		);
+
+		$fields = array(
+			'size'    => __( 'Largest size', 'crc-real-estate' ),
+			'count'   => __( 'Photos per ad', 'crc-real-estate' ),
+			'quality' => __( 'WebP quality', 'crc-real-estate' ),
+			'folder'  => __( 'Where they\'re kept', 'crc-real-estate' ),
+		);
+
+		foreach ( $fields as $key => $label ) {
+			add_settings_field(
+				'crc_re_photos_' . $key,
+				$label,
+				array( $this, 'photos_field' ),
+				self::SLUG,
+				'crc_re_photos',
+				array(
+					'label_for' => 'folder' === $key ? '' : 'crc-photos-' . ( 'size' === $key ? 'width' : $key ),
+					'key'       => $key,
+				)
+			);
+		}
+	}
+
+	/**
+	 * Prints a setting of the photos sent with the post a free ad form.
+	 *
+	 * @param array $args Field details.
+	 */
+	public function photos_field( $args ) {
+		$name = Settings::PHOTOS_OPTION;
+
+		switch ( $args['key'] ) {
+			case 'size':
+				printf(
+					'<label class="screen-reader-text" for="crc-photos-width">%1$s</label><input type="number" id="crc-photos-width" name="%2$s[width]" value="%3$s" min="320" max="4000" step="1" class="small-text"> × <label class="screen-reader-text" for="crc-photos-height">%4$s</label><input type="number" id="crc-photos-height" name="%2$s[height]" value="%5$s" min="320" max="4000" step="1" class="small-text"> %6$s<p class="description">%7$s</p>',
+					esc_html__( 'Largest width', 'crc-real-estate' ),
+					esc_attr( $name ),
+					esc_attr( (string) Settings::photos( 'width' ) ),
+					esc_html__( 'Largest height', 'crc-real-estate' ),
+					esc_attr( (string) Settings::photos( 'height' ) ),
+					esc_html__( 'pixels', 'crc-real-estate' ),
+					esc_html__( 'Width × height, from 320 to 4000. A photo bigger than this either way is made smaller to fit inside it, keeping its shape; a smaller one stays as it is. 1440 × 1440 is sharp on any screen and quick to send.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'count':
+				printf(
+					'<input type="number" id="crc-photos-count" name="%1$s[count]" value="%2$s" min="0" max="30" step="1" class="small-text"><p class="description">%3$s</p>',
+					esc_attr( $name ),
+					esc_attr( (string) Settings::photos( 'count' ) ),
+					esc_html__( 'The most photos one ad can have, from 1 to 30. 0 takes the photos box off the form.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'quality':
+				printf(
+					'<input type="number" id="crc-photos-quality" name="%1$s[quality]" value="%2$s" min="40" max="100" step="1" class="small-text"> %%<p class="description">%3$s</p>',
+					esc_attr( $name ),
+					esc_attr( (string) Settings::photos( 'quality' ) ),
+					esc_html__( 'From 40 to 100. Lower makes smaller files; 75 to 85 looks as good as the original on a screen.', 'crc-real-estate' )
+				);
+				break;
+
+			case 'folder':
+				$root = Ad_Photos::root();
+
+				if ( '' === $root ) {
+					echo '<p class="crc-warning">' . esc_html__( 'No folder could be made for the photos, so the form has no photos box. Please check that the server can write to the wp-content folder.', 'crc-real-estate' ) . '</p>';
+					break;
+				}
+
+				printf( '<code>%s</code>', esc_html( $root ) );
+
+				if ( Ad_Photos::outside_public() ) {
+					echo '<p class="description">' . esc_html__( 'Outside the website\'s public folder, so nobody can open the photos from the internet. Only people who can see Free Ads can see them, in wp-admin.', 'crc-real-estate' ) . '</p>';
+				} else {
+					/* translators: %s: line to add to wp-config.php. */
+					echo '<p class="description">' . esc_html( sprintf( __( 'Inside the website\'s folder, because the server doesn\'t let the site make one outside it. The folder is locked for Apache and LiteSpeed servers and has a name nobody can guess. To keep the photos outside, make a folder outside public_html that the site can write to, and add %s to wp-config.php.', 'crc-real-estate' ), "define( 'CRC_RE_PRIVATE_DIR', '/home/your-account/crc-private' );" ) ) . '</p>';
+				}
+				break;
+		}
 	}
 
 	/**

@@ -421,6 +421,239 @@
 	line-height: 20px;
 }
 
+/* Post a free ad: the photos box. A dashed box in the site's colour to click or drop photos on; the whole box is the file field. */
+.crc-inquiry .crc-ad-photos-drop {
+	position: relative;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 4px 8px;
+	min-height: 96px;
+	padding: 16px;
+	border: 1.5px dashed color-mix(in srgb, var(--e-global-color-primary) 45%, transparent);
+	border-radius: 8px;
+	background: color-mix(in srgb, var(--e-global-color-primary) 4%, var(--e-global-color-3581a59));
+	color: var(--e-global-color-text);
+	text-align: center;
+	transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.crc-inquiry .crc-ad-photos-drop:hover,
+.crc-inquiry .crc-ad-photos-drop.is-dragging {
+	border-color: var(--e-global-color-primary);
+	background: color-mix(in srgb, var(--e-global-color-primary) 9%, var(--e-global-color-3581a59));
+}
+
+.crc-inquiry .crc-ad-photos-drop:focus-within {
+	border-color: var(--e-global-color-primary);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 18%, transparent);
+}
+
+.crc-inquiry .crc-ad-photos-drop.is-full {
+	border-style: solid;
+	border-color: color-mix(in srgb, var(--e-global-color-text) 20%, transparent);
+	background: color-mix(in srgb, var(--e-global-color-text) 4%, var(--e-global-color-3581a59));
+	opacity: 0.7;
+}
+
+.crc-inquiry .crc-ad-photos-input {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	opacity: 0;
+	cursor: pointer;
+}
+
+.crc-inquiry .crc-ad-photos-input:disabled {
+	cursor: not-allowed;
+}
+
+.crc-inquiry .crc-ad-photos-add {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--e-global-color-primary);
+	font-weight: 500;
+}
+
+.crc-inquiry .crc-ad-photos-icon {
+	flex: none;
+	width: 16px;
+	height: 16px;
+	fill: currentColor;
+}
+
+.crc-inquiry .crc-ad-photos-or {
+	font-size: 14px;
+}
+
+.crc-inquiry .crc-ad-photos-hint,
+.crc-inquiry .crc-ad-photos-status {
+	margin: 0;
+	padding: 0;
+	color: var(--e-global-color-text);
+	font-size: 14px;
+	line-height: 20px;
+}
+
+.crc-inquiry .crc-ad-photos-status {
+	color: var(--e-global-color-primary);
+}
+
+/* The photos chosen: square tiles, each with a bar while it sends. */
+.crc-inquiry .crc-ad-photos-list {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+	gap: 12px;
+	margin: 4px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.crc-inquiry .crc-ad-photos-item {
+	position: relative;
+	aspect-ratio: 1;
+	overflow: hidden;
+	margin: 0;
+	border-radius: 8px;
+	background: color-mix(in srgb, var(--e-global-color-text) 8%, var(--e-global-color-3581a59));
+}
+
+.crc-inquiry .crc-ad-photos-item img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.crc-inquiry .crc-ad-photos-bar {
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
+	left: 8px;
+	height: 4px;
+	overflow: hidden;
+	border-radius: 2px;
+	background: rgba(255, 255, 255, 0.75);
+}
+
+.crc-inquiry .crc-ad-photos-bar span {
+	display: block;
+	width: var(--crc-progress, 0%);
+	height: 100%;
+	background: var(--e-global-color-primary);
+	transition: width 0.2s ease;
+}
+
+.crc-inquiry .crc-ad-photos-item.is-working .crc-ad-photos-bar span {
+	width: 30%;
+	animation: crc-ad-photos-working 1.2s ease-in-out infinite;
+}
+
+.crc-inquiry .crc-ad-photos-item.is-done .crc-ad-photos-bar {
+	display: none;
+}
+
+.crc-inquiry .crc-ad-photos-item.is-failed::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: color-mix(in srgb, var(--crc-inquiry-error) 35%, transparent);
+	pointer-events: none;
+}
+
+@keyframes crc-ad-photos-working {
+	from {
+		transform: translateX(-100%);
+	}
+
+	to {
+		transform: translateX(340%);
+	}
+}
+
+/* Remove and Try again: round buttons on the photo. The theme's button styles don't apply. */
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove:hover,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove:focus,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove:active {
+	position: absolute;
+	top: 6px;
+	right: 6px;
+	z-index: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.6);
+	box-shadow: none;
+	color: #fff;
+	font-size: 0;
+	line-height: 1;
+	cursor: pointer;
+	transform: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove:hover,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove:focus-visible {
+	background: rgba(0, 0, 0, 0.8);
+}
+
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-remove svg {
+	width: 12px;
+	height: 12px;
+	fill: currentColor;
+}
+
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-retry,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-retry:hover,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-retry:focus,
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-retry:active {
+	position: absolute;
+	right: 8px;
+	bottom: 8px;
+	left: 8px;
+	z-index: 1;
+	min-height: 0;
+	margin: 0;
+	padding: 6px 4px;
+	border: 0;
+	border-radius: 6px;
+	background: #fff;
+	box-shadow: none;
+	color: var(--crc-inquiry-error);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 16px;
+	text-transform: none;
+	letter-spacing: normal;
+	cursor: pointer;
+	transform: none;
+	-webkit-appearance: none;
+	appearance: none;
+}
+
+.crc-inquiry .crc-ad-photos-item .crc-ad-photos-state {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	white-space: nowrap;
+}
+
 /* hCaptcha's "I am human" box, with room kept for it while it loads */
 .crc-inquiry .crc-inquiry-captcha-field {
 	margin-top: 16px;
@@ -508,8 +741,16 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.crc-inquiry .crc-inquiry-submit .crc-inquiry-button-icon {
+	.crc-inquiry .crc-inquiry-submit .crc-inquiry-button-icon,
+	.crc-inquiry .crc-ad-photos-drop,
+	.crc-inquiry .crc-ad-photos-bar span {
 		transition: none;
+	}
+
+	.crc-inquiry .crc-ad-photos-item.is-working .crc-ad-photos-bar span {
+		width: 100%;
+		opacity: 0.5;
+		animation: none;
 	}
 }
 

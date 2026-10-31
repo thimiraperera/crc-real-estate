@@ -470,7 +470,7 @@ abstract class Form {
 		}
 
 		$html .= '' !== $row ? '</div>' : '';
-		$html .= static::after_fields();
+		$html .= static::after_fields( $id );
 
 		if ( Settings::captcha_on() ) {
 			$html .= sprintf(
@@ -544,9 +544,10 @@ abstract class Form {
 	/**
 	 * What comes after the fields, before hCaptcha and the button.
 	 *
+	 * @param string $id Form ID.
 	 * @return string
 	 */
-	protected static function after_fields() {
+	protected static function after_fields( $id = '' ) {
 		return '';
 	}
 
@@ -978,6 +979,7 @@ abstract class Form {
 		$store   = static::STORE;
 		$meta    = $store::META;
 		$post_id = $store::add( $data );
+		$data    = static::attach( $post_id, $form, $data );
 		$mailed  = $store::mail( $data, $post_id );
 
 		if ( $post_id ) {
@@ -991,6 +993,19 @@ abstract class Form {
 		static::count_visit();
 
 		return self::result( true, static::thanks( $form ) );
+	}
+
+	/**
+	 * Adds what came with the form besides its fields, such as photos, to
+	 * what was just kept, and returns the details to email.
+	 *
+	 * @param int   $post_id What was kept, or 0 when it couldn't be.
+	 * @param array $form    Checked form from read().
+	 * @param array $data    Details from data().
+	 * @return array
+	 */
+	protected static function attach( $post_id, array $form, array $data ) {
+		return $data;
 	}
 
 	/**
@@ -1358,24 +1373,31 @@ abstract class Form {
 	}
 
 	/**
+	 * The visitor's address on the internet: the one Cloudflare passes on,
+	 * or the one the request came from. An empty string when there is none.
+	 *
+	 * @return string
+	 */
+	public static function ip() {
+		foreach ( array( 'HTTP_CF_CONNECTING_IP', 'REMOTE_ADDR' ) as $key ) {
+			$value = isset( $_SERVER[ $key ] ) ? trim( sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) ) ) : '';
+
+			if ( filter_var( $value, FILTER_VALIDATE_IP ) ) {
+				return $value;
+			}
+		}
+
+		return '';
+	}
+
+	/**
 	 * A private name for the visitor, from their address on the internet,
 	 * for counting what they send with this form.
 	 *
 	 * @return string
 	 */
 	protected static function visitor() {
-		$ip = '';
-
-		foreach ( array( 'HTTP_CF_CONNECTING_IP', 'REMOTE_ADDR' ) as $key ) {
-			$value = isset( $_SERVER[ $key ] ) ? trim( sanitize_text_field( wp_unslash( $_SERVER[ $key ] ) ) ) : '';
-
-			if ( filter_var( $value, FILTER_VALIDATE_IP ) ) {
-				$ip = $value;
-				break;
-			}
-		}
-
-		return 'crc_re_' . static::LIMIT_KEY . '_' . substr( wp_hash( $ip ), 0, 20 );
+		return 'crc_re_' . static::LIMIT_KEY . '_' . substr( wp_hash( self::ip() ), 0, 20 );
 	}
 
 	/**

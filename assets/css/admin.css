@@ -1063,6 +1063,67 @@
 	margin: 16px 0 0;
 }
 
+/* Free Ads: the first photo in the list, and an ad's photos in a grid */
+.crc-ad-photo-thumb {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.crc-ad-photo-thumb img {
+	width: 48px;
+	height: 48px;
+	border-radius: 4px;
+	object-fit: cover;
+	background: #f0f0f1;
+}
+
+.crc-ad-photos-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin: 4px 0 12px;
+}
+
+.crc-ad-photos-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+	gap: 16px;
+	margin: 0;
+}
+
+.crc-ad-photos-grid li {
+	margin: 0;
+}
+
+.crc-ad-photos-grid a:has(img) {
+	display: block;
+	overflow: hidden;
+	border-radius: 4px;
+	background: #f0f0f1;
+}
+
+.crc-ad-photos-grid img {
+	display: block;
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	object-fit: cover;
+	transition: transform 0.2s ease;
+}
+
+.crc-ad-photos-grid a:hover img,
+.crc-ad-photos-grid a:focus img {
+	transform: scale(1.03);
+}
+
+.crc-ad-photos-meta {
+	display: block;
+	margin-top: 6px;
+	color: #646970;
+	font-size: 12px;
+}
+
 /* FAQs: a question, its answer and an optional link in each row */
 .crc-faq-box .crc-faq-row {
 	flex-wrap: nowrap;

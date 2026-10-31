@@ -65,6 +65,7 @@ final class Plugin {
 		( new Sections\Inquiry() )->hooks();
 		( new Contact_Form() )->hooks();
 		( new Ad_Form() )->hooks();
+		( new Ad_Photos() )->hooks();
 		( new Sections\Faq() )->hooks();
 		( new Ticker() )->hooks();
 		( new Category_Carousel() )->hooks();

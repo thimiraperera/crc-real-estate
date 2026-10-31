@@ -24,7 +24,7 @@ final class Legal {
 	/**
 	 * When the texts last changed. Move it on whenever a text changes.
 	 */
-	const UPDATED = '2026-10-24';
+	const UPDATED = '2026-11-01';
 
 	/**
 	 * The legal pages: shortcode tag => page slug and title.
@@ -334,8 +334,9 @@ final class Legal {
 				'ul',
 				array(
 					__( 'Your name, phone number and e-mail address', 'crc-real-estate' ),
-					__( 'Details of the property: its category, type, district or town, price, land size, bedrooms, a title and a description', 'crc-real-estate' ),
-					__( 'Later, when we contact you: photos of the property, and documents such as the deed, survey plan and your National Identity Card or passport, so we can check the listing before it goes live', 'crc-real-estate' ),
+					__( 'Details of the property: its category, district or town, price and a description', 'crc-real-estate' ),
+					__( 'Photos of the property, if you add them. We keep them privately, never where the public can see them, and use them to prepare your listing', 'crc-real-estate' ),
+					__( 'Later, when we contact you: more details and photos, and documents such as the deed, survey plan and your National Identity Card or passport, so we can check the listing before it goes live', 'crc-real-estate' ),
 				),
 			),
 			array( 'h5', __( 'When you own or offer a property we list', 'crc-real-estate' ) ),
