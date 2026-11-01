@@ -333,7 +333,7 @@ final class Legal {
 			array(
 				'ul',
 				array(
-					__( 'Your name, phone number and e-mail address', 'crc-real-estate' ),
+					__( 'Your name and phone number, and your e-mail address if you give it', 'crc-real-estate' ),
 					__( 'Details of the property: its category, district or town, price and a description', 'crc-real-estate' ),
 					__( 'Photos of the property, if you add them. We keep them privately, never where the public can see them, and use them to prepare your listing', 'crc-real-estate' ),
 					__( 'Later, when we contact you: more details and photos, and documents such as the deed, survey plan and your National Identity Card or passport, so we can check the listing before it goes live', 'crc-real-estate' ),

@@ -421,39 +421,38 @@
 	line-height: 20px;
 }
 
-/* Post a free ad: the photos box. A dashed box in the site's colour to click or drop photos on; the whole box is the file field. */
-.crc-inquiry .crc-ad-photos-drop {
+/* Post a free ad: the photos box. An Upload Photos button outlined in the site's colour, with the rules
+   in a small line under it; the file field lies invisibly over the button. Photos can also be dropped on the box. */
+.crc-inquiry .crc-ad-photos-button {
 	position: relative;
-	display: flex;
-	flex-wrap: wrap;
+	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 4px 8px;
-	min-height: 96px;
-	padding: 16px;
-	border: 1.5px dashed color-mix(in srgb, var(--e-global-color-primary) 45%, transparent);
+	align-self: flex-start;
+	box-sizing: border-box;
+	min-height: 48px;
+	padding: 12px 24px;
+	border: 1.5px solid var(--e-global-color-primary);
 	border-radius: 8px;
-	background: color-mix(in srgb, var(--e-global-color-primary) 4%, var(--e-global-color-3581a59));
-	color: var(--e-global-color-text);
-	text-align: center;
-	transition: border-color 0.2s ease, background-color 0.2s ease;
+	background: var(--e-global-color-3581a59);
+	color: var(--e-global-color-primary);
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.crc-inquiry .crc-ad-photos-drop:hover,
-.crc-inquiry .crc-ad-photos-drop.is-dragging {
-	border-color: var(--e-global-color-primary);
-	background: color-mix(in srgb, var(--e-global-color-primary) 9%, var(--e-global-color-3581a59));
+.crc-inquiry .crc-ad-photos-button:hover,
+.crc-inquiry .crc-ad-photos.is-dragging .crc-ad-photos-button {
+	background: color-mix(in srgb, var(--e-global-color-primary) 8%, var(--e-global-color-3581a59));
 }
 
-.crc-inquiry .crc-ad-photos-drop:focus-within {
-	border-color: var(--e-global-color-primary);
-	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 18%, transparent);
+/* Reached with the keyboard */
+.crc-inquiry .crc-ad-photos-button:has(.crc-ad-photos-input:focus-visible) {
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 25%, transparent);
 }
 
-.crc-inquiry .crc-ad-photos-drop.is-full {
-	border-style: solid;
-	border-color: color-mix(in srgb, var(--e-global-color-text) 20%, transparent);
+.crc-inquiry .crc-ad-photos-button.is-full {
+	border-color: color-mix(in srgb, var(--e-global-color-text) 30%, transparent);
 	background: color-mix(in srgb, var(--e-global-color-text) 4%, var(--e-global-color-3581a59));
+	color: var(--e-global-color-text);
 	opacity: 0.7;
 }
 
@@ -475,9 +474,10 @@
 .crc-inquiry .crc-ad-photos-add {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	color: var(--e-global-color-primary);
+	gap: 10px;
+	font-size: 15px;
 	font-weight: 500;
+	line-height: 22px;
 }
 
 .crc-inquiry .crc-ad-photos-icon {
@@ -485,10 +485,6 @@
 	width: 16px;
 	height: 16px;
 	fill: currentColor;
-}
-
-.crc-inquiry .crc-ad-photos-or {
-	font-size: 14px;
 }
 
 .crc-inquiry .crc-ad-photos-hint,
@@ -500,6 +496,12 @@
 	line-height: 20px;
 }
 
+.crc-inquiry .crc-ad-photos-hint {
+	font-size: 13px;
+	line-height: 18px;
+	opacity: 0.85;
+}
+
 .crc-inquiry .crc-ad-photos-status {
 	color: var(--e-global-color-primary);
 }
@@ -509,7 +511,7 @@
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
 	gap: 12px;
-	margin: 4px 0 0;
+	margin: 8px 0 0;
 	padding: 0;
 	list-style: none;
 }
@@ -742,7 +744,7 @@
 
 @media (prefers-reduced-motion: reduce) {
 	.crc-inquiry .crc-inquiry-submit .crc-inquiry-button-icon,
-	.crc-inquiry .crc-ad-photos-drop,
+	.crc-inquiry .crc-ad-photos-button,
 	.crc-inquiry .crc-ad-photos-bar span {
 		transition: none;
 	}
@@ -799,5 +801,10 @@
 	.crc-inquiry .crc-inquiry-row {
 		grid-auto-flow: row;
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	/* The Upload Photos button across the form, easy to tap. */
+	.crc-inquiry .crc-ad-photos-button {
+		align-self: stretch;
 	}
 }

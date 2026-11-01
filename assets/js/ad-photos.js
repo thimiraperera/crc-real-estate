@@ -318,7 +318,7 @@
 
 		box.list.hidden = ! photos.length;
 		box.input.disabled = full;
-		box.drop.classList.toggle( 'is-full', full );
+		box.button.classList.toggle( 'is-full', full );
 
 		if ( ! box.sendWhenDone ) {
 			showStatus( box, photos.length ? format( text.count, photos.length, box.max ) : '' );
@@ -550,7 +550,7 @@
 			field: field,
 			form: field.closest( 'form' ),
 			input: field.querySelector( '.crc-ad-photos-input' ),
-			drop: field.querySelector( '.crc-ad-photos-drop' ),
+			button: field.querySelector( '.crc-ad-photos-button' ),
 			list: field.querySelector( '.crc-ad-photos-list' ),
 			status: field.querySelector( '.crc-ad-photos-status' ),
 			error: field.querySelector( '.crc-inquiry-error' ),
@@ -565,7 +565,7 @@
 			sendWhenDone: false
 		};
 
-		if ( ! box.form || ! box.input || ! box.drop || ! box.list || ! box.status || ! box.error || ! box.visit ) {
+		if ( ! box.form || ! box.input || ! box.button || ! box.list || ! box.status || ! box.error || ! box.visit ) {
 			return;
 		}
 
@@ -583,23 +583,23 @@
 			box.input.value = '';
 		} );
 
-		// Dropped photos are added here, also when the box is full, so the browser never opens them instead.
+		// Photos dropped anywhere on the box are added, also when it is full, so the browser never opens them instead.
 		[ 'dragenter', 'dragover' ].forEach( function ( type ) {
-			box.drop.addEventListener( type, function ( event ) {
+			box.field.addEventListener( type, function ( event ) {
 				event.preventDefault();
-				box.drop.classList.add( 'is-dragging' );
+				box.field.classList.add( 'is-dragging' );
 			} );
 		} );
 
-		box.drop.addEventListener( 'dragleave', function ( event ) {
-			if ( ! box.drop.contains( event.relatedTarget ) ) {
-				box.drop.classList.remove( 'is-dragging' );
+		box.field.addEventListener( 'dragleave', function ( event ) {
+			if ( ! box.field.contains( event.relatedTarget ) ) {
+				box.field.classList.remove( 'is-dragging' );
 			}
 		} );
 
-		box.drop.addEventListener( 'drop', function ( event ) {
+		box.field.addEventListener( 'drop', function ( event ) {
 			event.preventDefault();
-			box.drop.classList.remove( 'is-dragging' );
+			box.field.classList.remove( 'is-dragging' );
 			add( box, event.dataTransfer ? event.dataTransfer.files : [] );
 		} );
 

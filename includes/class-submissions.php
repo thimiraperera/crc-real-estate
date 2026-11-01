@@ -273,12 +273,17 @@ abstract class Submissions {
 	 */
 	protected static function person_rows( array $item ) {
 		$phone = Phone::display( $item['phone'], $item['country'] );
-
-		return array(
+		$rows  = array(
 			array( __( 'Name', 'crc-real-estate' ), esc_html( static::name( $item ) ), static::name( $item ) ),
 			array( __( 'Phone', 'crc-real-estate' ), static::link( 'tel:' . $item['phone'], $phone ) . ' &middot; ' . static::link( static::whatsapp_url( $item['phone'] ), __( 'WhatsApp', 'crc-real-estate' ) ), $phone ),
-			array( __( 'Email', 'crc-real-estate' ), static::link( 'mailto:' . $item['email'], $item['email'] ), $item['email'] ),
 		);
+
+		// The free ad form doesn't ask for one.
+		if ( '' !== (string) $item['email'] ) {
+			$rows[] = array( __( 'Email', 'crc-real-estate' ), static::link( 'mailto:' . $item['email'], $item['email'] ), $item['email'] );
+		}
+
+		return $rows;
 	}
 
 	/**
@@ -317,7 +322,8 @@ abstract class Submissions {
 
 	/**
 	 * Sends the email: an HTML table of the details with a plain text copy,
-	 * to the addresses in Settings. Replying answers the person who sent it.
+	 * to the addresses in Settings. Replying answers the person who sent it,
+	 * when they gave an email address.
 	 *
 	 * @param string  $subject    Subject.
 	 * @param string  $intro_html First line, as HTML.
@@ -347,8 +353,11 @@ abstract class Submissions {
 			$text .= $row[0] . ': ' . $row[2] . "\n";
 		}
 
-		/* translators: %s: first name, or the whole name when the form asks for it in one box. */
-		$reply = sprintf( __( 'Reply to this email to answer %s directly.', 'crc-real-estate' ), static::greeting( $item ) );
+		$reply = '' !== (string) $item['email']
+			/* translators: %s: first name, or the whole name when the form asks for it in one box. */
+			? sprintf( __( 'Reply to this email to answer %s directly.', 'crc-real-estate' ), static::greeting( $item ) )
+			/* translators: %s: first name, or the whole name when the form asks for it in one box. */
+			: sprintf( __( '%s didn\'t give an email address, so call or WhatsApp them to answer.', 'crc-real-estate' ), static::greeting( $item ) );
 		$link  = static::admin_link( $post_id );
 
 		$html .= '</table>';

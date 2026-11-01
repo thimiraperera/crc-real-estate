@@ -303,8 +303,9 @@ final class Ad_Photos {
 	}
 
 	/**
-	 * The photos box on the form: a place to choose photos or drop them, and
-	 * the photos chosen, each sending in its turn. ad-photos.js does the work.
+	 * The photos box on the form: an Upload Photos button with the rules in
+	 * a line under it, and the photos chosen, each sending in its turn.
+	 * Photos can also be dropped anywhere on the box. ad-photos.js does the work.
 	 *
 	 * @param string $form Form ID.
 	 * @return string
@@ -316,12 +317,11 @@ final class Ad_Photos {
 		return sprintf(
 			'<div class="crc-inquiry-field crc-ad-photos" data-crc-field="photos" data-crc-photos data-max="%1$d" data-width="%2$d" data-height="%3$d" data-chunk="%4$d" data-bytes="%5$d">' .
 			'<label class="crc-inquiry-label" for="%6$s">%7$s</label>' .
-			'<div class="crc-ad-photos-drop">' .
+			'<div class="crc-ad-photos-button">' .
 			'<input class="crc-ad-photos-input" id="%6$s" type="file" accept="image/jpeg,image/png,image/webp" multiple aria-describedby="%6$s-hint %6$s-error">' .
 			'<span class="crc-ad-photos-add" aria-hidden="true">%8$s<span>%9$s</span></span>' .
-			'<span class="crc-ad-photos-or" aria-hidden="true">%10$s</span>' .
 			'</div>' .
-			'<p class="crc-ad-photos-hint" id="%6$s-hint">%11$s</p>' .
+			'<p class="crc-ad-photos-hint" id="%6$s-hint">%10$s</p>' .
 			'<ul class="crc-ad-photos-list" hidden></ul>' .
 			'<p class="crc-ad-photos-status" role="status" hidden></p>' .
 			'<p class="crc-inquiry-error" id="%6$s-error" role="alert" hidden></p>' .
@@ -334,11 +334,10 @@ final class Ad_Photos {
 			self::MAX_BYTES,
 			esc_attr( $id ),
 			esc_html__( 'Photos', 'crc-real-estate' ),
-			Icons::svg( 'plus', 'crc-ad-photos-icon' ),
-			esc_html__( 'Add photos', 'crc-real-estate' ),
-			esc_html__( 'or drag them here', 'crc-real-estate' ),
+			Icons::svg( 'upload', 'crc-ad-photos-icon' ),
+			esc_html__( 'Upload Photos', 'crc-real-estate' ),
 			/* translators: %s: most photos, e.g. 10. */
-			esc_html( sprintf( __( 'Up to %s photos, as JPG, PNG or WebP. Big photos are made smaller before they\'re sent.', 'crc-real-estate' ), number_format_i18n( $count ) ) )
+			esc_html( sprintf( __( 'Up to %s photos · JPG, PNG or WebP', 'crc-real-estate' ), number_format_i18n( $count ) ) )
 		);
 	}
 

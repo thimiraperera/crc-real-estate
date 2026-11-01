@@ -49,6 +49,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.48.1 =
+* Post a free ad form: Phone Number and E-Mail sit side by side, one under the other on phones. E-Mail can be left empty, as not everyone has one; the email about such an ad says to call or WhatsApp them instead of replying, and leaves out the empty row.
+* Photos: an Upload Photos button in the site's colour, with a short line under it, "Up to 10 photos · JPG, PNG or WebP", instead of the big dashed box. It goes across the form on phones. Photos can still be dropped anywhere on the photos part of the form.
+* Privacy Policy: the Post Your Ad form collects an e-mail address only if one is given.
+
 = 0.48.0 =
 * Post a free ad form: shorter, with what you need to call people back: Your Name, Phone Number, E-Mail, Category, District or Town and Price side by side, Description, and Photos. Property Type, Land Size, Bedrooms and Ad Title are gone; ask for them when you call. Ads now get a title of their own, such as "Land for sale in Galle".
 * Photos: people add them by clicking the photos box or dropping them on it, up to 10. Each one is checked (JPG, PNG or WebP, not tiny, not added twice), made smaller in their browser so neither side is bigger than 1440 pixels, turned into WebP and sent in small pieces while they fill in the rest, with a bar on each photo. A piece that doesn't get through is sent again, so big photos on slow connections don't stop halfway. Sent before the photos are done, the form waits for them and then goes by itself. Photos can be removed, or tried again.
