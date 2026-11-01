@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.51.0 =
+* Search filters: with Lands and Properties for Sale both ticked, the price shows too, above the filters for every listing, with two boxes and a slider from the cheapest of them to the dearest, as both are sold outright. With Properties for Rent among the ticks it goes again, as monthly rents and sale prices can't be compared.
+
 = 0.50.0 =
 * Search filters: Looking for can have several categories ticked at once, such as Lands and Properties for Sale. One ticked opens that category's page with its own filters, as before. Several open the page of every listing with them in the address (?category=lands,properties-for-sale) and the filters for every listing, as price per perch, bedrooms and the like only fit one category. All listings unticks the categories, and unticking the last one ticks All listings again.
 * Sort by, the numbered pages and the results' heading ("Lands and Properties for Sale") keep the categories ticked. Without the filters' script, the ticks still work.

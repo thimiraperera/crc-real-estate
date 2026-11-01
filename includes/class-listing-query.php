@@ -154,6 +154,52 @@ final class Listing_Query {
 	}
 
 	/**
+	 * Whether several categories are chosen and every one is sold outright,
+	 * not rented (Lands and Properties for Sale): their prices can be compared.
+	 *
+	 * @param string $categories Category slugs separated by commas.
+	 * @return bool
+	 */
+	public static function sold( $categories ) {
+		$slugs = '' !== (string) $categories ? explode( ',', (string) $categories ) : array();
+		$terms = Taxonomy::terms();
+
+		if ( count( $slugs ) < 2 ) {
+			return false;
+		}
+
+		foreach ( $slugs as $slug ) {
+			if ( ! isset( $terms[ $slug ] ) || '' !== (string) $terms[ $slug ]['period'] ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * The filters for the categories chosen: one category's own; with none or
+	 * several, those for every listing, and the price too when all of them
+	 * are sold outright (see sold()).
+	 *
+	 * @param array $filters Filters, as blank().
+	 * @return string[]
+	 */
+	public static function fields_chosen( array $filters ) {
+		if ( ! empty( $filters['category'] ) ) {
+			return self::fields_for( $filters['category'] );
+		}
+
+		$fields = self::fields_for( '' );
+
+		if ( ! empty( $filters['categories'] ) && self::sold( $filters['categories'] ) ) {
+			$fields = array_merge( $fields, array( 'price_min', 'price_max' ) );
+		}
+
+		return $fields;
+	}
+
+	/**
 	 * Prices to choose from, in rupees: monthly rents for rentals.
 	 *
 	 * @param string $category Category slug.
@@ -200,23 +246,34 @@ final class Listing_Query {
 	/**
 	 * The steps of a category's price slider: 0 (no lowest), then round
 	 * amounts from about the cheapest listing's price to about the dearest's.
+	 * For several categories, from the cheapest of them all to the dearest.
 	 * The last step means no highest.
 	 *
-	 * @param string $category Category slug.
+	 * @param string $category Category slug, or slugs separated by commas.
 	 * @return int[]
 	 */
 	public static function price_steps( $category ) {
-		$prices = Listing_Index::facets( $category )['prices'];
-		$low    = (int) $prices['min'];
-		$high   = (int) $prices['max'];
+		$lows  = array();
+		$highs = array();
 
-		// Without prices yet, the usual range for the category.
-		if ( $high <= 0 ) {
-			$usual = self::prices( $category );
-			$low   = (int) reset( $usual );
-			$high  = (int) end( $usual );
+		foreach ( explode( ',', (string) $category ) as $slug ) {
+			$prices = Listing_Index::facets( $slug )['prices'];
+			$low    = (int) $prices['min'];
+			$high   = (int) $prices['max'];
+
+			// Without prices yet, the usual range for the category.
+			if ( $high <= 0 ) {
+				$usual = self::prices( $slug );
+				$low   = (int) reset( $usual );
+				$high  = (int) end( $usual );
+			}
+
+			$lows[]  = $low;
+			$highs[] = $high;
 		}
 
+		$low   = min( $lows );
+		$high  = max( $highs );
 		$round = self::round_amounts();
 		$from  = 0;
 		$to    = count( $round ) - 1;
@@ -612,7 +669,7 @@ final class Listing_Query {
 		$page            = absint( self::text( $get, 'pg', 6 ) );
 		$filters['page'] = max( 1, $page ? $page : ( isset( $context['page'] ) ? (int) $context['page'] : 1 ) );
 
-		$fields = self::fields_for( $filters['category'] );
+		$fields = self::fields_chosen( $filters );
 		$blank  = self::blank();
 
 		foreach ( array_merge( array( 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing' ), self::MORE ) as $key ) {
@@ -843,7 +900,7 @@ final class Listing_Query {
 		// What was typed, understood: places, and filters not chosen otherwise that fit the category; the other words are keywords.
 		if ( '' !== $filters['location'] ) {
 			$text   = Listing_Text::read( $filters['location'], $filters['category'] );
-			$fields = self::fields_for( $filters['category'] );
+			$fields = self::fields_chosen( $filters );
 
 			if ( $text['clause'] ) {
 				$tax[] = $text['clause'];

@@ -56,8 +56,8 @@
 	}
 
 	// The chosen category and its page: a tab, a dropdown, the filters' ticks, or none.
-	// With several ticked there is no one category: its page is every listing's, and
-	// list has them all.
+	// With several ticked there is no one category: its page is every listing's, list
+	// has them all, and sold says whether every one is sold outright (not rented).
 	function categoryOf( form ) {
 		var ticks = form.querySelectorAll( 'input[name="category[]"]' );
 		var field = form.querySelector( '[name="category"]' );
@@ -82,6 +82,9 @@
 				url: all ? all.getAttribute( 'data-url' ) || '' : '',
 				list: chosen.map( function ( tick ) {
 					return tick.value;
+				} ),
+				sold: chosen.length > 1 && chosen.every( function ( tick ) {
+					return tick.hasAttribute( 'data-sold' );
 				} )
 			};
 		}
@@ -179,9 +182,11 @@
 		return base + ( pairs.length ? ( -1 === base.indexOf( '?' ) ? '?' : '&' ) + pairs.join( '&' ) : '' );
 	}
 
-	// Shows the chosen category's own choices; the others are switched off.
+	// Shows the chosen category's own choices; the others are switched off. With several
+	// sold outright (Lands and Properties for Sale), every listing's and the price ("sold").
 	function showGroups( form ) {
-		var category = categoryOf( form ).value || 'all';
+		var chosen = categoryOf( form );
+		var category = chosen.value || ( chosen.sold ? 'sold' : 'all' );
 
 		each( form.querySelectorAll( '[data-for]' ), function ( group ) {
 			var on = -1 !== ( ' ' + group.getAttribute( 'data-for' ) + ' ' ).indexOf( ' ' + category + ' ' );

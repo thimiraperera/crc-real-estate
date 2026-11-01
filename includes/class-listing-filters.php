@@ -139,7 +139,8 @@ final class Listing_Filters {
 	 * pair of fields (lowest and highest) has a heading that is a label, so
 	 * it looks like the other fields' labels.
 	 *
-	 * @param string $for     Category slugs separated by spaces, or "all".
+	 * @param string $for     Category slugs separated by spaces, "all" (none or several chosen),
+	 *                        and "sold" (several, all sold outright).
 	 * @param bool   $on      Whether it is for the category chosen now.
 	 * @param string $content Fields.
 	 * @param string $heading Heading for a pair of fields, or empty.
@@ -198,16 +199,17 @@ final class Listing_Filters {
 	 * The price, or the rent per month: a box for the lowest and one for
 	 * the highest, with a slider under them that moves with them.
 	 *
-	 * @param string $prefix  Start of the fields' IDs.
-	 * @param string $slug    Category slug.
-	 * @param bool   $on      Whether the category is chosen now.
-	 * @param string $label   "Price" or "Rent per month".
-	 * @param array  $filters Filters chosen now.
+	 * @param string $prefix   Start of the fields' IDs.
+	 * @param string $for      What it is shown for: a category slug, or "sold" for several sold outright.
+	 * @param string $category The category, or the categories separated by commas, for the slider's steps.
+	 * @param bool   $on       Whether it is for what is chosen now.
+	 * @param string $label    "Price" or "Rent per month".
+	 * @param array  $filters  Filters chosen now.
 	 * @return string
 	 */
-	private static function price_range( $prefix, $slug, $on, $label, array $filters ) {
+	private static function price_range( $prefix, $for, $category, $on, $label, array $filters ) {
 		$id    = $prefix . '-price';
-		$steps = Listing_Query::price_steps( $slug );
+		$steps = Listing_Query::price_steps( $category );
 		$last  = count( $steps ) - 1;
 		$low   = '' !== $filters['price_min'] ? (int) $filters['price_min'] : 0;
 		$high  = '' !== $filters['price_max'] ? (int) $filters['price_max'] : 0;
@@ -234,7 +236,7 @@ final class Listing_Filters {
 			esc_attr( $id . '-max' )
 		);
 
-		return self::group( $slug, $on, $boxes, $label, $id, $slider );
+		return self::group( $for, $on, $boxes, $label, $id, $slider );
 	}
 
 	/**
@@ -285,16 +287,18 @@ final class Listing_Filters {
 	private static function fields( $id, $category, array $filters, $on ) {
 		$fields = Listing_Query::fields_for( $category );
 		$slug   = '' !== $category ? $category : 'all';
+		// Every listing's filters are also for several categories sold outright.
+		$for    = '' !== $category ? $category : 'all sold';
 		$prefix = $id . '-' . $slug;
 		$html   = '';
 
 		if ( in_array( 'price_min', $fields, true ) ) {
-			$html .= self::price_range( $prefix, $category, $on, 'properties-for-rent' === $category ? __( 'Rent per month', 'crc-real-estate' ) : __( 'Price', 'crc-real-estate' ), $filters );
+			$html .= self::price_range( $prefix, $for, $category, $on, 'properties-for-rent' === $category ? __( 'Rent per month', 'crc-real-estate' ) : __( 'Price', 'crc-real-estate' ), $filters );
 		}
 
 		if ( in_array( 'per_perch_max', $fields, true ) ) {
 			$html .= self::group(
-				$slug,
+				$for,
 				$on,
 				self::select( $prefix . '-per-perch', 'per_perch_max', __( 'Max price per perch', 'crc-real-estate' ), __( 'Any', 'crc-real-estate' ), Listing_Search::money_options( Listing_Query::per_perch_prices() ), $filters['per_perch_max'] )
 			);
@@ -308,7 +312,7 @@ final class Listing_Filters {
 			}
 
 			$html .= self::group(
-				$slug,
+				$for,
 				$on,
 				self::select( $prefix . '-size-min', 'size_min', __( 'Smallest', 'crc-real-estate' ), __( 'No min', 'crc-real-estate' ), $sizes, $filters['size_min'], true, $prefix . '-size-label' )
 				. self::select( $prefix . '-size-max', 'size_max', __( 'Largest', 'crc-real-estate' ), __( 'No max', 'crc-real-estate' ), $sizes, $filters['size_max'], true, $prefix . '-size-label' ),
@@ -332,12 +336,12 @@ final class Listing_Filters {
 				$choices[ $number ] = sprintf( __( '%s+', 'crc-real-estate' ), number_format_i18n( $number ) );
 			}
 
-			$html .= self::group( $slug, $on, self::stepper( $prefix . '-' . $key, $key, $field[0], $choices, $filters[ $key ] ? $filters[ $key ] : '', $field[1], $field[2] ) );
+			$html .= self::group( $for, $on, self::stepper( $prefix . '-' . $key, $key, $field[0], $choices, $filters[ $key ] ? $filters[ $key ] : '', $field[1], $field[2] ) );
 		}
 
 		if ( in_array( 'furnishing', $fields, true ) && Listing_Query::furnishings() ) {
 			$html .= self::group(
-				$slug,
+				$for,
 				$on,
 				self::stepper( $prefix . '-furnishing', 'furnishing', __( 'Furnishing', 'crc-real-estate' ), array( '' => __( 'Any', 'crc-real-estate' ) ) + Listing_Query::furnishings(), $filters['furnishing'], __( 'Previous furnishing', 'crc-real-estate' ), __( 'Next furnishing', 'crc-real-estate' ) )
 			);
@@ -351,7 +355,7 @@ final class Listing_Filters {
 			}
 
 			if ( $types ) {
-				$html .= self::group( $slug, $on, self::select( $prefix . '-type', 'type', __( 'Property type', 'crc-real-estate' ), __( 'Any', 'crc-real-estate' ), array_combine( $types, $types ), $filters['type'] ) );
+				$html .= self::group( $for, $on, self::select( $prefix . '-type', 'type', __( 'Property type', 'crc-real-estate' ), __( 'Any', 'crc-real-estate' ), array_combine( $types, $types ), $filters['type'] ) );
 			}
 		}
 
@@ -367,14 +371,15 @@ final class Listing_Filters {
 	 * @param string $label Words beside it.
 	 * @param bool   $on    Whether it is ticked.
 	 * @param string $url   For Looking for: the category's archive.
+	 * @param bool   $sold  For Looking for: whether the category is sold outright, not rented.
 	 * @return string
 	 */
-	private static function check( $name, $value, $label, $on, $url = '' ) {
+	private static function check( $name, $value, $label, $on, $url = '', $sold = false ) {
 		return sprintf(
 			'<label class="crc-check"><input type="checkbox" class="crc-check-input" name="%1$s" value="%2$s"%3$s%4$s><span class="crc-check-box">%5$s</span><span class="crc-check-text">%6$s</span></label>',
 			esc_attr( $name ),
 			esc_attr( $value ),
-			'' !== $url ? ' data-url="' . esc_url( $url ) . '"' : '',
+			( '' !== $url ? ' data-url="' . esc_url( $url ) . '"' : '' ) . ( $sold ? ' data-sold' : '' ),
 			$on ? ' checked' : '',
 			Icons::svg( 'check', 'crc-check-icon' ),
 			esc_html( $label )
@@ -385,7 +390,7 @@ final class Listing_Filters {
 	 * Tick boxes under a heading: features, or the price and terms. The
 	 * heading is a label, so it looks like the other fields' labels.
 	 *
-	 * @param string $for     Category slug, or "all".
+	 * @param string $for     Category slug, or "all sold" for every listing (see group()).
 	 * @param bool   $on      Whether it is for the category chosen now.
 	 * @param string $id      Heading ID.
 	 * @param string $heading Heading.
@@ -423,6 +428,7 @@ final class Listing_Filters {
 	private static function more_fields( $id, $category, array $filters, $on ) {
 		$fields  = Listing_Query::fields_for( $category );
 		$slug    = '' !== $category ? $category : 'all';
+		$for     = '' !== $category ? $category : 'all sold';
 		$prefix  = $id . '-' . $slug;
 		$choices = Listing_Query::more_choices();
 		$any     = __( 'Any', 'crc-real-estate' );
@@ -445,24 +451,24 @@ final class Listing_Filters {
 		}
 
 		if ( $terms ) {
-			$html .= self::checks( $slug, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
+			$html .= self::checks( $for, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
 		}
 
-		$list = function ( $key, $label, $first, $name = '' ) use ( $fields, $choices, $slug, $on, $prefix, $filters ) {
+		$list = function ( $key, $label, $first, $name = '' ) use ( $fields, $choices, $for, $on, $prefix, $filters ) {
 			$name = '' !== $name ? $name : $key;
 
 			if ( ! in_array( $key, $fields, true ) || empty( $choices[ $name ] ) ) {
 				return '';
 			}
 
-			return self::group( $slug, $on, self::select( $prefix . '-' . str_replace( '_', '-', $key ), $key, $label, $first, (array) $choices[ $name ], 0 !== $filters[ $key ] ? (string) $filters[ $key ] : '' ) );
+			return self::group( $for, $on, self::select( $prefix . '-' . str_replace( '_', '-', $key ), $key, $label, $first, (array) $choices[ $name ], 0 !== $filters[ $key ] ? (string) $filters[ $key ] : '' ) );
 		};
 
 		$html .= $list( 'advance_max', __( 'Advance payment', 'crc-real-estate' ), $any );
 
 		if ( in_array( 'floor_min', $fields, true ) && ! empty( $choices['floor'] ) ) {
 			$html .= self::group(
-				$slug,
+				$for,
 				$on,
 				self::select( $prefix . '-floor-min', 'floor_min', __( 'Smallest', 'crc-real-estate' ), __( 'No min', 'crc-real-estate' ), (array) $choices['floor'], $filters['floor_min'] ? (string) $filters['floor_min'] : '', true, $prefix . '-floor-label' )
 				. self::select( $prefix . '-floor-max', 'floor_max', __( 'Largest', 'crc-real-estate' ), __( 'No max', 'crc-real-estate' ), (array) $choices['floor'], $filters['floor_max'] ? (string) $filters['floor_max'] : '', true, $prefix . '-floor-label' ),
@@ -479,7 +485,7 @@ final class Listing_Filters {
 				$spaces[ $number ] = sprintf( __( '%s+', 'crc-real-estate' ), number_format_i18n( $number ) );
 			}
 
-			$html .= self::group( $slug, $on, self::stepper( $prefix . '-parking', 'parking', __( 'Parking spaces', 'crc-real-estate' ), $spaces, $filters['parking'] ? (string) $filters['parking'] : '', __( 'Fewer parking spaces', 'crc-real-estate' ), __( 'More parking spaces', 'crc-real-estate' ) ) );
+			$html .= self::group( $for, $on, self::stepper( $prefix . '-parking', 'parking', __( 'Parking spaces', 'crc-real-estate' ), $spaces, $filters['parking'] ? (string) $filters['parking'] : '', __( 'Fewer parking spaces', 'crc-real-estate' ), __( 'More parking spaces', 'crc-real-estate' ) ) );
 		}
 
 		$html .= $list( 'road_type', __( 'Road type', 'crc-real-estate' ), $any )
@@ -502,7 +508,7 @@ final class Listing_Filters {
 					);
 				}
 
-				$html .= self::checks( $slug, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $checks );
+				$html .= self::checks( $for, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $checks );
 			}
 		}
 
@@ -553,10 +559,25 @@ final class Listing_Filters {
 		$fields  = self::fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] );
 		$show    = '' !== trim( $atts['more'] );
 		$more    = $show ? self::more_fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] ) : '';
+		$periods = wp_list_pluck( Taxonomy::terms(), 'period' );
+		$sold    = array();
+
+		foreach ( $terms as $term ) {
+			if ( isset( $periods[ $term->slug ] ) && '' === (string) $periods[ $term->slug ] ) {
+				$sold[] = $term->slug;
+			}
+		}
+
+		// Several categories sold outright (Lands and Properties for Sale): their
+		// prices can be compared, so the price shows above the filters for every listing.
+		if ( count( $sold ) > 1 ) {
+			$on     = Listing_Query::sold( $filters['categories'] ) && '' === $filters['category'];
+			$fields = self::price_range( $id . '-sold', 'sold', implode( ',', $sold ), $on, __( 'Price', 'crc-real-estate' ), $on ? $filters : Listing_Query::blank() ) . $fields;
+		}
 
 		foreach ( $terms as $term ) {
 			$on       = $term->slug === $filters['category'];
-			$choices .= self::check( 'category[]', $term->slug, $term->name, in_array( $term->slug, $ticked, true ), Listing_Archive::category_url( $term->slug ) );
+			$choices .= self::check( 'category[]', $term->slug, $term->name, in_array( $term->slug, $ticked, true ), Listing_Archive::category_url( $term->slug ), in_array( $term->slug, $sold, true ) );
 			$fields  .= self::fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on );
 			$more    .= $show ? self::more_fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on ) : '';
 		}
