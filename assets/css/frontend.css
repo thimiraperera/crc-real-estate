@@ -2153,9 +2153,9 @@
 	grid-column: 1 / -1;
 }
 
-/* Tick boxes in the site's main colour: Looking for (every listing, or any of the categories), and the features and terms
-   in More filters. The lighter shades are the main colour mixed with the white of the card. A list,
-   in columns where there is room. */
+/* Looking for's radio buttons (one category at a time) and More filters' tick boxes, in the site's main
+   colour. The lighter shades are the main colour mixed with the white of the card. A list, in columns
+   where there is room. */
 .crc-filters .crc-checks {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
@@ -2247,6 +2247,30 @@
 .crc-filters .crc-check-text {
 	min-width: 0;
 	overflow-wrap: anywhere;
+}
+
+/* Looking for's radio buttons: round, and when chosen a ring in the main colour with a dot of it in
+   the middle, on the card's white. */
+.crc-filters .crc-check-input[type="radio"] + .crc-check-box {
+	border-radius: 50%;
+}
+
+.crc-filters .crc-check-input[type="radio"]:checked + .crc-check-box {
+	background: var(--e-global-color-3581a59);
+}
+
+.crc-filters .crc-check-dot {
+	display: block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: var(--e-global-color-primary);
+	transform: scale(0);
+	transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.crc-filters .crc-check-input:checked + .crc-check-box .crc-check-dot {
+	transform: none;
 }
 
 /* The filters' dropdowns, and Sort by over the listings: a soft grey box that
@@ -2411,6 +2435,7 @@
 	.crc-filters .crc-filters-more-arrow,
 	.crc-filters .crc-check-box,
 	.crc-filters .crc-check-icon,
+	.crc-filters .crc-check-dot,
 	.crc-filters .crc-filters-toggle-arrow,
 	.crc-results-sort .crc-filter-dropdown-button,
 	.crc-results-sort .crc-filter-dropdown-icon,

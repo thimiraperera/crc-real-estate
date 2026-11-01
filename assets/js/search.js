@@ -11,13 +11,9 @@
  * the filters, the price and
  * rent have two boxes and a slider that move together; bedrooms, bathrooms
  * and furnishing have − and +; the dropdowns open the plugin's own list in
- * place, which letters typed jump through. In the filters' Looking for,
- * people tick every listing or as many categories as they like; with
- * several, the choices for every listing show. Search and Show Listings open
- * the category's archive with only the choices that were made in its address
- * (several categories: the page of every listing, with them in the address),
- * and Sort by, in the filters' dropdown, keeps the search and starts from its
- * first page. The filters' More filters
+ * place, which letters typed jump through. Search and Show Listings open the category's
+ * archive with only the choices that were made in its address, and Sort by
+ * keeps the search and starts from its first page. The filters' More filters
  * slide open and count the ones chosen; ticked features go in the address as
  * one list. The results can show as a
  * grid or a list, remembered on the device. Beside the results the filters
@@ -50,47 +46,13 @@
 		}
 	}
 
-	// Whether a field chooses the category: a tab, a dropdown or the filters' ticks.
-	function isCategory( field ) {
-		return 'category' === field.name || 'category[]' === field.name;
-	}
-
-	// The chosen category and its page: a tab, a dropdown, the filters' ticks, or none.
-	// With several ticked there is no one category: its page is every listing's, list
-	// has them all, and sold says whether every one is sold outright (not rented).
+	// The chosen category and its page: a tab, a dropdown, or none.
 	function categoryOf( form ) {
-		var ticks = form.querySelectorAll( 'input[name="category[]"]' );
 		var field = form.querySelector( '[name="category"]' );
-		var chosen = [];
-		var all = null;
+		var chosen;
 
-		if ( ticks.length ) {
-			each( ticks, function ( tick ) {
-				if ( '' === tick.value ) {
-					all = tick;
-				} else if ( tick.checked ) {
-					chosen.push( tick );
-				}
-			} );
-
-			if ( 1 === chosen.length ) {
-				return { value: chosen[ 0 ].value, url: chosen[ 0 ].getAttribute( 'data-url' ) || '', list: [ chosen[ 0 ].value ] };
-			}
-
-			return {
-				value: '',
-				url: all ? all.getAttribute( 'data-url' ) || '' : '',
-				list: chosen.map( function ( tick ) {
-					return tick.value;
-				} ),
-				sold: chosen.length > 1 && chosen.every( function ( tick ) {
-					return tick.hasAttribute( 'data-sold' );
-				} )
-			};
-		}
-
-		if ( ! field || 'hidden' === field.type ) {
-			return { value: '', url: field ? '' : form.getAttribute( 'action' ) || '', list: [] };
+		if ( ! field ) {
+			return { value: '', url: form.getAttribute( 'action' ) || '' };
 		}
 
 		if ( 'SELECT' === field.tagName ) {
@@ -101,19 +63,17 @@
 
 		return {
 			value: chosen ? chosen.value : '',
-			url: chosen ? chosen.getAttribute( 'data-url' ) || '' : '',
-			list: chosen && chosen.value ? [ chosen.value ] : []
+			url: chosen ? chosen.getAttribute( 'data-url' ) || '' : ''
 		};
 	}
 
 	// The address for a form: the category's page, then each choice made.
 	// What a field puts in the address: nothing for another category's, an unticked box or an empty one.
-	// The category is in the page's address, unless it is kept in a hidden field (Sort by, for several).
 	function valueOf( field ) {
 		var group = field.closest ? field.closest( '[data-for]' ) : null;
 		var value;
 
-		if ( ! field.name || ( isCategory( field ) && 'hidden' !== field.type ) || field.matches( ':disabled' ) || ( group && group.hidden ) ) {
+		if ( ! field.name || 'category' === field.name || field.matches( ':disabled' ) || ( group && group.hidden ) ) {
 			return '';
 		}
 
@@ -136,16 +96,9 @@
 	}
 
 	function address( form ) {
-		var chosen = categoryOf( form );
-		var base = chosen.url || form.getAttribute( 'action' ) || window.location.pathname;
+		var base = categoryOf( form ).url || form.getAttribute( 'action' ) || window.location.pathname;
 		var pairs = [];
 		var lists = {};
-
-		// Several categories go first, as one list: category=lands,properties-for-sale.
-		if ( chosen.list.length > 1 ) {
-			lists.category = [ 'category', chosen.list.slice() ];
-			pairs.push( lists.category );
-		}
 
 		each( form.elements, function ( field ) {
 			var value = valueOf( field );
@@ -156,16 +109,15 @@
 			}
 
 			// Ticks that share a name, such as features[], go in as one list: features=clear_deed,garden.
-			// So do several categories kept in a hidden field (Sort by).
-			if ( '[]' === field.name.slice( -2 ) || ( isCategory( field ) && 'hidden' === field.type ) ) {
-				name = '[]' === field.name.slice( -2 ) ? field.name.slice( 0, -2 ) : field.name;
+			if ( '[]' === field.name.slice( -2 ) ) {
+				name = field.name.slice( 0, -2 );
 
 				if ( ! lists[ name ] ) {
 					lists[ name ] = [ name, [] ];
 					pairs.push( lists[ name ] );
 				}
 
-				Array.prototype.push.apply( lists[ name ][ 1 ], value.split( ',' ) );
+				lists[ name ][ 1 ].push( value );
 				return;
 			}
 
@@ -182,11 +134,9 @@
 		return base + ( pairs.length ? ( -1 === base.indexOf( '?' ) ? '?' : '&' ) + pairs.join( '&' ) : '' );
 	}
 
-	// Shows the chosen category's own choices; the others are switched off. With several
-	// sold outright (Lands and Properties for Sale), every listing's and the price ("sold").
+	// Shows the chosen category's own choices; the others are switched off.
 	function showGroups( form ) {
-		var chosen = categoryOf( form );
-		var category = chosen.value || ( chosen.sold ? 'sold' : 'all' );
+		var category = categoryOf( form ).value || 'all';
 
 		each( form.querySelectorAll( '[data-for]' ), function ( group ) {
 			var on = -1 !== ( ' ' + group.getAttribute( 'data-for' ) + ' ' ).indexOf( ' ' + category + ' ' );
@@ -479,7 +429,7 @@
 
 		// Another category has other places.
 		form.addEventListener( 'change', function ( event ) {
-			if ( isCategory( event.target ) ) {
+			if ( 'category' === event.target.name ) {
 				close();
 			}
 		} );
@@ -1744,46 +1694,6 @@
 		} );
 	}
 
-	/*
-	 * The filters' Looking for: All listings, or as many categories as people
-	 * like. Ticking All listings unticks the categories; ticking a category
-	 * unticks All listings, and unticking the last one ticks it again. It runs
-	 * before the form hears about the change, so it sees the ticks as they end up.
-	 */
-	function setUpLooking( form ) {
-		var ticks = form.querySelectorAll( 'input[name="category[]"]' );
-
-		if ( ! ticks.length ) {
-			return;
-		}
-
-		form.addEventListener( 'change', function ( event ) {
-			var tick = event.target;
-			var any = false;
-
-			if ( 'category[]' !== tick.name ) {
-				return;
-			}
-
-			if ( '' === tick.value ) {
-				each( ticks, function ( other ) {
-					other.checked = '' === other.value;
-				} );
-				return;
-			}
-
-			each( ticks, function ( other ) {
-				any = any || ( '' !== other.value && other.checked );
-			} );
-
-			each( ticks, function ( other ) {
-				if ( '' === other.value ) {
-					other.checked = ! any;
-				}
-			} );
-		}, true );
-	}
-
 	function setUpForm( form ) {
 		var input = form.querySelector( '[data-crc-place]' );
 
@@ -1801,12 +1711,11 @@
 			setUpDropdown( box, form );
 		} );
 		setUpPopups( form );
-		setUpLooking( form );
 		refresh( form );
 
 		// Another category: what was open closes, and the category list shows the new one.
 		form.addEventListener( 'change', function ( event ) {
-			if ( isCategory( event.target ) ) {
+			if ( 'category' === event.target.name ) {
 				showGroups( form );
 
 				if ( form.crcPopups ) {

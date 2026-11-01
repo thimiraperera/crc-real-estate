@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.52.0 =
+* Search filters: Looking for is a list of round radio buttons in the site's green, a ring with a dot when chosen, and one category is chosen at a time again, each with its own filters. Ticking several categories at once (0.50.0) and the price for Lands with Properties for Sale (0.51.0) are taken out; an address with several categories in it shows every listing. The tick boxes in More filters and Sort by's dropdown stay as they are.
+
 = 0.51.0 =
 * Search filters: with Lands and Properties for Sale both ticked, the price shows too, above the filters for every listing, with two boxes and a slider from the cheapest of them to the dearest, as both are sold outright. With Properties for Rent among the ticks it goes again, as monthly rents and sale prices can't be compared.
 

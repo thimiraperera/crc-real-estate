@@ -14,9 +14,8 @@ defined( 'ABSPATH' ) || exit;
  * above the results, in the same white card as the price box on listing
  * pages, staying in view while the listings scroll. The place or keywords,
  * with the same suggestions as the search box, at the top; what people are
- * looking for (every listing, or as many categories as people like) as tick
- * boxes; and the chosen category's own choices (with several, those for
- * every listing):
+ * looking for (a category, or every listing) as radio buttons; and
+ * the chosen category's own choices:
  *
  * - land: the price (two boxes and a slider), the price per perch, the land
  *   size and the property type;
@@ -63,7 +62,7 @@ final class Listing_Filters {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search filters', 'crc-real-estate' ),
-				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People type the place or keywords at the top, with the same suggestions as the search box, and tick what they are looking for (every listing, or as many categories as they like), then the category\'s own choices; with several categories ticked, the choices for every listing show. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features in tick boxes (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made (for several categories, the page of every listing with ?category=lands,properties-for-sale), and Clear All takes them off. On phones the filters fold away behind a Filters bar. The boxes and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles. The dropdowns are soft grey boxes that turn white while open, with a list that falls open under them and slim scrollbars; the tick boxes are in your main colour.', 'crc-real-estate' ),
+				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People type the place or keywords at the top, with the same suggestions as the search box, and choose what they are looking for (a category, or every listing) with radio buttons, then the category\'s own choices. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features in tick boxes (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made, and Clear All takes them off. On phones the filters fold away behind a Filters bar. The boxes and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles. The dropdowns are soft grey boxes that turn white while open, with a list that falls open under them and slim scrollbars; the radio buttons and tick boxes are in your main colour.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories' => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
@@ -139,8 +138,7 @@ final class Listing_Filters {
 	 * pair of fields (lowest and highest) has a heading that is a label, so
 	 * it looks like the other fields' labels.
 	 *
-	 * @param string $for     Category slugs separated by spaces, "all" (none or several chosen),
-	 *                        and "sold" (several, all sold outright).
+	 * @param string $for     Category slugs separated by spaces, or "all".
 	 * @param bool   $on      Whether it is for the category chosen now.
 	 * @param string $content Fields.
 	 * @param string $heading Heading for a pair of fields, or empty.
@@ -199,17 +197,16 @@ final class Listing_Filters {
 	 * The price, or the rent per month: a box for the lowest and one for
 	 * the highest, with a slider under them that moves with them.
 	 *
-	 * @param string $prefix   Start of the fields' IDs.
-	 * @param string $for      What it is shown for: a category slug, or "sold" for several sold outright.
-	 * @param string $category The category, or the categories separated by commas, for the slider's steps.
-	 * @param bool   $on       Whether it is for what is chosen now.
-	 * @param string $label    "Price" or "Rent per month".
-	 * @param array  $filters  Filters chosen now.
+	 * @param string $prefix  Start of the fields' IDs.
+	 * @param string $slug    Category slug.
+	 * @param bool   $on      Whether the category is chosen now.
+	 * @param string $label   "Price" or "Rent per month".
+	 * @param array  $filters Filters chosen now.
 	 * @return string
 	 */
-	private static function price_range( $prefix, $for, $category, $on, $label, array $filters ) {
+	private static function price_range( $prefix, $slug, $on, $label, array $filters ) {
 		$id    = $prefix . '-price';
-		$steps = Listing_Query::price_steps( $category );
+		$steps = Listing_Query::price_steps( $slug );
 		$last  = count( $steps ) - 1;
 		$low   = '' !== $filters['price_min'] ? (int) $filters['price_min'] : 0;
 		$high  = '' !== $filters['price_max'] ? (int) $filters['price_max'] : 0;
@@ -236,7 +233,7 @@ final class Listing_Filters {
 			esc_attr( $id . '-max' )
 		);
 
-		return self::group( $for, $on, $boxes, $label, $id, $slider );
+		return self::group( $slug, $on, $boxes, $label, $id, $slider );
 	}
 
 	/**
@@ -287,18 +284,16 @@ final class Listing_Filters {
 	private static function fields( $id, $category, array $filters, $on ) {
 		$fields = Listing_Query::fields_for( $category );
 		$slug   = '' !== $category ? $category : 'all';
-		// Every listing's filters are also for several categories sold outright.
-		$for    = '' !== $category ? $category : 'all sold';
 		$prefix = $id . '-' . $slug;
 		$html   = '';
 
 		if ( in_array( 'price_min', $fields, true ) ) {
-			$html .= self::price_range( $prefix, $for, $category, $on, 'properties-for-rent' === $category ? __( 'Rent per month', 'crc-real-estate' ) : __( 'Price', 'crc-real-estate' ), $filters );
+			$html .= self::price_range( $prefix, $category, $on, 'properties-for-rent' === $category ? __( 'Rent per month', 'crc-real-estate' ) : __( 'Price', 'crc-real-estate' ), $filters );
 		}
 
 		if ( in_array( 'per_perch_max', $fields, true ) ) {
 			$html .= self::group(
-				$for,
+				$slug,
 				$on,
 				self::select( $prefix . '-per-perch', 'per_perch_max', __( 'Max price per perch', 'crc-real-estate' ), __( 'Any', 'crc-real-estate' ), Listing_Search::money_options( Listing_Query::per_perch_prices() ), $filters['per_perch_max'] )
 			);
@@ -312,7 +307,7 @@ final class Listing_Filters {
 			}
 
 			$html .= self::group(
-				$for,
+				$slug,
 				$on,
 				self::select( $prefix . '-size-min', 'size_min', __( 'Smallest', 'crc-real-estate' ), __( 'No min', 'crc-real-estate' ), $sizes, $filters['size_min'], true, $prefix . '-size-label' )
 				. self::select( $prefix . '-size-max', 'size_max', __( 'Largest', 'crc-real-estate' ), __( 'No max', 'crc-real-estate' ), $sizes, $filters['size_max'], true, $prefix . '-size-label' ),
@@ -336,12 +331,12 @@ final class Listing_Filters {
 				$choices[ $number ] = sprintf( __( '%s+', 'crc-real-estate' ), number_format_i18n( $number ) );
 			}
 
-			$html .= self::group( $for, $on, self::stepper( $prefix . '-' . $key, $key, $field[0], $choices, $filters[ $key ] ? $filters[ $key ] : '', $field[1], $field[2] ) );
+			$html .= self::group( $slug, $on, self::stepper( $prefix . '-' . $key, $key, $field[0], $choices, $filters[ $key ] ? $filters[ $key ] : '', $field[1], $field[2] ) );
 		}
 
 		if ( in_array( 'furnishing', $fields, true ) && Listing_Query::furnishings() ) {
 			$html .= self::group(
-				$for,
+				$slug,
 				$on,
 				self::stepper( $prefix . '-furnishing', 'furnishing', __( 'Furnishing', 'crc-real-estate' ), array( '' => __( 'Any', 'crc-real-estate' ) ) + Listing_Query::furnishings(), $filters['furnishing'], __( 'Previous furnishing', 'crc-real-estate' ), __( 'Next furnishing', 'crc-real-estate' ) )
 			);
@@ -355,7 +350,7 @@ final class Listing_Filters {
 			}
 
 			if ( $types ) {
-				$html .= self::group( $for, $on, self::select( $prefix . '-type', 'type', __( 'Property type', 'crc-real-estate' ), __( 'Any', 'crc-real-estate' ), array_combine( $types, $types ), $filters['type'] ) );
+				$html .= self::group( $slug, $on, self::select( $prefix . '-type', 'type', __( 'Property type', 'crc-real-estate' ), __( 'Any', 'crc-real-estate' ), array_combine( $types, $types ), $filters['type'] ) );
 			}
 		}
 
@@ -363,25 +358,29 @@ final class Listing_Filters {
 	}
 
 	/**
-	 * One tick box and its words: a choice of Looking for, or a feature or
-	 * term in More filters.
+	 * One choice and its words: a round radio button for Looking for, which
+	 * chooses one category at a time as each has filters of its own, or a
+	 * tick box for a feature or term in More filters.
 	 *
+	 * @param string $type  "checkbox" or "radio".
 	 * @param string $name  Field name.
 	 * @param string $value Field value.
 	 * @param string $label Words beside it.
-	 * @param bool   $on    Whether it is ticked.
+	 * @param bool   $on    Whether it is chosen.
 	 * @param string $url   For Looking for: the category's archive.
-	 * @param bool   $sold  For Looking for: whether the category is sold outright, not rented.
 	 * @return string
 	 */
-	private static function check( $name, $value, $label, $on, $url = '', $sold = false ) {
+	private static function check( $type, $name, $value, $label, $on, $url = '' ) {
+		$radio = 'radio' === $type;
+
 		return sprintf(
-			'<label class="crc-check"><input type="checkbox" class="crc-check-input" name="%1$s" value="%2$s"%3$s%4$s><span class="crc-check-box">%5$s</span><span class="crc-check-text">%6$s</span></label>',
+			'<label class="crc-check"><input type="%1$s" class="crc-check-input" name="%2$s" value="%3$s"%4$s%5$s><span class="crc-check-box">%6$s</span><span class="crc-check-text">%7$s</span></label>',
+			$radio ? 'radio' : 'checkbox',
 			esc_attr( $name ),
 			esc_attr( $value ),
-			( '' !== $url ? ' data-url="' . esc_url( $url ) . '"' : '' ) . ( $sold ? ' data-sold' : '' ),
+			'' !== $url ? ' data-url="' . esc_url( $url ) . '"' : '',
 			$on ? ' checked' : '',
-			Icons::svg( 'check', 'crc-check-icon' ),
+			$radio ? '<span class="crc-check-dot"></span>' : Icons::svg( 'check', 'crc-check-icon' ),
 			esc_html( $label )
 		);
 	}
@@ -390,7 +389,7 @@ final class Listing_Filters {
 	 * Tick boxes under a heading: features, or the price and terms. The
 	 * heading is a label, so it looks like the other fields' labels.
 	 *
-	 * @param string $for     Category slug, or "all sold" for every listing (see group()).
+	 * @param string $for     Category slug, or "all".
 	 * @param bool   $on      Whether it is for the category chosen now.
 	 * @param string $id      Heading ID.
 	 * @param string $heading Heading.
@@ -401,7 +400,7 @@ final class Listing_Filters {
 		$html = '';
 
 		foreach ( $checks as $check ) {
-			$html .= self::check( $check['name'], $check['value'], $check['label'], $check['on'] );
+			$html .= self::check( 'checkbox', $check['name'], $check['value'], $check['label'], $check['on'] );
 		}
 
 		return sprintf(
@@ -428,7 +427,6 @@ final class Listing_Filters {
 	private static function more_fields( $id, $category, array $filters, $on ) {
 		$fields  = Listing_Query::fields_for( $category );
 		$slug    = '' !== $category ? $category : 'all';
-		$for     = '' !== $category ? $category : 'all sold';
 		$prefix  = $id . '-' . $slug;
 		$choices = Listing_Query::more_choices();
 		$any     = __( 'Any', 'crc-real-estate' );
@@ -451,24 +449,24 @@ final class Listing_Filters {
 		}
 
 		if ( $terms ) {
-			$html .= self::checks( $for, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
+			$html .= self::checks( $slug, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
 		}
 
-		$list = function ( $key, $label, $first, $name = '' ) use ( $fields, $choices, $for, $on, $prefix, $filters ) {
+		$list = function ( $key, $label, $first, $name = '' ) use ( $fields, $choices, $slug, $on, $prefix, $filters ) {
 			$name = '' !== $name ? $name : $key;
 
 			if ( ! in_array( $key, $fields, true ) || empty( $choices[ $name ] ) ) {
 				return '';
 			}
 
-			return self::group( $for, $on, self::select( $prefix . '-' . str_replace( '_', '-', $key ), $key, $label, $first, (array) $choices[ $name ], 0 !== $filters[ $key ] ? (string) $filters[ $key ] : '' ) );
+			return self::group( $slug, $on, self::select( $prefix . '-' . str_replace( '_', '-', $key ), $key, $label, $first, (array) $choices[ $name ], 0 !== $filters[ $key ] ? (string) $filters[ $key ] : '' ) );
 		};
 
 		$html .= $list( 'advance_max', __( 'Advance payment', 'crc-real-estate' ), $any );
 
 		if ( in_array( 'floor_min', $fields, true ) && ! empty( $choices['floor'] ) ) {
 			$html .= self::group(
-				$for,
+				$slug,
 				$on,
 				self::select( $prefix . '-floor-min', 'floor_min', __( 'Smallest', 'crc-real-estate' ), __( 'No min', 'crc-real-estate' ), (array) $choices['floor'], $filters['floor_min'] ? (string) $filters['floor_min'] : '', true, $prefix . '-floor-label' )
 				. self::select( $prefix . '-floor-max', 'floor_max', __( 'Largest', 'crc-real-estate' ), __( 'No max', 'crc-real-estate' ), (array) $choices['floor'], $filters['floor_max'] ? (string) $filters['floor_max'] : '', true, $prefix . '-floor-label' ),
@@ -485,7 +483,7 @@ final class Listing_Filters {
 				$spaces[ $number ] = sprintf( __( '%s+', 'crc-real-estate' ), number_format_i18n( $number ) );
 			}
 
-			$html .= self::group( $for, $on, self::stepper( $prefix . '-parking', 'parking', __( 'Parking spaces', 'crc-real-estate' ), $spaces, $filters['parking'] ? (string) $filters['parking'] : '', __( 'Fewer parking spaces', 'crc-real-estate' ), __( 'More parking spaces', 'crc-real-estate' ) ) );
+			$html .= self::group( $slug, $on, self::stepper( $prefix . '-parking', 'parking', __( 'Parking spaces', 'crc-real-estate' ), $spaces, $filters['parking'] ? (string) $filters['parking'] : '', __( 'Fewer parking spaces', 'crc-real-estate' ), __( 'More parking spaces', 'crc-real-estate' ) ) );
 		}
 
 		$html .= $list( 'road_type', __( 'Road type', 'crc-real-estate' ), $any )
@@ -508,7 +506,7 @@ final class Listing_Filters {
 					);
 				}
 
-				$html .= self::checks( $for, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $checks );
+				$html .= self::checks( $slug, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $checks );
 			}
 		}
 
@@ -552,32 +550,15 @@ final class Listing_Filters {
 
 		$id      = 'crc-filters-' . ( ++self::$count );
 		$filters = Listing_Archive::filters();
-		$ticked  = array_intersect( '' !== $filters['categories'] ? explode( ',', $filters['categories'] ) : array(), wp_list_pluck( $terms, 'slug' ) );
-		// Looking for: All listings, or as many categories as people like. With
-		// one, its own filters show; with none or several, those for every listing.
-		$choices = self::check( 'category[]', '', __( 'All listings', 'crc-real-estate' ), ! $ticked, Listing_Archive::page_url() );
+		$all     = '' === $filters['category'] || ! in_array( $filters['category'], wp_list_pluck( $terms, 'slug' ), true );
+		$choices = self::check( 'radio', 'category', '', __( 'All listings', 'crc-real-estate' ), $all, Listing_Archive::page_url() );
 		$fields  = self::fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] );
 		$show    = '' !== trim( $atts['more'] );
 		$more    = $show ? self::more_fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] ) : '';
-		$periods = wp_list_pluck( Taxonomy::terms(), 'period' );
-		$sold    = array();
-
-		foreach ( $terms as $term ) {
-			if ( isset( $periods[ $term->slug ] ) && '' === (string) $periods[ $term->slug ] ) {
-				$sold[] = $term->slug;
-			}
-		}
-
-		// Several categories sold outright (Lands and Properties for Sale): their
-		// prices can be compared, so the price shows above the filters for every listing.
-		if ( count( $sold ) > 1 ) {
-			$on     = Listing_Query::sold( $filters['categories'] ) && '' === $filters['category'];
-			$fields = self::price_range( $id . '-sold', 'sold', implode( ',', $sold ), $on, __( 'Price', 'crc-real-estate' ), $on ? $filters : Listing_Query::blank() ) . $fields;
-		}
 
 		foreach ( $terms as $term ) {
 			$on       = $term->slug === $filters['category'];
-			$choices .= self::check( 'category[]', $term->slug, $term->name, in_array( $term->slug, $ticked, true ), Listing_Archive::category_url( $term->slug ), in_array( $term->slug, $sold, true ) );
+			$choices .= self::check( 'radio', 'category', $term->slug, $term->name, $on, Listing_Archive::category_url( $term->slug ) );
 			$fields  .= self::fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on );
 			$more    .= $show ? self::more_fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on ) : '';
 		}
