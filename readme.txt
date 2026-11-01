@@ -49,6 +49,12 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.49.0 =
+* Search filters: Looking for is a list of tick boxes instead of rounded buttons. The box turns the site's green with a white tick when ticked. One category is ticked at a time, as each has filters of its own.
+* More filters: the price and terms and the features (such as Legal and documents, Land features and Nearby) are tick boxes too, as many as people like, in columns where there is room.
+* Sort by over the listings uses the same dropdown as the filters: a soft grey box that turns white while open, with its list opening over the listings.
+* The lighter greens of the tick boxes are the site's main colour mixed with white, so they follow it if it changes.
+
 = 0.48.1 =
 * Post a free ad form: Phone Number and E-Mail sit side by side, one under the other on phones. E-Mail can be left empty, as not everyone has one; the email about such an ad says to call or WhatsApp them instead of replying, and leaves out the empty row.
 * Photos: an Upload Photos button in the site's colour, with a short line under it, "Up to 10 photos · JPG, PNG or WebP", instead of the big dashed box. It goes across the form on phones. Photos can still be dropped anywhere on the photos part of the form.

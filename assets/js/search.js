@@ -1770,6 +1770,14 @@
 		}
 
 		form.crcSearch = true;
+
+		// The same dropdown as the filters.
+		each( form.querySelectorAll( '[data-crc-dropdown]' ), function ( box ) {
+			setUpDropdown( box, form );
+		} );
+		setUpPopups( form );
+		form.classList.add( 'is-ready' );
+
 		select.addEventListener( 'change', function () {
 			window.location.href = address( form );
 		} );

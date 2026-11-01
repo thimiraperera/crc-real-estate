@@ -1351,7 +1351,8 @@
 }
 
 .crc-search .crc-dropdown-option,
-.crc-filters .crc-dropdown-option {
+.crc-filters .crc-dropdown-option,
+.crc-results-sort .crc-dropdown-option {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -1366,7 +1367,8 @@
 }
 
 .crc-search .crc-dropdown-option.is-active,
-.crc-filters .crc-dropdown-option.is-active {
+.crc-filters .crc-dropdown-option.is-active,
+.crc-results-sort .crc-dropdown-option.is-active {
 	background: var(--e-global-color-f5fd1b7);
 }
 
@@ -1379,13 +1381,15 @@
 }
 
 .crc-search .crc-dropdown-option.is-selected,
-.crc-filters .crc-dropdown-option.is-selected {
+.crc-filters .crc-dropdown-option.is-selected,
+.crc-results-sort .crc-dropdown-option.is-selected {
 	color: var(--e-global-color-primary);
 	font-weight: 500;
 }
 
 .crc-search .crc-dropdown-option-text,
-.crc-filters .crc-dropdown-option-text {
+.crc-filters .crc-dropdown-option-text,
+.crc-results-sort .crc-dropdown-option-text {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -1393,7 +1397,8 @@
 }
 
 .crc-search .crc-dropdown-option-icon,
-.crc-filters .crc-dropdown-option-icon {
+.crc-filters .crc-dropdown-option-icon,
+.crc-results-sort .crc-dropdown-option-icon {
 	display: block;
 	flex: none;
 	width: 14px;
@@ -1405,7 +1410,8 @@
 }
 
 .crc-search .crc-dropdown-option.is-selected .crc-dropdown-option-icon,
-.crc-filters .crc-dropdown-option.is-selected .crc-dropdown-option-icon {
+.crc-filters .crc-dropdown-option.is-selected .crc-dropdown-option-icon,
+.crc-results-sort .crc-dropdown-option.is-selected .crc-dropdown-option-icon {
 	opacity: 1;
 	transform: none;
 }
@@ -2147,26 +2153,34 @@
 	grid-column: 1 / -1;
 }
 
-/* Ticks, and Looking for: rounded choices that turn the site's main colour, with a tick, when chosen. */
-.crc-filters .crc-chips {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
+/* Tick boxes in the site's main colour: Looking for (one ticked at a time), and the features and terms
+   in More filters. The lighter shades are the main colour mixed with the white of the card. A list,
+   in columns where there is room. */
+.crc-filters .crc-checks {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+	gap: 4px 16px;
 }
 
-.crc-filters .crc-chip {
+.crc-filters .crc-check {
 	position: relative;
-	display: inline-flex;
-	max-width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-height: 36px;
 	margin: 0;
 	padding: 0;
+	color: var(--e-global-color-6e3d619);
+	line-height: 1.3;
 	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
 	-webkit-tap-highlight-color: transparent;
 }
 
-/* The box or radio button itself is hidden; the rounded choice shows it. */
-.crc-filters .crc-chip input.crc-chip-input[type="checkbox"],
-.crc-filters .crc-chip input.crc-chip-input[type="radio"] {
+/* The tick box or radio button itself is hidden; the box shows it. */
+.crc-filters .crc-check input.crc-check-input[type="checkbox"],
+.crc-filters .crc-check input.crc-check-input[type="radio"] {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -2181,76 +2195,71 @@
 	pointer-events: none;
 }
 
-.crc-filters .crc-chip-face {
-	display: inline-flex;
+.crc-filters .crc-check-box {
+	display: flex;
+	flex: none;
 	align-items: center;
+	justify-content: center;
 	box-sizing: border-box;
-	max-width: 100%;
-	min-height: 36px;
-	padding: 7px 14px;
-	border-radius: 100px;
-	background: var(--e-global-color-f5fd1b7);
-	color: var(--e-global-color-6e3d619);
-	line-height: 1.3;
-	user-select: none;
-	-webkit-user-select: none;
-	transition: background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+	width: 22px;
+	height: 22px;
+	border: 2px solid color-mix(in srgb, var(--e-global-color-primary) 35%, var(--e-global-color-3581a59));
+	border-radius: 6px;
+	background: var(--e-global-color-3581a59);
+	transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.crc-filters .crc-check-icon {
+	display: block;
+	width: 12px;
+	height: 12px;
+	fill: var(--e-global-color-3581a59);
+	opacity: 0;
+	transform: scale(0.4);
+	transition: opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @media (hover: hover) {
-	.crc-filters .crc-chip:hover .crc-chip-input:not(:checked) + .crc-chip-face {
-		background: color-mix(in srgb, var(--e-global-color-6e3d619) 8%, var(--e-global-color-f5fd1b7));
+	.crc-filters .crc-check:hover .crc-check-input:not(:checked) + .crc-check-box {
+		border-color: color-mix(in srgb, var(--e-global-color-primary) 70%, var(--e-global-color-3581a59));
+		background: color-mix(in srgb, var(--e-global-color-primary) 8%, var(--e-global-color-3581a59));
 	}
 }
 
-.crc-filters .crc-chip:active .crc-chip-face {
-	box-shadow: inset 0 0 0 100px color-mix(in srgb, var(--e-global-color-1ead78b) 6%, var(--e-global-color-bb33687));
+.crc-filters .crc-check:active .crc-check-box {
+	box-shadow: 0 0 0 4px color-mix(in srgb, var(--e-global-color-primary) 15%, transparent);
 }
 
-.crc-filters .crc-chip-input:checked + .crc-chip-face {
+.crc-filters .crc-check-input:checked + .crc-check-box {
+	border-color: var(--e-global-color-primary);
 	background: var(--e-global-color-primary);
-	color: var(--e-global-color-3581a59);
 }
 
-.crc-filters .crc-chip-input:focus-visible + .crc-chip-face {
-	outline: 2px solid var(--e-global-color-primary);
-	outline-offset: 2px;
-}
-
-.crc-filters .crc-chip-icon {
-	display: block;
-	flex: none;
-	width: 0;
-	height: 12px;
-	margin-right: 0;
-	fill: currentColor;
-	opacity: 0;
-	transform: scale(0.4);
-	transition: width 0.25s ease, margin-right 0.25s ease, opacity 0.2s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.crc-filters .crc-chip-input:checked + .crc-chip-face .crc-chip-icon {
-	width: 12px;
-	margin-right: 6px;
+.crc-filters .crc-check-input:checked + .crc-check-box .crc-check-icon {
 	opacity: 1;
 	transform: none;
 }
 
-.crc-filters .crc-chip-text {
+.crc-filters .crc-check-input:focus-visible + .crc-check-box {
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-global-color-primary) 30%, transparent);
+}
+
+.crc-filters .crc-check-text {
 	min-width: 0;
 	overflow-wrap: anywhere;
 }
 
-/* The filters' dropdowns: a soft grey box that turns white while it is open,
-   with the plugin's own list falling open in place under it (so it is never
-   cut off while the filters scroll beside the results). */
-.crc-filters .crc-dropdown {
+/* The filters' dropdowns, and Sort by over the listings: a soft grey box that
+   turns white while it is open, with the plugin's own list under it. In the
+   filters the list falls open in place (so it is never cut off while the
+   filters scroll beside the results); for Sort by it opens over the listings. */
+:is(.crc-filters, .crc-results-sort) .crc-dropdown {
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
 }
 
-.crc-filters .crc-filter-dropdown-button {
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-button {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -2270,8 +2279,8 @@
 	transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
 }
 
-.crc-filters .crc-filter-dropdown-button:focus,
-.crc-filters .crc-filter-dropdown-button.is-open {
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-button:focus,
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-button.is-open {
 	outline: none;
 	padding: 10px 16px 10px 16px;
 	border: 2px solid var(--e-global-color-f5fd1b7);
@@ -2280,12 +2289,12 @@
 	color: var(--e-global-color-6e3d619);
 }
 
-.crc-filters .crc-filter-dropdown-button:focus-visible {
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-button:focus-visible {
 	outline: 2px solid var(--e-global-color-primary);
 	outline-offset: 2px;
 }
 
-.crc-filters .crc-filter-dropdown-text {
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-text {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -2293,7 +2302,7 @@
 	pointer-events: none;
 }
 
-.crc-filters .crc-filter-dropdown-icon {
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-icon {
 	display: block;
 	flex: none;
 	width: 14px;
@@ -2303,22 +2312,22 @@
 	transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.crc-filters .crc-filter-dropdown-button.is-open .crc-filter-dropdown-icon {
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown-button.is-open .crc-filter-dropdown-icon {
 	transform: rotate(180deg);
 }
 
 /* Until search.js is ready, the browser's own list shows instead. */
-.crc-filters:not(.is-ready) .crc-filter-dropdown-button,
-.crc-filters:not(.is-ready) .crc-filter-dropdown .crc-dropdown-list {
+:is(.crc-filters, .crc-results-sort):not(.is-ready) .crc-filter-dropdown-button,
+:is(.crc-filters, .crc-results-sort):not(.is-ready) .crc-filter-dropdown .crc-dropdown-list {
 	display: none;
 }
 
-.crc-filters.is-ready .crc-filter-dropdown .crc-filter-select,
-.crc-filters .crc-filter-dropdown select[hidden] {
+:is(.crc-filters, .crc-results-sort).is-ready .crc-filter-dropdown .crc-filter-select,
+:is(.crc-filters, .crc-results-sort) .crc-filter-dropdown select[hidden] {
 	display: none !important;
 }
 
-.crc-filters .crc-dropdown-list {
+:is(.crc-filters, .crc-results-sort) .crc-dropdown-list {
 	position: static;
 	box-sizing: border-box;
 	width: auto;
@@ -2337,7 +2346,7 @@
 	animation: crc-drop-in 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.crc-filters .crc-dropdown-list[hidden] {
+:is(.crc-filters, .crc-results-sort) .crc-dropdown-list[hidden] {
 	display: none;
 }
 
@@ -2352,6 +2361,47 @@
 	margin-top: 0;
 }
 
+/* Sort by: wide enough for the longest choice, as tall as the grid and list buttons beside it,
+   and its list opens over the listings instead of pushing them down. */
+.crc-results .crc-results-sort .crc-dropdown {
+	position: relative;
+	width: 230px;
+	max-width: 100%;
+}
+
+.crc-results .crc-results-sort .crc-filter-dropdown-button,
+.crc-results .crc-results-sort .crc-filter-dropdown-button:focus,
+.crc-results .crc-results-sort .crc-filter-dropdown-button.is-open {
+	min-height: 44px;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.crc-results .crc-results-sort .crc-dropdown-list {
+	position: absolute;
+	top: 100%;
+	right: 0;
+	left: 0;
+	z-index: 30;
+}
+
+.crc-results .crc-results-sort .crc-dropdown-option-text {
+	white-space: normal;
+}
+
+/* With room: the list is as wide as its longest choice, from the right of the box. */
+@media (min-width: 768px) {
+	.crc-results .crc-results-sort .crc-dropdown-list {
+		left: auto;
+		width: max-content;
+		min-width: 100%;
+	}
+
+	.crc-results .crc-results-sort .crc-dropdown-option-text {
+		white-space: nowrap;
+	}
+}
+
 @media (prefers-reduced-motion: reduce) {
 	.crc-filters .crc-filter-dropdown-button,
 	.crc-filters .crc-filter-dropdown-icon,
@@ -2359,14 +2409,19 @@
 	.crc-filters .crc-dropdown-option-icon,
 	.crc-filters .crc-filters-more-toggle,
 	.crc-filters .crc-filters-more-arrow,
-	.crc-filters .crc-chip-face,
-	.crc-filters .crc-chip-icon,
-	.crc-filters .crc-filters-toggle-arrow {
+	.crc-filters .crc-check-box,
+	.crc-filters .crc-check-icon,
+	.crc-filters .crc-filters-toggle-arrow,
+	.crc-results-sort .crc-filter-dropdown-button,
+	.crc-results-sort .crc-filter-dropdown-icon,
+	.crc-results-sort .crc-dropdown-option,
+	.crc-results-sort .crc-dropdown-option-icon {
 		transition: none;
 	}
 
 	.crc-filters .crc-filters-more-count,
-	.crc-filters .crc-dropdown-list {
+	.crc-filters .crc-dropdown-list,
+	.crc-results-sort .crc-dropdown-list {
 		animation: none;
 	}
 }
@@ -3014,8 +3069,9 @@ body:not(.elementor-editor-active) .elementor-widget:not(.elementor-widget-templ
 		max-width: none;
 	}
 
-	/* The filters' lists: rows big enough for a finger. */
-	.crc-filters .crc-dropdown-option {
+	/* The filters' and Sort by's lists: rows big enough for a finger. */
+	.crc-filters .crc-dropdown-option,
+	.crc-results-sort .crc-dropdown-option {
 		padding: 11px 12px;
 	}
 

@@ -14,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
  * above the results, in the same white card as the price box on listing
  * pages, staying in view while the listings scroll. The place or keywords,
  * with the same suggestions as the search box, at the top; what people are
- * looking for (a category, or every listing) as rounded radio buttons; and
+ * looking for (a category, or every listing) as tick boxes, one at a time; and
  * the chosen category's own choices:
  *
  * - land: the price (two boxes and a slider), the price per perch, the land
@@ -62,7 +62,7 @@ final class Listing_Filters {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search filters', 'crc-real-estate' ),
-				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People type the place or keywords at the top, with the same suggestions as the search box, and choose what they are looking for (a category, or every listing) from rounded buttons, then the category\'s own choices. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made, and Clear All takes them off. On phones the filters fold away behind a Filters bar. The boxes and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles. The dropdowns are soft grey boxes that turn white while open, with a list that falls open under them and slim scrollbars.', 'crc-real-estate' ),
+				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People type the place or keywords at the top, with the same suggestions as the search box, and tick what they are looking for (a category, or every listing; one at a time), then the category\'s own choices. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features in tick boxes (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made, and Clear All takes them off. On phones the filters fold away behind a Filters bar. The boxes and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles. The dropdowns are soft grey boxes that turn white while open, with a list that falls open under them and slim scrollbars; the tick boxes are in your main colour.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories' => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
@@ -358,50 +358,52 @@ final class Listing_Filters {
 	}
 
 	/**
-	 * One rounded choice: a tick box, or a radio button for Looking for.
+	 * One tick box and its words: a choice of Looking for, or a feature or
+	 * term in More filters. Looking for chooses one category at a time, as
+	 * each has filters of its own, so its choices are radio buttons that
+	 * look like tick boxes.
 	 *
 	 * @param string $type  "checkbox" or "radio".
 	 * @param string $name  Field name.
 	 * @param string $value Field value.
-	 * @param string $label Words on it.
-	 * @param bool   $on    Whether it is chosen.
+	 * @param string $label Words beside it.
+	 * @param bool   $on    Whether it is ticked.
 	 * @param string $url   For Looking for: the category's archive.
 	 * @return string
 	 */
-	private static function chip( $type, $name, $value, $label, $on, $url = '' ) {
+	private static function check( $type, $name, $value, $label, $on, $url = '' ) {
 		return sprintf(
-			'<label class="crc-chip"><input type="%1$s" class="crc-chip-input" name="%2$s" value="%3$s"%4$s%5$s><span class="crc-chip-face">%6$s<span class="crc-chip-text">%7$s</span></span></label>',
+			'<label class="crc-check"><input type="%1$s" class="crc-check-input" name="%2$s" value="%3$s"%4$s%5$s><span class="crc-check-box">%6$s</span><span class="crc-check-text">%7$s</span></label>',
 			'radio' === $type ? 'radio' : 'checkbox',
 			esc_attr( $name ),
 			esc_attr( $value ),
 			'' !== $url ? ' data-url="' . esc_url( $url ) . '"' : '',
 			$on ? ' checked' : '',
-			Icons::svg( 'check', 'crc-chip-icon' ),
+			Icons::svg( 'check', 'crc-check-icon' ),
 			esc_html( $label )
 		);
 	}
 
 	/**
-	 * Rounded choices that are ticked on and off, under a heading: features,
-	 * or the price and terms. The heading is a label, so it looks like the
-	 * other fields' labels.
+	 * Tick boxes under a heading: features, or the price and terms. The
+	 * heading is a label, so it looks like the other fields' labels.
 	 *
 	 * @param string $for     Category slug, or "all".
 	 * @param bool   $on      Whether it is for the category chosen now.
 	 * @param string $id      Heading ID.
 	 * @param string $heading Heading.
-	 * @param array  $chips   Each 'name', 'value', 'label' and 'on' (ticked).
+	 * @param array  $checks  Each 'name', 'value', 'label' and 'on' (ticked).
 	 * @return string
 	 */
-	private static function chips( $for, $on, $id, $heading, array $chips ) {
+	private static function checks( $for, $on, $id, $heading, array $checks ) {
 		$html = '';
 
-		foreach ( $chips as $chip ) {
-			$html .= self::chip( 'checkbox', $chip['name'], $chip['value'], $chip['label'], $chip['on'] );
+		foreach ( $checks as $check ) {
+			$html .= self::check( 'checkbox', $check['name'], $check['value'], $check['label'], $check['on'] );
 		}
 
 		return sprintf(
-			'<fieldset class="crc-filter crc-filter-wide" data-for="%1$s" aria-labelledby="%2$s"%3$s><label class="crc-filter-label" id="%2$s">%4$s</label><div class="crc-chips">%5$s</div></fieldset>',
+			'<fieldset class="crc-filter crc-filter-wide" data-for="%1$s" aria-labelledby="%2$s"%3$s><label class="crc-filter-label" id="%2$s">%4$s</label><div class="crc-checks">%5$s</div></fieldset>',
 			esc_attr( $for ),
 			esc_attr( $id ),
 			$on ? '' : ' hidden disabled',
@@ -446,7 +448,7 @@ final class Listing_Filters {
 		}
 
 		if ( $terms ) {
-			$html .= self::chips( $slug, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
+			$html .= self::checks( $slug, $on, $prefix . '-terms-label', __( 'Price and terms', 'crc-real-estate' ), $terms );
 		}
 
 		$list = function ( $key, $label, $first, $name = '' ) use ( $fields, $choices, $slug, $on, $prefix, $filters ) {
@@ -492,10 +494,10 @@ final class Listing_Filters {
 			$ticked = '' !== $filters['features'] ? explode( ',', $filters['features'] ) : array();
 
 			foreach ( Listing_Query::feature_groups( $category ) as $name => $group ) {
-				$chips = array();
+				$checks = array();
 
 				foreach ( $group['features'] as $feature => $label ) {
-					$chips[] = array(
+					$checks[] = array(
 						'name'  => 'features[]',
 						'value' => $feature,
 						'label' => $label,
@@ -503,7 +505,7 @@ final class Listing_Filters {
 					);
 				}
 
-				$html .= self::chips( $slug, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $chips );
+				$html .= self::checks( $slug, $on, $prefix . '-' . sanitize_html_class( $name ) . '-label', '' !== $group['title'] ? $group['title'] : __( 'Features', 'crc-real-estate' ), $checks );
 			}
 		}
 
@@ -548,14 +550,14 @@ final class Listing_Filters {
 		$id      = 'crc-filters-' . ( ++self::$count );
 		$filters = Listing_Archive::filters();
 		$all     = '' === $filters['category'] || ! in_array( $filters['category'], wp_list_pluck( $terms, 'slug' ), true );
-		$choices = self::chip( 'radio', 'category', '', __( 'All listings', 'crc-real-estate' ), $all, Listing_Archive::page_url() );
+		$choices = self::check( 'radio', 'category', '', __( 'All listings', 'crc-real-estate' ), $all, Listing_Archive::page_url() );
 		$fields  = self::fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] );
 		$show    = '' !== trim( $atts['more'] );
 		$more    = $show ? self::more_fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] ) : '';
 
 		foreach ( $terms as $term ) {
 			$on       = $term->slug === $filters['category'];
-			$choices .= self::chip( 'radio', 'category', $term->slug, $term->name, $on, Listing_Archive::category_url( $term->slug ) );
+			$choices .= self::check( 'radio', 'category', $term->slug, $term->name, $on, Listing_Archive::category_url( $term->slug ) );
 			$fields  .= self::fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on );
 			$more    .= $show ? self::more_fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on ) : '';
 		}
@@ -580,7 +582,7 @@ final class Listing_Filters {
 		$label = '<span class="elementor-button-content-wrapper"><span class="elementor-button-text">%s</span></span>';
 
 		return sprintf(
-			'<form class="crc-filters crc-card crc-listing-price" id="%1$s" method="get" action="%2$s" aria-label="%3$s" data-crc-filters><div class="crc-filters-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="%1$s-body" data-crc-filters-toggle>%4$s<span class="crc-filters-toggle-text">%5$s</span>%6$s%7$s</div><div class="crc-filters-body" id="%1$s-body"><div class="crc-filters-head"><h6 class="crc-filters-title">%5$s</h6></div><div class="crc-filter"><label class="crc-filter-label" for="%1$s-location">%10$s</label><div class="crc-place">%11$s<ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div><fieldset class="crc-filter crc-filter-looking" aria-labelledby="%1$s-category-label"><label class="crc-filter-label" id="%1$s-category-label">%8$s</label><div class="crc-chips">%9$s</div></fieldset>%13$s%17$s<div class="crc-filters-buttons"><button type="submit" class="elementor-button crc-filters-submit">%14$s</button><div class="crc-filters-clear custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%15$s">%16$s</a></div></div></div></form>',
+			'<form class="crc-filters crc-card crc-listing-price" id="%1$s" method="get" action="%2$s" aria-label="%3$s" data-crc-filters><div class="crc-filters-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="%1$s-body" data-crc-filters-toggle>%4$s<span class="crc-filters-toggle-text">%5$s</span>%6$s%7$s</div><div class="crc-filters-body" id="%1$s-body"><div class="crc-filters-head"><h6 class="crc-filters-title">%5$s</h6></div><div class="crc-filter"><label class="crc-filter-label" for="%1$s-location">%10$s</label><div class="crc-place">%11$s<ul class="crc-places" id="%1$s-places" role="listbox" aria-label="%12$s" hidden></ul></div></div><fieldset class="crc-filter crc-filter-looking" aria-labelledby="%1$s-category-label"><label class="crc-filter-label" id="%1$s-category-label">%8$s</label><div class="crc-checks">%9$s</div></fieldset>%13$s%17$s<div class="crc-filters-buttons"><button type="submit" class="elementor-button crc-filters-submit">%14$s</button><div class="crc-filters-clear custom-btn-1-lite"><a class="elementor-button elementor-button-link" href="%15$s">%16$s</a></div></div></div></form>',
 			esc_attr( $id ),
 			esc_url( Listing_Archive::base_url() ),
 			esc_attr__( 'Filter listings', 'crc-real-estate' ),

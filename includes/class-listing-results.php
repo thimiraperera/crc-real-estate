@@ -45,7 +45,7 @@ final class Listing_Results {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search results', 'crc-real-estate' ),
-				'description' => __( 'The listings that match the search: the same cards as the listing carousel, how many listings were found, a Sort by choice (newest, price, most viewed, and for land the price per perch and the largest land) and numbered pages. Put it in your archive templates for All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive: on each it shows that archive\'s listings, following the search in the address. How many show on a page is set on Listings → Widgets → Search.', 'crc-real-estate' ),
+				'description' => __( 'The listings that match the search: the same cards as the listing carousel, how many listings were found, a Sort by choice (newest, price, most viewed, and for land the price per perch and the largest land) in the same dropdown as the filters, and numbered pages. Put it in your archive templates for All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive: on each it shows that archive\'s listings, following the search in the address. How many show on a page is set on Listings → Widgets → Search.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'columns' => array(
 						'default'     => '3',
@@ -216,7 +216,9 @@ final class Listing_Results {
 	}
 
 	/**
-	 * The Sort by choice. It keeps the other filters and goes back to the first page.
+	 * The Sort by choice, in the same dropdown as the filters, its list
+	 * opening over the listings. It keeps the other filters and goes back
+	 * to the first page.
 	 *
 	 * @param string $id      Results ID.
 	 * @param array  $filters Filters.
@@ -224,18 +226,22 @@ final class Listing_Results {
 	 */
 	private static function sort_form( $id, array $filters ) {
 		$hidden = '';
+		$sorts  = Listing_Query::sorts( $filters['category'] );
+		$shown  = isset( $sorts[ $filters['sort'] ] ) ? $sorts[ $filters['sort'] ] : (string) reset( $sorts );
 
 		foreach ( Listing_Query::params( $filters, array( 'sort', 'page' ) ) as $name => $value ) {
 			$hidden .= sprintf( '<input type="hidden" name="%1$s" value="%2$s">', esc_attr( $name ), esc_attr( $value ) );
 		}
 
 		return sprintf(
-			'<form class="crc-results-sort" method="get" action="%1$s" data-crc-sort>%2$s<label class="crc-results-sort-label" for="%3$s-sort">%4$s</label><select class="crc-results-sort-select" id="%3$s-sort" name="sort">%5$s</select><noscript><button type="submit" class="crc-results-sort-button">%6$s</button></noscript></form>',
+			'<form class="crc-results-sort" method="get" action="%1$s" data-crc-sort>%2$s<label class="crc-results-sort-label" id="%3$s-sort-label" for="%3$s-sort">%4$s</label><div class="crc-dropdown crc-filter-dropdown" data-crc-dropdown><div class="crc-filter-dropdown-button" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false" aria-controls="%3$s-sort-list" aria-labelledby="%3$s-sort-label %3$s-sort-text" data-crc-toggle><span class="crc-filter-dropdown-text" id="%3$s-sort-text" data-crc-dropdown-text>%5$s</span>%6$s</div><ul class="crc-dropdown-list" id="%3$s-sort-list" role="listbox" tabindex="-1" aria-labelledby="%3$s-sort-label" hidden data-crc-list></ul><select class="crc-filter-select crc-results-sort-select" id="%3$s-sort" name="sort">%7$s</select></div><noscript><button type="submit" class="crc-results-sort-button">%8$s</button></noscript></form>',
 			esc_url( Listing_Archive::base_url() ),
 			$hidden, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
 			esc_attr( $id ),
 			esc_html__( 'Sort by', 'crc-real-estate' ),
-			Listing_Search::options( Listing_Query::sorts( $filters['category'] ), $filters['sort'] ),
+			esc_html( $shown ),
+			Icons::svg( 'chevron-down', 'crc-filter-dropdown-icon' ),
+			Listing_Search::options( $sorts, $filters['sort'] ),
 			esc_html__( 'Sort', 'crc-real-estate' )
 		);
 	}
