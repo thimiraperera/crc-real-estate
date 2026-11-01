@@ -14,8 +14,9 @@ defined( 'ABSPATH' ) || exit;
  * above the results, in the same white card as the price box on listing
  * pages, staying in view while the listings scroll. The place or keywords,
  * with the same suggestions as the search box, at the top; what people are
- * looking for (a category, or every listing) as tick boxes, one at a time; and
- * the chosen category's own choices:
+ * looking for (every listing, or as many categories as people like) as tick
+ * boxes; and the chosen category's own choices (with several, those for
+ * every listing):
  *
  * - land: the price (two boxes and a slider), the price per perch, the land
  *   size and the property type;
@@ -62,7 +63,7 @@ final class Listing_Filters {
 			array( $this, 'render' ),
 			array(
 				'title'       => __( 'Search filters', 'crc-real-estate' ),
-				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People type the place or keywords at the top, with the same suggestions as the search box, and tick what they are looking for (a category, or every listing; one at a time), then the category\'s own choices. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features in tick boxes (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made, and Clear All takes them off. On phones the filters fold away behind a Filters bar. The boxes and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles. The dropdowns are soft grey boxes that turn white while open, with a list that falls open under them and slim scrollbars; the tick boxes are in your main colour.', 'crc-real-estate' ),
+				'description' => __( 'The filters for your archive templates (All Listings Archive, All Listing Categories Archive, All Districts Archive and All Towns Archive), beside or above the results, in the same white card as the price box. Beside the results they stay in view while the listings scroll. People type the place or keywords at the top, with the same suggestions as the search box, and tick what they are looking for (every listing, or as many categories as they like), then the category\'s own choices; with several categories ticked, the choices for every listing show. Land has the price, with two boxes and a slider, the price per perch and the land size; homes have the price or rent per month, with two boxes and a slider, and bedrooms, bathrooms and furnishing, each a box with − and +; every category has the property type. Under More filters, a bar that slides open, people can tick features in tick boxes (such as a clear deed, a garden or close to schools) and choose a price that can be negotiated, a bank loan for homes for sale or bills included for rentals, the floor area and parking for homes, the road type and width, water and electricity, the availability, who listed it and how recently. It opens by itself when some of them are chosen, and the bar shows how many. Show Listings opens the category\'s archive with the choices made (for several categories, the page of every listing with ?category=lands,properties-for-sale), and Clear All takes them off. On phones the filters fold away behind a Filters bar. The boxes and labels take your form styles from Elementor\'s Site Settings, and the buttons your button styles. The dropdowns are soft grey boxes that turn white while open, with a list that falls open under them and slim scrollbars; the tick boxes are in your main colour.', 'crc-real-estate' ),
 				'attributes'  => array(
 					'categories' => array(
 						'default'     => 'lands,properties-for-rent,properties-for-sale',
@@ -359,11 +360,8 @@ final class Listing_Filters {
 
 	/**
 	 * One tick box and its words: a choice of Looking for, or a feature or
-	 * term in More filters. Looking for chooses one category at a time, as
-	 * each has filters of its own, so its choices are radio buttons that
-	 * look like tick boxes.
+	 * term in More filters.
 	 *
-	 * @param string $type  "checkbox" or "radio".
 	 * @param string $name  Field name.
 	 * @param string $value Field value.
 	 * @param string $label Words beside it.
@@ -371,10 +369,9 @@ final class Listing_Filters {
 	 * @param string $url   For Looking for: the category's archive.
 	 * @return string
 	 */
-	private static function check( $type, $name, $value, $label, $on, $url = '' ) {
+	private static function check( $name, $value, $label, $on, $url = '' ) {
 		return sprintf(
-			'<label class="crc-check"><input type="%1$s" class="crc-check-input" name="%2$s" value="%3$s"%4$s%5$s><span class="crc-check-box">%6$s</span><span class="crc-check-text">%7$s</span></label>',
-			'radio' === $type ? 'radio' : 'checkbox',
+			'<label class="crc-check"><input type="checkbox" class="crc-check-input" name="%1$s" value="%2$s"%3$s%4$s><span class="crc-check-box">%5$s</span><span class="crc-check-text">%6$s</span></label>',
 			esc_attr( $name ),
 			esc_attr( $value ),
 			'' !== $url ? ' data-url="' . esc_url( $url ) . '"' : '',
@@ -399,7 +396,7 @@ final class Listing_Filters {
 		$html = '';
 
 		foreach ( $checks as $check ) {
-			$html .= self::check( 'checkbox', $check['name'], $check['value'], $check['label'], $check['on'] );
+			$html .= self::check( $check['name'], $check['value'], $check['label'], $check['on'] );
 		}
 
 		return sprintf(
@@ -549,15 +546,17 @@ final class Listing_Filters {
 
 		$id      = 'crc-filters-' . ( ++self::$count );
 		$filters = Listing_Archive::filters();
-		$all     = '' === $filters['category'] || ! in_array( $filters['category'], wp_list_pluck( $terms, 'slug' ), true );
-		$choices = self::check( 'radio', 'category', '', __( 'All listings', 'crc-real-estate' ), $all, Listing_Archive::page_url() );
+		$ticked  = array_intersect( '' !== $filters['categories'] ? explode( ',', $filters['categories'] ) : array(), wp_list_pluck( $terms, 'slug' ) );
+		// Looking for: All listings, or as many categories as people like. With
+		// one, its own filters show; with none or several, those for every listing.
+		$choices = self::check( 'category[]', '', __( 'All listings', 'crc-real-estate' ), ! $ticked, Listing_Archive::page_url() );
 		$fields  = self::fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] );
 		$show    = '' !== trim( $atts['more'] );
 		$more    = $show ? self::more_fields( $id, '', '' === $filters['category'] ? $filters : Listing_Query::blank(), '' === $filters['category'] ) : '';
 
 		foreach ( $terms as $term ) {
 			$on       = $term->slug === $filters['category'];
-			$choices .= self::check( 'radio', 'category', $term->slug, $term->name, $on, Listing_Archive::category_url( $term->slug ) );
+			$choices .= self::check( 'category[]', $term->slug, $term->name, in_array( $term->slug, $ticked, true ), Listing_Archive::category_url( $term->slug ) );
 			$fields  .= self::fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on );
 			$more    .= $show ? self::more_fields( $id, $term->slug, $on ? $filters : Listing_Query::blank(), $on ) : '';
 		}

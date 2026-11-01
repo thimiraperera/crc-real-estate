@@ -2153,7 +2153,7 @@
 	grid-column: 1 / -1;
 }
 
-/* Tick boxes in the site's main colour: Looking for (one ticked at a time), and the features and terms
+/* Tick boxes in the site's main colour: Looking for (every listing, or any of the categories), and the features and terms
    in More filters. The lighter shades are the main colour mixed with the white of the card. A list,
    in columns where there is room. */
 .crc-filters .crc-checks {

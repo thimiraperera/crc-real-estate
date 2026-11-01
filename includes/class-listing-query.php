@@ -36,7 +36,10 @@ final class Listing_Query {
 	/**
 	 * Every filter, empty.
 	 *
-	 * - category:      category slug.
+	 * - category:      category slug, when one category is chosen: its own filters apply.
+	 * - categories:    the categories chosen, as slugs separated by commas, e.g.
+	 *                  "lands,properties-for-sale". With several, category is empty
+	 *                  and the filters for every listing apply.
 	 * - location:      place as typed: a town, a district or a Colombo zone.
 	 * - district:      district slug, on a district's page such as /district/galle/.
 	 * - town:          town slug, on a town's page such as /town/hikkaduwa/.
@@ -73,6 +76,7 @@ final class Listing_Query {
 	public static function blank() {
 		return array(
 			'category'      => '',
+			'categories'    => '',
 			'location'      => '',
 			'district'      => '',
 			'town'          => '',
@@ -541,9 +545,14 @@ final class Listing_Query {
 		$get     = wp_unslash( $get );
 		$filters = self::blank();
 
-		$category = array_key_exists( 'category', $get ) ? sanitize_title( self::text( $get, 'category' ) ) : ( isset( $context['category'] ) ? (string) $context['category'] : '' );
+		// The page's own category (/listings/lands/), or ?category=lands,properties-for-sale
+		// (category[]=… from the filters without their script), in the categories' own
+		// order, so the same ticks always make the same address.
+		$asked  = array_key_exists( 'category', $get ) ? self::slugs( $get['category'] ) : ( isset( $context['category'] ) ? array( (string) $context['category'] ) : array() );
+		$chosen = array_values( array_intersect( array_keys( Taxonomy::terms() ), $asked ) );
 
-		$filters['category'] = isset( Taxonomy::terms()[ $category ] ) ? $category : '';
+		$filters['category']   = 1 === count( $chosen ) ? $chosen[0] : '';
+		$filters['categories'] = implode( ',', $chosen );
 		$filters['district'] = isset( $context['district'] ) && isset( District::districts()[ $context['district'] ] ) ? (string) $context['district'] : '';
 		$filters['town']     = isset( $context['town'] ) ? sanitize_title( (string) $context['town'] ) : '';
 		$filters['location'] = self::text( $get, 'location', 60 );
@@ -633,6 +642,33 @@ final class Listing_Query {
 	}
 
 	/**
+	 * Category slugs in an address value: a list separated by commas, or the
+	 * ticks of the filters without their script (category[]=…).
+	 *
+	 * @param mixed $value Address value.
+	 * @return string[]
+	 */
+	private static function slugs( $value ) {
+		if ( is_array( $value ) ) {
+			$names = array_slice( $value, 0, 20 );
+		} elseif ( is_scalar( $value ) ) {
+			$names = explode( ',', substr( (string) $value, 0, 500 ) );
+		} else {
+			$names = array();
+		}
+
+		$slugs = array();
+
+		foreach ( $names as $name ) {
+			if ( is_scalar( $name ) && '' !== trim( (string) $name ) ) {
+				$slugs[] = sanitize_title( (string) $name );
+			}
+		}
+
+		return $slugs;
+	}
+
+	/**
 	 * The ready-made features asked for that fit the category, in the order
 	 * of their groups, so the same ticks always make the same address:
 	 * "clear_deed,garden". They come as features=clear_deed,garden, or as
@@ -665,8 +701,9 @@ final class Listing_Query {
 	}
 
 	/**
-	 * The address values for filters, without empty ones: the category is
-	 * left out, as it is in the address itself (/listings/lands/).
+	 * The address values for filters, without empty ones: one category is
+	 * left out, as it is in the address itself (/listings/lands/); several
+	 * go first, as category=lands,properties-for-sale.
 	 *
 	 * @param array    $filters Filters, as blank().
 	 * @param string[] $skip    Filter names to leave out.
@@ -675,6 +712,10 @@ final class Listing_Query {
 	public static function params( array $filters, array $skip = array() ) {
 		$params = array();
 		$blank  = self::blank();
+
+		if ( ! in_array( 'category', $skip, true ) && empty( $filters['category'] ) && ! empty( $filters['categories'] ) ) {
+			$params['category'] = (string) $filters['categories'];
+		}
 
 		foreach ( array_merge( array( 'location', 'type', 'price_min', 'price_max', 'per_perch_max', 'size_min', 'size_max', 'beds', 'beds_max', 'baths', 'furnishing' ), self::MORE, array( 'sort', 'page' ) ) as $key ) {
 			if ( in_array( $key, $skip, true ) || ! isset( $filters[ $key ] ) || $blank[ $key ] === $filters[ $key ] || '' === (string) $filters[ $key ] ) {
@@ -775,8 +816,18 @@ final class Listing_Query {
 		$tax     = array();
 		$meta    = array();
 
+		// The categories chosen: listings in any of them.
+		$categories = '' !== (string) $filters['categories'] ? explode( ',', (string) $filters['categories'] ) : array_filter( array( (string) $filters['category'] ) );
+
+		if ( $categories ) {
+			$tax[] = array(
+				'taxonomy' => Taxonomy::NAME,
+				'field'    => 'slug',
+				'terms'    => array_values( $categories ),
+			);
+		}
+
 		foreach ( array(
-			'category' => Taxonomy::NAME,
 			'district' => District::NAME,
 			'town'     => Town::NAME,
 		) as $key => $taxonomy ) {

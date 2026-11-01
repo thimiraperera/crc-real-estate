@@ -49,6 +49,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.50.0 =
+* Search filters: Looking for can have several categories ticked at once, such as Lands and Properties for Sale. One ticked opens that category's page with its own filters, as before. Several open the page of every listing with them in the address (?category=lands,properties-for-sale) and the filters for every listing, as price per perch, bedrooms and the like only fit one category. All listings unticks the categories, and unticking the last one ticks All listings again.
+* Sort by, the numbered pages and the results' heading ("Lands and Properties for Sale") keep the categories ticked. Without the filters' script, the ticks still work.
+
 = 0.49.0 =
 * Search filters: Looking for is a list of tick boxes instead of rounded buttons. The box turns the site's green with a white tick when ticked. One category is ticked at a time, as each has filters of its own.
 * More filters: the price and terms and the features (such as Legal and documents, Land features and Nearby) are tick boxes too, as many as people like, in columns where there is room.

@@ -388,6 +388,10 @@ final class Listing_Archive {
 			}
 		}
 
+		if ( isset( $context['category'] ) ) {
+			$own['categories'] = '';
+		}
+
 		foreach ( Listing_Query::args( $own, self::per_page() ) as $key => $value ) {
 			if ( 'paged' !== $key ) {
 				$query->set( $key, $value );
@@ -488,7 +492,8 @@ final class Listing_Archive {
 
 	/**
 	 * A search with ?category=… on it (from a browser without scripts) goes
-	 * to that category's own archive with the same filters.
+	 * to that category's own archive with the same filters. Several
+	 * categories are searched here, on the page of every listing.
 	 */
 	public function redirect_category() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- A search, read only.
@@ -496,7 +501,13 @@ final class Listing_Archive {
 			return;
 		}
 
-		wp_safe_redirect( self::search_url( self::filters() ), 302 );
+		$filters = self::filters();
+
+		if ( '' === $filters['category'] && '' !== $filters['categories'] ) {
+			return;
+		}
+
+		wp_safe_redirect( self::search_url( $filters ), 302 );
 		exit;
 	}
 
@@ -532,20 +543,27 @@ final class Listing_Archive {
 
 	/**
 	 * A heading for the results: "Land to buy in Galle", "Listings in
-	 * Galle", "Land to buy", or the given text when nothing is chosen.
+	 * Galle", "Land to buy", "Lands and Properties for Sale" for several
+	 * categories, or the given text when nothing is chosen.
 	 *
 	 * @param array  $filters Filters, see Listing_Query::blank().
 	 * @param string $all     Text when nothing is chosen.
 	 * @return string
 	 */
 	public static function heading( array $filters, $all = '' ) {
-		$name  = '';
+		$names = array();
 		$place = self::place_name( $filters );
+		$slugs = ! empty( $filters['categories'] ) ? explode( ',', (string) $filters['categories'] ) : array_filter( array( (string) $filters['category'] ) );
 
-		if ( '' !== $filters['category'] ) {
-			$term = get_term_by( 'slug', $filters['category'], Taxonomy::NAME );
-			$name = ( $term && ! is_wp_error( $term ) ) ? (string) $term->name : '';
+		foreach ( $slugs as $slug ) {
+			$term = get_term_by( 'slug', $slug, Taxonomy::NAME );
+
+			if ( $term && ! is_wp_error( $term ) ) {
+				$names[] = (string) $term->name;
+			}
 		}
+
+		$name = $names ? wp_sprintf_l( '%l', $names ) : '';
 
 		if ( '' === $name ) {
 			$name = '' !== $place || '' !== $filters['location'] ? __( 'Listings', 'crc-real-estate' ) : (string) $all;
