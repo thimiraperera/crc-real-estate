@@ -49,6 +49,10 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.54.0 =
+* Form emails: in the website's own fonts and colours from Elementor's Site Settings, the same ones the website's styles use: the main colour, the dark and body text colours, the soft grey around the card and white. Email apps that can (such as Apple Mail) load the fonts from Google Fonts; the rest use safe fonts. Nothing is in capitals only any more.
+* The button says what it opens, View the ad (and photos), View the message or View the inquiry, and the emails talk about your website's dashboard instead of wp-admin. On phones, each detail's name sits above it.
+
 = 0.53.0 =
 * Listings → Settings has an Emails tab, between General and Updates. Each form has its own list of addresses, Listing inquiries, Contact messages and Free ads, so each can go to different people; put commas between addresses for more than one. Until the tab is first saved, all three use the list they shared before, and an empty list uses the site's admin email. The shared "Send form emails to" box is gone from General.
 * The emails have a new look: your logo at the top (chosen on the Emails tab from the Media Library, or else the site's own logo, or else the business name), then a white card with a line in the site's main colour from Elementor's Site Settings, what came and from whom, the details in rows, an Open in wp-admin button, how to answer, and the business name and address at the bottom with a line saying why the email came. A plain text copy goes with each one.

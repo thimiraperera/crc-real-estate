@@ -89,7 +89,8 @@ final class Contact_Messages extends Submissions {
 			'intro_html' => sprintf( esc_html( $intro ), esc_html( $first ) ),
 			'intro_text' => sprintf( $intro, $first ),
 			'rows'       => array_merge( $rows, self::end_rows( $message ) ),
-			'kept'       => __( 'This message is also kept in wp-admin under Contact Messages.', 'crc-real-estate' ),
+			'button'     => __( 'View the message', 'crc-real-estate' ),
+			'kept'       => __( 'The message is also saved on your website\'s dashboard, under Contact Messages.', 'crc-real-estate' ),
 		);
 	}
 

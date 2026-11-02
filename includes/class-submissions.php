@@ -52,8 +52,9 @@ abstract class Submissions {
 	 * @param array $item    Checked details: the keys of META except "mailed".
 	 * @param int   $post_id Kept item's ID, or 0 when it wasn't kept.
 	 * @return array 'subject', 'label' (what it is), 'heading', 'intro_html',
-	 *               'intro_text', 'rows' (each array( label, HTML, plain text ))
-	 *               and 'kept' (where it is kept in wp-admin).
+	 *               'intro_text', 'rows' (each array( label, HTML, plain text )),
+	 *               'button' (the words on the button that opens it on the
+	 *               dashboard) and 'kept' (where it is kept there).
 	 */
 	abstract public static function email( array $item, $post_id = 0 );
 
@@ -345,8 +346,8 @@ abstract class Submissions {
 
 	/**
 	 * The email about it in the plugin's look (see Mail): what it is, the
-	 * details, a button to open it in wp-admin, how to answer, and why the
-	 * email came.
+	 * details, a button to see it on the website's dashboard, how to answer,
+	 * and why the email came.
 	 *
 	 * @param array $item    Details.
 	 * @param int   $post_id Kept item's ID, or 0.
@@ -369,11 +370,11 @@ abstract class Submissions {
 			'intro'      => $email['intro_html'],
 			'intro_text' => $email['intro_text'],
 			'rows'       => $email['rows'],
-			'button'     => array( static::admin_link( $post_id ), __( 'Open in wp-admin', 'crc-real-estate' ) ),
+			'button'     => array( static::admin_link( $post_id ), $email['button'] ),
 			'note'       => $reply . ' ' . $email['kept'],
 			'footer'     => isset( $forms[ static::MAIL_LIST ] )
 				/* translators: %s: the form's list, e.g. "Free ads". */
-				? sprintf( __( 'This email came because your address is on the list for %s, on the Emails tab of Listings → Settings.', 'crc-real-estate' ), $forms[ static::MAIL_LIST ] )
+				? sprintf( __( 'You\'re getting this because your address is on the %s list in your website\'s settings.', 'crc-real-estate' ), $forms[ static::MAIL_LIST ] )
 				: '',
 		);
 	}

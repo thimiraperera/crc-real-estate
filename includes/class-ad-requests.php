@@ -201,7 +201,7 @@ final class Ad_Requests extends Submissions {
 
 		$count  = $photos
 			/* translators: %s: number of photos. */
-			? sprintf( _n( '%s photo, to see and download on the ad in wp-admin, under Free Ads', '%s photos, to see and download on the ad in wp-admin, under Free Ads', $photos, 'crc-real-estate' ), number_format_i18n( $photos ) )
+			? sprintf( _n( '%s photo, to see and download with the ad on your website\'s dashboard', '%s photos, to see and download with the ad on your website\'s dashboard', $photos, 'crc-real-estate' ), number_format_i18n( $photos ) )
 			: __( 'None sent', 'crc-real-estate' );
 		$rows[] = array( __( 'Photos', 'crc-real-estate' ), esc_html( $count ), $count );
 
@@ -213,7 +213,8 @@ final class Ad_Requests extends Submissions {
 			'intro_html' => sprintf( esc_html( $intro ), esc_html( $who ) ),
 			'intro_text' => sprintf( $intro, $who ),
 			'rows'       => array_merge( $rows, self::end_rows( $ad ) ),
-			'kept'       => __( 'This ad is also kept in wp-admin under Free Ads.', 'crc-real-estate' ),
+			'button'     => $photos ? __( 'View the ad and photos', 'crc-real-estate' ) : __( 'View the ad', 'crc-real-estate' ),
+			'kept'       => __( 'The ad is also saved on your website\'s dashboard, under Free Ads.', 'crc-real-estate' ),
 		);
 	}
 

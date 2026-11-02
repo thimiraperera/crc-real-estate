@@ -228,7 +228,7 @@ final class Settings_Page {
 			'crc_re_emails_look',
 			__( 'How they look', 'crc-real-estate' ),
 			function () {
-				echo '<p>' . esc_html__( 'Your logo at the top, then a white card with a line in your site\'s main colour: what came and from whom, the details, a button to open it in wp-admin, and your business name and address from the business details at the bottom.', 'crc-real-estate' ) . '</p>';
+				echo '<p>' . esc_html__( 'In your website\'s own fonts and colours, from Elementor\'s Site Settings: your logo at the top, then a card with a line in your main colour, what came and from whom, the details, a button to see it on your dashboard, and your business name and address from the business details at the bottom.', 'crc-real-estate' ) . '</p>';
 			},
 			self::EMAILS_PAGE
 		);

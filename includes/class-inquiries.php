@@ -130,7 +130,8 @@ final class Inquiries extends Submissions {
 			'intro_html' => sprintf( esc_html( $intro ), esc_html( $first ), $listing ? self::link( get_permalink( $listing ), $title ) : '' ),
 			'intro_text' => sprintf( $intro, $first, $title ),
 			'rows'       => self::rows( $inquiry, $listing ),
-			'kept'       => __( 'This inquiry is also kept in wp-admin under Inquiries.', 'crc-real-estate' ),
+			'button'     => __( 'View the inquiry', 'crc-real-estate' ),
+			'kept'       => __( 'The inquiry is also saved on your website\'s dashboard, under Inquiries.', 'crc-real-estate' ),
 		);
 	}
 
