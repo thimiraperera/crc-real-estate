@@ -393,7 +393,9 @@ final class Mail {
 	}
 
 	/**
-	 * Sends an email: the HTML, with the plain text copy beside it.
+	 * Sends an email: the HTML, with the plain text copy beside it. The
+	 * first address gets it; any others get a blind copy (Bcc), so their
+	 * addresses aren't shown to anyone.
 	 *
 	 * @param string[] $to      Addresses.
 	 * @param string   $subject Subject.
@@ -402,13 +404,26 @@ final class Mail {
 	 * @return bool Whether it was handed over for sending.
 	 */
 	public static function send( array $to, $subject, array $email, array $headers = array() ) {
+		$to = array_values( array_filter( array_map( 'trim', $to ), 'strlen' ) );
+
+		if ( ! $to ) {
+			return false;
+		}
+
+		$first   = array_shift( $to );
+		$headers = array_merge( array( 'Content-Type: text/html; charset=UTF-8' ), $headers );
+
+		foreach ( $to as $address ) {
+			$headers[] = 'Bcc: ' . $address;
+		}
+
 		$text  = self::text( $email );
 		$plain = function ( $phpmailer ) use ( $text ) {
 			$phpmailer->AltBody = $text; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer's property.
 		};
 
 		add_action( 'phpmailer_init', $plain );
-		$sent = wp_mail( $to, $subject, self::html( $email ), array_merge( array( 'Content-Type: text/html; charset=UTF-8' ), $headers ) );
+		$sent = wp_mail( $first, $subject, self::html( $email ), $headers );
 		remove_action( 'phpmailer_init', $plain );
 
 		return (bool) $sent;

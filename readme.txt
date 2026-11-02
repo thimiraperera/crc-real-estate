@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.54.2 =
+* Form emails to more than one address: the first address on a form's list gets the email, and the others get a blind copy (Bcc), so their addresses aren't shown to anyone. Before, every address was shown to all of them. The Emails tab says so under each list.
+
 = 0.54.1 =
 * Form emails: the card's top corners are square, so the line in the main colour runs straight across; only the bottom corners are rounded.
 

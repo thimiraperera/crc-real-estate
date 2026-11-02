@@ -259,7 +259,7 @@ final class Settings_Page {
 				esc_attr( (string) Settings::emails( $args['key'] ) ),
 				esc_attr( $admin ),
 				/* translators: 1: which form it is, 2: the site's admin email address. */
-				esc_html( sprintf( __( '%1$s To send to more than one person, put commas between the addresses. Leave it empty to use the site\'s admin email (%2$s).', 'crc-real-estate' ), isset( $about[ $args['key'] ] ) ? $about[ $args['key'] ] : '', $admin ) )
+				esc_html( sprintf( __( '%1$s To send to more than one person (up to 10), put commas between the addresses: the first one gets the email, and the others get a blind copy (Bcc), so their addresses aren\'t shown to anyone. Leave it empty to use the site\'s admin email (%2$s).', 'crc-real-estate' ), isset( $about[ $args['key'] ] ) ? $about[ $args['key'] ] : '', $admin ) )
 			);
 
 			return;
