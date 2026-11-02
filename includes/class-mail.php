@@ -339,7 +339,7 @@ final class Mail {
 			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:' . $c['background'] . ';"><tr><td align="center" style="padding:32px 12px;">'
 			. '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">'
 			. '<tr><td style="padding:0 8px 20px;">' . $top . '</td></tr>'
-			. '<tr><td class="crc-mail-card" style="background:' . $c['card'] . ';border:1px solid ' . $c['line'] . ';border-top:4px solid ' . $c['brand'] . ';border-radius:16px;padding:32px 28px;">'
+			. '<tr><td class="crc-mail-card" style="background:' . $c['card'] . ';border:1px solid ' . $c['line'] . ';border-top:4px solid ' . $c['brand'] . ';border-radius:0 0 16px 16px;padding:32px 28px;">'
 			. ( '' !== $email['label'] ? '<p style="margin:0 0 6px;' . $text . 'font-size:15px;line-height:22px;font-weight:600;color:' . $c['brand'] . ';">' . esc_html( $email['label'] ) . '</p>' : '' )
 			. ( '' !== $email['heading'] ? '<h1 style="margin:0 0 12px;' . $heading . 'font-size:24px;line-height:32px;font-weight:' . esc_attr( $fonts['weight'] ) . ';color:' . $c['heading'] . ';">' . esc_html( $email['heading'] ) . '</h1>' : '' )
 			. ( '' !== $email['intro'] ? '<p style="margin:0 0 20px;' . $text . 'font-size:16px;line-height:26px;color:' . $c['text'] . ';">' . $email['intro'] . '</p>' : '' )

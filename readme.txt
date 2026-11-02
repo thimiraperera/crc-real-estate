@@ -49,6 +49,9 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.54.1 =
+* Form emails: the card's top corners are square, so the line in the main colour runs straight across; only the bottom corners are rounded.
+
 = 0.54.0 =
 * Form emails: in the website's own fonts and colours from Elementor's Site Settings, the same ones the website's styles use: the main colour, the dark and body text colours, the soft grey around the card and white. Email apps that can (such as Apple Mail) load the fonts from Google Fonts; the rest use safe fonts. Nothing is in capitals only any more.
 * The button says what it opens, View the ad (and photos), View the message or View the inquiry, and the emails talk about your website's dashboard instead of wp-admin. On phones, each detail's name sits above it.
