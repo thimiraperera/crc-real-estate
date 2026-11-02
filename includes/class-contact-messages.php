@@ -16,8 +16,9 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Contact_Messages extends Submissions {
 
-	const NAME     = 'crc_contact_message';
-	const NEW_META = '_crc_contact_new';
+	const NAME      = 'crc_contact_message';
+	const NEW_META  = '_crc_contact_new';
+	const MAIL_LIST = 'contact';
 
 	/**
 	 * Details kept with each message: key => field name. Only older messages
@@ -67,30 +68,47 @@ final class Contact_Messages extends Submissions {
 	}
 
 	/**
-	 * Emails a message to the addresses in Settings. Replying answers the
-	 * person who wrote.
+	 * What the email about a message says.
 	 *
 	 * @param array $message Checked message: the keys of META except "mailed" and "subject".
-	 * @param int   $post_id Kept message's ID, for a link to it; 0 when it wasn't kept.
-	 * @return bool Whether the email was handed over for sending.
+	 * @param int   $post_id Kept message's ID; 0 when it wasn't kept.
+	 * @return array See Submissions::email().
 	 */
-	public static function mail( array $message, $post_id = 0 ) {
-		$first   = self::greeting( $message );
-		/* translators: %s: the name of the person who wrote. */
-		$subject = sprintf( __( 'New message: %s', 'crc-real-estate' ), self::name( $message ) );
+	public static function email( array $message, $post_id = 0 ) {
+		$first = self::greeting( $message );
 		/* translators: %s: first name. */
 		$intro  = __( '%s sent a message from your website.', 'crc-real-estate' );
 		$rows   = self::person_rows( $message );
 		$rows[] = self::text_row( __( 'Message', 'crc-real-estate' ), $message['message'], __( 'No message.', 'crc-real-estate' ) );
 
-		return self::send(
-			$subject,
-			sprintf( esc_html( $intro ), esc_html( $first ) ),
-			sprintf( $intro, $first ),
-			array_merge( $rows, self::end_rows( $message ) ),
-			$message,
-			$post_id,
-			__( 'This message is also kept in wp-admin under Contact Messages.', 'crc-real-estate' )
+		return array(
+			/* translators: %s: the name of the person who wrote. */
+			'subject'    => sprintf( __( 'New message: %s', 'crc-real-estate' ), self::name( $message ) ),
+			'label'      => __( 'New message', 'crc-real-estate' ),
+			'heading'    => self::name( $message ),
+			'intro_html' => sprintf( esc_html( $intro ), esc_html( $first ) ),
+			'intro_text' => sprintf( $intro, $first ),
+			'rows'       => array_merge( $rows, self::end_rows( $message ) ),
+			'kept'       => __( 'This message is also kept in wp-admin under Contact Messages.', 'crc-real-estate' ),
+		);
+	}
+
+	/**
+	 * A made-up message, to see and test its email.
+	 *
+	 * @return array
+	 */
+	public static function sample() {
+		return array(
+			'first_name' => 'Nimal',
+			'last_name'  => 'Perera',
+			'phone'      => '+94771234567',
+			'country'    => 'LK',
+			'email'      => 'nimal.perera@example.com',
+			'subject'    => '',
+			'message'    => __( 'I\'d like to sell my land in Galle. Could you call me after 5 pm?', 'crc-real-estate' ),
+			'page'       => home_url( '/' ),
+			'note'       => '',
 		);
 	}
 }

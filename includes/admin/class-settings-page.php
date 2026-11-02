@@ -8,7 +8,11 @@
 namespace CRC\RealEstate\Admin;
 
 use CRC\RealEstate\Ad_Photos;
+use CRC\RealEstate\Ad_Requests;
+use CRC\RealEstate\Contact_Messages;
+use CRC\RealEstate\Inquiries;
 use CRC\RealEstate\Legal;
+use CRC\RealEstate\Mail;
 use CRC\RealEstate\Post_Type;
 use CRC\RealEstate\Sections\Inquiry;
 use CRC\RealEstate\Settings;
@@ -17,20 +21,25 @@ use CRC\RealEstate\Updater;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Listings → Settings, on three tabs. General: the default phone and WhatsApp
- * numbers and button texts, the map, the inquiry form, the photos sent with
- * the post a free ad form, deleting listings and the business details for
- * the legal pages. Updates: the installed and
+ * Listings → Settings, on four tabs. General: the default phone and WhatsApp
+ * numbers and button texts, the map, the forms' spam protection, the photos
+ * sent with the post a free ad form, deleting listings and the business
+ * details for the legal pages. Emails: who gets each form's emails, the
+ * emails' logo, and a look at them or a test. Updates: the installed and
  * latest versions, with Check for updates. Developer options: whether
- * wp-admin shows the shortcodes. General and Developer options each save on
- * their own.
+ * wp-admin shows the shortcodes. General, Emails and Developer options each
+ * save on their own.
  */
 final class Settings_Page {
 
 	const SLUG            = 'crc-real-estate-settings';
 	const GROUP           = 'crc_re_settings';
+	const EMAILS_PAGE     = 'crc-real-estate-settings-emails';
+	const EMAILS_GROUP    = 'crc_re_settings_emails';
 	const DEVELOPER_PAGE  = 'crc-real-estate-settings-developer';
 	const DEVELOPER_GROUP = 'crc_re_settings_developer';
+	const PREVIEW         = 'crc_re_email_preview';
+	const TEST            = 'crc_re_email_test';
 
 	/**
 	 * Registers hooks.
@@ -40,6 +49,8 @@ final class Settings_Page {
 		add_action( 'admin_menu', array( $this, 'menu' ), 20 );
 		add_action( 'admin_init', array( $this, 'register' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'assets' ) );
+		add_action( 'admin_post_' . self::PREVIEW, array( $this, 'preview' ) );
+		add_action( 'admin_post_' . self::TEST, array( $this, 'test' ) );
 		add_filter( 'plugin_action_links_' . CRC_RE_BASENAME, array( $this, 'action_links' ) );
 	}
 
@@ -82,6 +93,12 @@ final class Settings_Page {
 		wp_enqueue_style( 'crc-re-admin', CRC_RE_URL . 'assets/css/admin.css', array(), CRC_RE_VERSION );
 		add_thickbox();
 		wp_enqueue_script( 'plugin-install' );
+
+		// The Emails tab's logo is chosen from the Media Library.
+		if ( 'emails' === $this->tab() ) {
+			wp_enqueue_media();
+			wp_enqueue_script( 'crc-re-admin-email-logo', CRC_RE_URL . 'assets/js/admin-email-logo.js', array( 'jquery' ), CRC_RE_VERSION, true );
+		}
 	}
 
 	/**
@@ -165,7 +182,225 @@ final class Settings_Page {
 		$this->register_photos();
 		$this->register_cleanup();
 		$this->register_business();
+		$this->register_emails();
 		$this->register_developer();
+	}
+
+	/**
+	 * Registers the email settings: who gets each form's emails, and the
+	 * logo. They have their own group, so saving them never touches the
+	 * General tab.
+	 */
+	private function register_emails() {
+		register_setting(
+			self::EMAILS_GROUP,
+			Settings::EMAILS_OPTION,
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( Settings::class, 'sanitize_emails' ),
+			)
+		);
+
+		add_settings_section(
+			'crc_re_emails_to',
+			__( 'Who gets the emails', 'crc-real-estate' ),
+			function () {
+				echo '<p>' . esc_html__( 'What people send with each form is emailed to its addresses below, and kept in wp-admin too. Replying to one of these emails answers the person who sent it, so you can write back straight away.', 'crc-real-estate' ) . '</p>';
+			},
+			self::EMAILS_PAGE
+		);
+
+		foreach ( Settings::mail_forms() as $form => $label ) {
+			add_settings_field(
+				'crc_re_emails_' . $form,
+				$label,
+				array( $this, 'emails_field' ),
+				self::EMAILS_PAGE,
+				'crc_re_emails_to',
+				array(
+					'label_for' => 'crc-emails-' . $form,
+					'key'       => $form,
+				)
+			);
+		}
+
+		add_settings_section(
+			'crc_re_emails_look',
+			__( 'How they look', 'crc-real-estate' ),
+			function () {
+				echo '<p>' . esc_html__( 'Your logo at the top, then a white card with a line in your site\'s main colour: what came and from whom, the details, a button to open it in wp-admin, and your business name and address from the business details at the bottom.', 'crc-real-estate' ) . '</p>';
+			},
+			self::EMAILS_PAGE
+		);
+
+		add_settings_field( 'crc_re_emails_logo', __( 'Logo', 'crc-real-estate' ), array( $this, 'emails_field' ), self::EMAILS_PAGE, 'crc_re_emails_look', array( 'key' => 'logo' ) );
+	}
+
+	/**
+	 * Prints an email setting: a form's addresses, or the logo.
+	 *
+	 * @param array $args Field details.
+	 */
+	public function emails_field( $args ) {
+		$name = Settings::EMAILS_OPTION;
+
+		if ( 'logo' !== $args['key'] ) {
+			$admin = (string) get_option( 'admin_email' );
+			$about = array(
+				'inquiry' => __( 'The "Send an inquiry" form on each listing.', 'crc-real-estate' ),
+				'contact' => __( 'The contact form, such as on your Contact Us page.', 'crc-real-estate' ),
+				'ad'      => __( 'The post a free ad form. The ad\'s photos stay in wp-admin, under Free Ads.', 'crc-real-estate' ),
+			);
+
+			printf(
+				'<input type="text" id="crc-emails-%1$s" name="%2$s[%1$s]" value="%3$s" class="large-text" placeholder="%4$s" autocomplete="off" spellcheck="false"><p class="description">%5$s</p>',
+				esc_attr( $args['key'] ),
+				esc_attr( $name ),
+				esc_attr( (string) Settings::emails( $args['key'] ) ),
+				esc_attr( $admin ),
+				/* translators: 1: which form it is, 2: the site's admin email address. */
+				esc_html( sprintf( __( '%1$s To send to more than one person, put commas between the addresses. Leave it empty to use the site\'s admin email (%2$s).', 'crc-real-estate' ), isset( $about[ $args['key'] ] ) ? $about[ $args['key'] ] : '', $admin ) )
+			);
+
+			return;
+		}
+
+		$id    = (int) Settings::emails( 'logo' );
+		$image = $id ? wp_get_attachment_image( $id, 'medium', false, array( 'alt' => '' ) ) : '';
+		$site  = (int) get_theme_mod( 'custom_logo' );
+		$empty = $site && wp_attachment_is_image( $site )
+			? '<span>' . esc_html__( 'None chosen, so the emails use your site\'s logo:', 'crc-real-estate' ) . '</span>' . wp_get_attachment_image( $site, 'medium', false, array( 'alt' => '' ) )
+			/* translators: %s: the business name, e.g. CRC Properties. */
+			: '<span>' . esc_html( sprintf( __( 'None chosen, so the emails show your business name, %s, in its place.', 'crc-real-estate' ), Legal::business( 'name' ) ) ) . '</span>';
+
+		printf(
+			'<div class="crc-email-logo" data-crc-email-logo data-title="%1$s" data-button="%2$s"><input type="hidden" name="%3$s[logo]" value="%4$s" data-crc-logo-id><div class="crc-email-logo-preview" data-crc-logo-preview>%5$s</div><template data-crc-logo-empty>%6$s</template><p class="crc-email-logo-buttons"><button type="button" class="button" data-crc-logo-choose>%7$s</button> <button type="button" class="button-link button-link-delete" data-crc-logo-remove%8$s>%9$s</button></p><p class="description">%10$s</p></div>',
+			esc_attr__( 'Logo for the emails', 'crc-real-estate' ),
+			esc_attr__( 'Use this logo', 'crc-real-estate' ),
+			esc_attr( $name ),
+			esc_attr( $id ? (string) $id : '' ),
+			$image ? $image : $empty, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			$empty, // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above.
+			esc_html__( 'Choose logo', 'crc-real-estate' ),
+			$image ? '' : ' hidden',
+			esc_html__( 'Remove', 'crc-real-estate' ),
+			esc_html__( 'Shown at the top of every email, at most 200 pixels wide and 56 tall. A PNG or JPG shows in every email app (an SVG doesn\'t show in Gmail), and one on a see-through or light background suits the emails\' pale grey. Save, then use Preview below to see it.', 'crc-real-estate' )
+		);
+	}
+
+	/**
+	 * The emails a preview or a test can show: form => its kind.
+	 *
+	 * @return string[]
+	 */
+	private static function stores() {
+		return array(
+			'inquiry' => Inquiries::class,
+			'contact' => Contact_Messages::class,
+			'ad'      => Ad_Requests::class,
+		);
+	}
+
+	/**
+	 * Under the Emails tab's settings: each form's email to look at, with
+	 * made-up details, and a test sent to you.
+	 */
+	private function email_tools() {
+		$user = wp_get_current_user();
+		?>
+		<h2><?php esc_html_e( 'See and test the emails', 'crc-real-estate' ); ?></h2>
+		<p><?php esc_html_e( 'Each form\'s email with made-up details, as it looks with the settings saved above.', 'crc-real-estate' ); ?></p>
+		<table class="form-table" role="presentation">
+			<tr>
+				<th scope="row"><?php esc_html_e( 'Preview', 'crc-real-estate' ); ?></th>
+				<td class="crc-email-previews">
+					<?php foreach ( Settings::mail_forms() as $form => $label ) : ?>
+						<a class="button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array( 'action' => self::PREVIEW, 'form' => $form ), admin_url( 'admin-post.php' ) ), self::PREVIEW ) ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $label ); ?></a>
+					<?php endforeach; ?>
+					<p class="description"><?php esc_html_e( 'Opens in a new tab.', 'crc-real-estate' ); ?></p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="crc-email-test-form"><?php esc_html_e( 'Send a test', 'crc-real-estate' ); ?></label></th>
+				<td>
+					<form action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" method="post" class="crc-email-test">
+						<input type="hidden" name="action" value="<?php echo esc_attr( self::TEST ); ?>">
+						<?php wp_nonce_field( self::TEST ); ?>
+						<select id="crc-email-test-form" name="form">
+							<?php foreach ( Settings::mail_forms() as $form => $label ) : ?>
+								<option value="<?php echo esc_attr( $form ); ?>"<?php selected( 'ad', $form ); ?>><?php echo esc_html( $label ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<button type="submit" class="button"><?php esc_html_e( 'Send a test email', 'crc-real-estate' ); ?></button>
+					</form>
+					<p class="description">
+						<?php
+						/* translators: %s: the email address of the person signed in. */
+						echo esc_html( sprintf( __( 'Sent to you at %s, with made-up details, to see how it looks in your email app.', 'crc-real-estate' ), $user->user_email ) );
+						?>
+					</p>
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	/**
+	 * After a test email: whether it went, and where to look if it didn't come.
+	 */
+	private function test_notice() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Only picks a note to show.
+		$test = isset( $_GET['crc_test'] ) ? sanitize_key( wp_unslash( $_GET['crc_test'] ) ) : '';
+
+		if ( 'sent' === $test ) {
+			/* translators: %s: email address. */
+			printf( '<div class="notice notice-success is-dismissible"><p>%s</p></div>', esc_html( sprintf( __( 'The test email went to %s. If it isn\'t there in a few minutes, look in the spam folder.', 'crc-real-estate' ), wp_get_current_user()->user_email ) ) );
+		} elseif ( 'failed' === $test ) {
+			printf( '<div class="notice notice-error is-dismissible"><p>%s</p></div>', esc_html__( 'The test email couldn\'t be sent. Ask your host to check the site\'s email, or add an SMTP plugin that sends email through your email account.', 'crc-real-estate' ) );
+		}
+	}
+
+	/**
+	 * Shows a form's email with made-up details, in a tab of its own.
+	 */
+	public function preview() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sorry, you can\'t see this.', 'crc-real-estate' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( self::PREVIEW );
+
+		$stores = self::stores();
+		$form   = isset( $_GET['form'] ) ? sanitize_key( wp_unslash( $_GET['form'] ) ) : '';
+		$store  = isset( $stores[ $form ] ) ? $stores[ $form ] : Ad_Requests::class;
+
+		nocache_headers();
+		header( 'Content-Type: text/html; charset=UTF-8' );
+		echo Mail::html( $store::message( $store::sample() ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped in Mail::html().
+		exit;
+	}
+
+	/**
+	 * Sends a form's email with made-up details to the person signed in,
+	 * then goes back to the Emails tab to say whether it went.
+	 */
+	public function test() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die( esc_html__( 'Sorry, you can\'t do this.', 'crc-real-estate' ), '', array( 'response' => 403 ) );
+		}
+
+		check_admin_referer( self::TEST );
+
+		$stores  = self::stores();
+		$form    = isset( $_POST['form'] ) ? sanitize_key( wp_unslash( $_POST['form'] ) ) : '';
+		$store   = isset( $stores[ $form ] ) ? $stores[ $form ] : Ad_Requests::class;
+		$to      = (string) wp_get_current_user()->user_email;
+		$message = $store::message( $store::sample() );
+		/* translators: %s: the email's own subject. */
+		$sent = is_email( $to ) && Mail::send( array( $to ), sprintf( __( 'Test: %s', 'crc-real-estate' ), $message['subject'] ), $message );
+
+		wp_safe_redirect( add_query_arg( 'crc_test', $sent ? 'sent' : 'failed', self::url( 'emails' ) ) );
+		exit;
 	}
 
 	/**
@@ -572,7 +807,6 @@ final class Settings_Page {
 		add_settings_section( 'crc_re_inquiry', __( 'Forms', 'crc-real-estate' ), array( $this, 'inquiry_guide' ), self::SLUG );
 
 		$fields = array(
-			'email'      => __( 'Send form emails to', 'crc-real-estate' ),
 			'captcha'    => __( 'Spam protection', 'crc-real-estate' ),
 			'site_key'   => __( 'hCaptcha site key', 'crc-real-estate' ),
 			'secret_key' => __( 'hCaptcha secret key', 'crc-real-estate' ),
@@ -601,7 +835,11 @@ final class Settings_Page {
 			return sprintf( '<a href="%1$s" target="_blank" rel="noopener">%2$s</a>', esc_url( $url ), esc_html( $text ) );
 		};
 
-		echo '<p>' . esc_html__( 'These settings are shared by the inquiry form, the contact form and the post a free ad form. Everything people send with them is emailed to you and also kept in wp-admin, each form in its own menu: Inquiries, Contact Messages and Free Ads. That way nothing is lost if an email doesn\'t arrive, and new ones are counted on each menu until you open them.', 'crc-real-estate' ) . '</p>';
+		printf(
+			/* translators: %s: link to the Emails tab. */
+			'<p>' . esc_html__( 'These settings are shared by the inquiry form, the contact form and the post a free ad form. Everything people send with them is emailed to the addresses on the %s tab and also kept in wp-admin, each form in its own menu: Inquiries, Contact Messages and Free Ads. That way nothing is lost if an email doesn\'t arrive, and new ones are counted on each menu until you open them.', 'crc-real-estate' ) . '</p>',
+			'<a href="' . esc_url( self::url( 'emails' ) ) . '">' . esc_html__( 'Emails', 'crc-real-estate' ) . '</a>' // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped here.
+		);
 
 		printf(
 			/* translators: 1: hCaptcha link, 2: hCaptcha Sites link, 3: hCaptcha Settings link. */
@@ -621,19 +859,6 @@ final class Settings_Page {
 		$name = Settings::INQUIRY_OPTION;
 
 		switch ( $args['key'] ) {
-			case 'email':
-				$admin = (string) get_option( 'admin_email' );
-
-				printf(
-					'<input type="text" id="crc-inquiry-email" name="%1$s[email]" value="%2$s" class="regular-text" placeholder="%3$s" autocomplete="off" spellcheck="false"><p class="description">%4$s</p>',
-					esc_attr( $name ),
-					esc_attr( Settings::inquiry( 'email' ) ),
-					esc_attr( $admin ),
-					/* translators: %s: the site's admin email address. */
-					esc_html( sprintf( __( 'Every inquiry, contact message and free ad is emailed here. To send them to more than one person, put commas between the addresses. Leave it empty to use the site\'s admin email (%s). Replying to one of these emails answers the person who sent it, so you can write back straight away.', 'crc-real-estate' ), $admin ) )
-				);
-				break;
-
 			case 'captcha':
 				$notes = '';
 
@@ -711,6 +936,7 @@ final class Settings_Page {
 	private function tabs() {
 		return array(
 			'general'   => __( 'General', 'crc-real-estate' ),
+			'emails'    => __( 'Emails', 'crc-real-estate' ),
 			'updates'   => __( 'Updates', 'crc-real-estate' ),
 			'developer' => __( 'Developer options', 'crc-real-estate' ),
 		);
@@ -746,6 +972,16 @@ final class Settings_Page {
 
 			<?php if ( 'updates' === $current ) : ?>
 				<?php $this->updates(); ?>
+			<?php elseif ( 'emails' === $current ) : ?>
+				<?php $this->test_notice(); ?>
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( self::EMAILS_GROUP );
+					do_settings_sections( self::EMAILS_PAGE );
+					submit_button();
+					?>
+				</form>
+				<?php $this->email_tools(); ?>
 			<?php elseif ( 'developer' === $current ) : ?>
 				<form action="options.php" method="post">
 					<?php

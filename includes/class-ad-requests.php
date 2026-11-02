@@ -20,8 +20,9 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Ad_Requests extends Submissions {
 
-	const NAME     = 'crc_ad_request';
-	const NEW_META = '_crc_ad_new';
+	const NAME      = 'crc_ad_request';
+	const NEW_META  = '_crc_ad_new';
+	const MAIL_LIST = 'ad';
 
 	/**
 	 * Details kept with each ad: key => field name. Only older ads have a
@@ -176,14 +177,13 @@ final class Ad_Requests extends Submissions {
 	}
 
 	/**
-	 * Emails an ad to the addresses in Settings, with how many photos came.
-	 * Replying answers the person who sent it.
+	 * What the email about an ad says, with how many photos came.
 	 *
 	 * @param array $ad      Checked ad: the keys of META except "mailed", and "photos", how many photos were kept.
-	 * @param int   $post_id Kept ad's ID, for a link to it; 0 when it wasn't kept.
-	 * @return bool Whether the email was handed over for sending.
+	 * @param int   $post_id Kept ad's ID; 0 when it wasn't kept.
+	 * @return array See Submissions::email().
 	 */
-	public static function mail( array $ad, $post_id = 0 ) {
+	public static function email( array $ad, $post_id = 0 ) {
 		$who    = self::greeting( $ad );
 		$title  = self::plain( self::title( $ad ) );
 		$photos = isset( $ad['photos'] ) ? (int) $ad['photos'] : 0;
@@ -205,15 +205,40 @@ final class Ad_Requests extends Submissions {
 			: __( 'None sent', 'crc-real-estate' );
 		$rows[] = array( __( 'Photos', 'crc-real-estate' ), esc_html( $count ), $count );
 
-		return self::send(
+		return array(
 			/* translators: %s: the ad's title. */
-			sprintf( __( 'New free ad: %s', 'crc-real-estate' ), '' !== $title ? $title : self::name( $ad ) ),
-			sprintf( esc_html( $intro ), esc_html( $who ) ),
-			sprintf( $intro, $who ),
-			array_merge( $rows, self::end_rows( $ad ) ),
-			$ad,
-			$post_id,
-			__( 'This ad is also kept in wp-admin under Free Ads.', 'crc-real-estate' )
+			'subject'    => sprintf( __( 'New free ad: %s', 'crc-real-estate' ), '' !== $title ? $title : self::name( $ad ) ),
+			'label'      => __( 'New free ad', 'crc-real-estate' ),
+			'heading'    => '' !== $title ? $title : self::name( $ad ),
+			'intro_html' => sprintf( esc_html( $intro ), esc_html( $who ) ),
+			'intro_text' => sprintf( $intro, $who ),
+			'rows'       => array_merge( $rows, self::end_rows( $ad ) ),
+			'kept'       => __( 'This ad is also kept in wp-admin under Free Ads.', 'crc-real-estate' ),
+		);
+	}
+
+	/**
+	 * A made-up ad, to see and test its email.
+	 *
+	 * @return array
+	 */
+	public static function sample() {
+		return array(
+			'name'          => 'Kamal Silva',
+			'phone'         => '+94771234567',
+			'country'       => 'LK',
+			'email'         => 'kamal.silva@example.com',
+			'category'      => 'lands',
+			'property_type' => '',
+			'location'      => 'Matara',
+			'price'         => '25000000',
+			'land_size'     => '',
+			'bedrooms'      => '',
+			'title'         => '',
+			'description'   => __( '15 perches of flat land close to the beach road, with water and electricity. The deed is clear.', 'crc-real-estate' ),
+			'photos'        => 4,
+			'page'          => home_url( '/' ),
+			'note'          => '',
 		);
 	}
 }

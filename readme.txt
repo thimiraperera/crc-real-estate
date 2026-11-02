@@ -49,6 +49,11 @@ Country flags: flag-icons by lipis (MIT license), https://github.com/lipis/flag-
 
 == Changelog ==
 
+= 0.53.0 =
+* Listings → Settings has an Emails tab, between General and Updates. Each form has its own list of addresses, Listing inquiries, Contact messages and Free ads, so each can go to different people; put commas between addresses for more than one. Until the tab is first saved, all three use the list they shared before, and an empty list uses the site's admin email. The shared "Send form emails to" box is gone from General.
+* The emails have a new look: your logo at the top (chosen on the Emails tab from the Media Library, or else the site's own logo, or else the business name), then a white card with a line in the site's main colour from Elementor's Site Settings, what came and from whom, the details in rows, an Open in wp-admin button, how to answer, and the business name and address at the bottom with a line saying why the email came. A plain text copy goes with each one.
+* The Emails tab shows each form's email with made-up details, and sends a test to you, to see it in your email app.
+
 = 0.52.0 =
 * Search filters: Looking for is a list of round radio buttons in the site's green, a ring with a dot when chosen, and one category is chosen at a time again, each with its own filters. Ticking several categories at once (0.50.0) and the price for Lands with Properties for Sale (0.51.0) are taken out; an address with several categories in it shows every listing. The tick boxes in More filters and Sort by's dropdown stay as they are.
 

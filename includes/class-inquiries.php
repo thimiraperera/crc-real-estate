@@ -16,8 +16,9 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Inquiries extends Submissions {
 
-	const NAME     = 'crc_inquiry';
-	const NEW_META = '_crc_inquiry_new';
+	const NAME      = 'crc_inquiry';
+	const NEW_META  = '_crc_inquiry_new';
+	const MAIL_LIST = 'inquiry';
 
 	/**
 	 * Details kept with each inquiry: key => field name.
@@ -102,37 +103,63 @@ final class Inquiries extends Submissions {
 	}
 
 	/**
-	 * Emails an inquiry to the addresses in Settings. Replying answers the
-	 * person who asked.
+	 * What the email about an inquiry says.
 	 *
 	 * @param array $inquiry Checked inquiry: the keys of META except "mailed".
-	 * @param int   $post_id Kept inquiry's ID, for a link to it; 0 when it wasn't kept.
-	 * @return bool Whether the email was handed over for sending.
+	 * @param int   $post_id Kept inquiry's ID; 0 when it wasn't kept.
+	 * @return array See Submissions::email().
 	 */
-	public static function mail( array $inquiry, $post_id = 0 ) {
+	public static function email( array $inquiry, $post_id = 0 ) {
 		$listing = self::listing( $inquiry );
 		$first   = (string) $inquiry['first_name'];
 		$title   = $listing ? self::plain( get_the_title( $listing ) ) : '';
-		$subject = $listing
-			/* translators: %s: listing title. */
-			? sprintf( __( 'New inquiry: %s', 'crc-real-estate' ), $title )
-			/* translators: %s: site name. */
-			: sprintf( __( 'New inquiry from %s', 'crc-real-estate' ), self::plain( get_option( 'blogname' ) ) );
-
-		$intro = $listing
+		$intro   = $listing
 			/* translators: 1: first name, 2: listing title. */
 			? __( '%1$s sent an inquiry about %2$s.', 'crc-real-estate' )
 			/* translators: 1: first name. */
 			: __( '%1$s sent an inquiry from your website.', 'crc-real-estate' );
 
-		return self::send(
-			$subject,
-			sprintf( esc_html( $intro ), esc_html( $first ), $listing ? '<a href="' . esc_url( get_permalink( $listing ) ) . '">' . esc_html( $title ) . '</a>' : '' ),
-			sprintf( $intro, $first, $title ),
-			self::rows( $inquiry, $listing ),
-			$inquiry,
-			$post_id,
-			__( 'This inquiry is also kept in wp-admin under Inquiries.', 'crc-real-estate' )
+		return array(
+			'subject'    => $listing
+				/* translators: %s: listing title. */
+				? sprintf( __( 'New inquiry: %s', 'crc-real-estate' ), $title )
+				/* translators: %s: site name. */
+				: sprintf( __( 'New inquiry from %s', 'crc-real-estate' ), self::plain( get_option( 'blogname' ) ) ),
+			'label'      => __( 'New inquiry', 'crc-real-estate' ),
+			'heading'    => self::name( $inquiry ),
+			'intro_html' => sprintf( esc_html( $intro ), esc_html( $first ), $listing ? self::link( get_permalink( $listing ), $title ) : '' ),
+			'intro_text' => sprintf( $intro, $first, $title ),
+			'rows'       => self::rows( $inquiry, $listing ),
+			'kept'       => __( 'This inquiry is also kept in wp-admin under Inquiries.', 'crc-real-estate' ),
+		);
+	}
+
+	/**
+	 * A made-up inquiry about the newest listing, to see and test its email.
+	 *
+	 * @return array
+	 */
+	public static function sample() {
+		$newest = get_posts(
+			array(
+				'post_type'      => Post_Type::NAME,
+				'post_status'    => 'publish',
+				'posts_per_page' => 1,
+				'fields'         => 'ids',
+			)
+		);
+		$id     = $newest ? (int) $newest[0] : 0;
+
+		return array(
+			'first_name' => 'Ayesha',
+			'last_name'  => 'Fernando',
+			'phone'      => '+94771234567',
+			'country'    => 'LK',
+			'email'      => 'ayesha.fernando@example.com',
+			'message'    => __( 'Is this still available? I\'d like to see it this weekend.', 'crc-real-estate' ),
+			'listing'    => $id,
+			'page'       => $id ? (string) get_permalink( $id ) : home_url( '/' ),
+			'note'       => '',
 		);
 	}
 

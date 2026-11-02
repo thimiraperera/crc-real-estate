@@ -389,7 +389,7 @@ abstract class Submissions_Screen {
 		if ( '0' === $item['mailed'] ) {
 			$rows[ __( 'Email to you', 'crc-real-estate' ) ] = '<span class="crc-warning">' . esc_html( $unmailed ) . '</span>';
 		} elseif ( '1' === $item['mailed'] ) {
-			$rows[ __( 'Email to you', 'crc-real-estate' ) ] = esc_html__( 'Sent to the address in Listings → Settings.', 'crc-real-estate' );
+			$rows[ __( 'Email to you', 'crc-real-estate' ) ] = esc_html__( 'Sent to the addresses for this form on the Emails tab of Listings → Settings.', 'crc-real-estate' );
 		}
 
 		if ( '' !== $item['note'] ) {

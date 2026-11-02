@@ -15,13 +15,15 @@ defined( 'ABSPATH' ) || exit;
  * doesn't arrive. Each one counts as new until it is opened.
  *
  * Each kind sets NAME (its post type), NEW_META (the field that marks it
- * new) and META (what is kept: key => field name, always with "mailed").
+ * new), META (what is kept: key => field name, always with "mailed") and
+ * MAIL_LIST (whose addresses its emails go to, see Settings::mail_forms()).
  */
 abstract class Submissions {
 
-	const NAME     = '';
-	const NEW_META = '';
-	const META     = array();
+	const NAME      = '';
+	const NEW_META  = '';
+	const META      = array();
+	const MAIL_LIST = '';
 
 	/**
 	 * Registers hooks.
@@ -45,14 +47,35 @@ abstract class Submissions {
 	abstract protected static function labels();
 
 	/**
-	 * Emails what was sent to the addresses in Settings. Replying answers
-	 * the person who sent it.
+	 * What the email about it says.
+	 *
+	 * @param array $item    Checked details: the keys of META except "mailed".
+	 * @param int   $post_id Kept item's ID, or 0 when it wasn't kept.
+	 * @return array 'subject', 'label' (what it is), 'heading', 'intro_html',
+	 *               'intro_text', 'rows' (each array( label, HTML, plain text ))
+	 *               and 'kept' (where it is kept in wp-admin).
+	 */
+	abstract public static function email( array $item, $post_id = 0 );
+
+	/**
+	 * Made-up details, to see and test its email from the Emails tab of
+	 * Listings → Settings.
+	 *
+	 * @return array The keys of META except "mailed".
+	 */
+	abstract public static function sample();
+
+	/**
+	 * Emails what was sent to this form's addresses in Settings. Replying
+	 * answers the person who sent it, when they gave an email address.
 	 *
 	 * @param array $item    Checked details: the keys of META except "mailed".
 	 * @param int   $post_id Kept item's ID, for a link to it; 0 when it wasn't kept.
 	 * @return bool Whether the email was handed over for sending.
 	 */
-	abstract public static function mail( array $item, $post_id = 0 );
+	public static function mail( array $item, $post_id = 0 ) {
+		return static::send( Settings::recipients( static::MAIL_LIST ), $item, $post_id );
+	}
 
 	/**
 	 * A menu icon from an SVG drawing. WordPress colours it to match the menu.
@@ -262,7 +285,7 @@ abstract class Submissions {
 	 * @return string
 	 */
 	protected static function link( $url, $text ) {
-		return '<a href="' . esc_url( $url ) . '">' . esc_html( $text ) . '</a>';
+		return Mail::link( $url, $text );
 	}
 
 	/**
@@ -321,66 +344,62 @@ abstract class Submissions {
 	}
 
 	/**
-	 * Sends the email: an HTML table of the details with a plain text copy,
-	 * to the addresses in Settings. Replying answers the person who sent it,
-	 * when they gave an email address.
+	 * The email about it in the plugin's look (see Mail): what it is, the
+	 * details, a button to open it in wp-admin, how to answer, and why the
+	 * email came.
 	 *
-	 * @param string  $subject    Subject.
-	 * @param string  $intro_html First line, as HTML.
-	 * @param string  $intro_text First line, as plain text.
-	 * @param array[] $rows       Rows of array( label, HTML, plain text ).
-	 * @param array   $item       Details.
-	 * @param int     $post_id    Kept item's ID, or 0.
-	 * @param string  $kept       Where it is kept in wp-admin.
-	 * @return bool Whether the email was handed over for sending.
+	 * @param array $item    Details.
+	 * @param int   $post_id Kept item's ID, or 0.
+	 * @return array 'subject', and the parts for Mail.
 	 */
-	protected static function send( $subject, $intro_html, $intro_text, array $rows, array $item, $post_id, $kept ) {
-		$to = Settings::inquiry_recipients();
-
-		if ( ! $to ) {
-			return false;
-		}
-
-		$html  = '<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#ffffff;">';
-		$html .= '<div style="max-width:600px;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.5;color:#121212;">';
-		$html .= '<p style="margin:0 0 16px;">' . $intro_html . '</p>';
-		$html .= '<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;border-collapse:collapse;">';
-		$text  = $intro_text . "\n\n";
-
-		foreach ( $rows as $row ) {
-			$html .= '<tr><th scope="row" style="width:120px;padding:10px 16px 10px 0;border-top:1px solid #e5e5e5;text-align:left;vertical-align:top;font-weight:600;">' . esc_html( $row[0] ) . '</th>';
-			$html .= '<td style="padding:10px 0;border-top:1px solid #e5e5e5;vertical-align:top;">' . $row[1] . '</td></tr>';
-			$text .= $row[0] . ': ' . $row[2] . "\n";
-		}
-
+	public static function message( array $item, $post_id = 0 ) {
+		$email = static::email( $item, $post_id );
+		$forms = Settings::mail_forms();
 		$reply = '' !== (string) $item['email']
 			/* translators: %s: first name, or the whole name when the form asks for it in one box. */
 			? sprintf( __( 'Reply to this email to answer %s directly.', 'crc-real-estate' ), static::greeting( $item ) )
 			/* translators: %s: first name, or the whole name when the form asks for it in one box. */
 			: sprintf( __( '%s didn\'t give an email address, so call or WhatsApp them to answer.', 'crc-real-estate' ), static::greeting( $item ) );
-		$link  = static::admin_link( $post_id );
 
-		$html .= '</table>';
-		$html .= '<p style="margin:24px 0 0;color:#6d6d6d;font-size:14px;">' . esc_html( $reply ) . ' <a href="' . esc_url( $link ) . '" style="color:#6d6d6d;">' . esc_html( $kept ) . '</a></p>';
-		$html .= '</div></body></html>';
-		$text .= "\n" . $reply . "\n" . $kept . "\n" . $link . "\n";
+		return array(
+			'subject'    => $email['subject'],
+			'preheader'  => $email['intro_text'],
+			'label'      => $email['label'],
+			'heading'    => $email['heading'],
+			'intro'      => $email['intro_html'],
+			'intro_text' => $email['intro_text'],
+			'rows'       => $email['rows'],
+			'button'     => array( static::admin_link( $post_id ), __( 'Open in wp-admin', 'crc-real-estate' ) ),
+			'note'       => $reply . ' ' . $email['kept'],
+			'footer'     => isset( $forms[ static::MAIL_LIST ] )
+				/* translators: %s: the form's list, e.g. "Free ads". */
+				? sprintf( __( 'This email came because your address is on the list for %s, on the Emails tab of Listings → Settings.', 'crc-real-estate' ), $forms[ static::MAIL_LIST ] )
+				: '',
+		);
+	}
 
-		$headers = array( 'Content-Type: text/html; charset=UTF-8' );
+	/**
+	 * Sends the email about it. Replying answers the person who sent it,
+	 * when they gave an email address.
+	 *
+	 * @param string[] $to      Addresses.
+	 * @param array    $item    Details.
+	 * @param int      $post_id Kept item's ID, or 0.
+	 * @return bool Whether the email was handed over for sending.
+	 */
+	public static function send( array $to, array $item, $post_id = 0 ) {
+		if ( ! $to ) {
+			return false;
+		}
+
+		$message = static::message( $item, $post_id );
+		$headers = array();
 
 		if ( '' !== (string) $item['email'] ) {
 			$headers[] = 'Reply-To: ' . str_replace( array( "\r", "\n", '"', '<', '>', ',', ';' ), '', static::name( $item ) ) . ' <' . $item['email'] . '>';
 		}
 
-		// A plain text copy too, for email apps that don't show HTML.
-		$plain = function ( $phpmailer ) use ( $text ) {
-			$phpmailer->AltBody = $text; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- PHPMailer's property.
-		};
-
-		add_action( 'phpmailer_init', $plain );
-		$sent = wp_mail( $to, $subject, $html, $headers );
-		remove_action( 'phpmailer_init', $plain );
-
-		return (bool) $sent;
+		return Mail::send( $to, $message['subject'], $message, $headers );
 	}
 
 	/**

@@ -12,7 +12,8 @@ defined( 'ABSPATH' ) || exit;
 /**
  * The default contact numbers and button texts from Listings → Settings, and
  * each listing's own ones when it has them; the map settings; the inquiry
- * form settings; and the keyword ticker's words and speed.
+ * form settings; who each form's emails go to and the emails' logo; and the
+ * keyword ticker's words and speed.
  */
 final class Settings {
 
@@ -23,6 +24,7 @@ final class Settings {
 	const CLEANUP_OPTION    = 'crc_re_cleanup';
 	const DEVELOPER_OPTION  = 'crc_re_developer';
 	const PHOTOS_OPTION     = 'crc_re_ad_photos';
+	const EMAILS_OPTION     = 'crc_re_emails';
 	const TICKER_MAX        = 200;
 	const KEYWORD_MAX       = 100;
 	const DEFAULT_NUMBER    = '+94777643264';
@@ -313,8 +315,9 @@ final class Settings {
 	}
 
 	/**
-	 * Inquiry form settings used until they are saved: where inquiries are
-	 * emailed (empty for the site's admin email) and hCaptcha.
+	 * Inquiry form settings used until they are saved: hCaptcha, and "email",
+	 * the addresses all three forms were emailed to before each had its own
+	 * on the Emails tab (see emails()).
 	 *
 	 * @return array
 	 */
@@ -341,15 +344,80 @@ final class Settings {
 	}
 
 	/**
-	 * Where inquiries are emailed: the addresses from Settings, or the
-	 * site's admin email.
+	 * The forms that email what people send, each with its own addresses:
+	 * key => name.
 	 *
 	 * @return string[]
 	 */
-	public static function inquiry_recipients() {
-		$emails = self::email_list( self::inquiry( 'email' ) );
+	public static function mail_forms() {
+		return array(
+			'inquiry' => __( 'Listing inquiries', 'crc-real-estate' ),
+			'contact' => __( 'Contact messages', 'crc-real-estate' ),
+			'ad'      => __( 'Free ads', 'crc-real-estate' ),
+		);
+	}
+
+	/**
+	 * Email settings used until they are saved: each form's addresses (empty
+	 * for the site's admin email) and the logo, an image's ID.
+	 *
+	 * @return array
+	 */
+	public static function emails_defaults() {
+		return array_merge( array_fill_keys( array_keys( self::mail_forms() ), '' ), array( 'logo' => 0 ) );
+	}
+
+	/**
+	 * A saved email setting. Until the Emails tab is first saved, every
+	 * form's addresses are the ones all three shared before.
+	 *
+	 * @param string $key A form from mail_forms(), or "logo".
+	 * @return mixed
+	 */
+	public static function emails( $key ) {
+		$saved = get_option( self::EMAILS_OPTION, null );
+
+		if ( ! is_array( $saved ) ) {
+			$saved = array_fill_keys( array_keys( self::mail_forms() ), (string) self::inquiry( 'email' ) );
+		}
+
+		$saved = array_merge( self::emails_defaults(), $saved );
+
+		return isset( $saved[ $key ] ) ? $saved[ $key ] : null;
+	}
+
+	/**
+	 * Where a form's emails go: its addresses from the Emails tab, or the
+	 * site's admin email.
+	 *
+	 * @param string $form A form from mail_forms().
+	 * @return string[]
+	 */
+	public static function recipients( $form ) {
+		$emails = self::email_list( self::emails( $form ) );
 
 		return $emails ? $emails : self::email_list( get_option( 'admin_email' ) );
+	}
+
+	/**
+	 * Cleans the email settings: each form's addresses, and the logo, which
+	 * must be an image in the Media Library.
+	 *
+	 * @param mixed $input Submitted settings.
+	 * @return array
+	 */
+	public static function sanitize_emails( $input ) {
+		$input = is_array( $input ) ? $input : array();
+		$clean = array();
+
+		foreach ( array_keys( self::mail_forms() ) as $form ) {
+			$clean[ $form ] = implode( ', ', self::email_list( isset( $input[ $form ] ) ? $input[ $form ] : '' ) );
+		}
+
+		$logo          = isset( $input['logo'] ) && is_scalar( $input['logo'] ) ? absint( $input['logo'] ) : 0;
+		$clean['logo'] = $logo && wp_attachment_is_image( $logo ) ? $logo : 0;
+
+		return $clean;
 	}
 
 	/**
@@ -394,7 +462,8 @@ final class Settings {
 
 	/**
 	 * Cleans the inquiry form settings. The secret key isn't shown on the
-	 * settings page, so an empty box keeps the saved one.
+	 * settings page, so an empty box keeps the saved one; the old shared
+	 * addresses aren't shown any more either, and are kept as they were.
 	 *
 	 * @param mixed $input Submitted settings.
 	 * @return array
@@ -410,7 +479,7 @@ final class Settings {
 		}
 
 		return array(
-			'email'      => implode( ', ', self::email_list( isset( $input['email'] ) ? $input['email'] : '' ) ),
+			'email'      => implode( ', ', self::email_list( isset( $input['email'] ) ? $input['email'] : ( isset( $saved['email'] ) ? $saved['email'] : '' ) ) ),
 			'captcha'    => ! empty( $input['captcha'] ),
 			'site_key'   => self::sanitize_captcha_key( isset( $input['site_key'] ) ? $input['site_key'] : '' ),
 			'secret_key' => $secret,
